@@ -1,0 +1,4 @@
+{
+  "dotnet.defaultSolution": "Seven.sln",
+  "dotnet.server.useOmnisharp": false
+}

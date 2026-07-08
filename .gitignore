@@ -1,0 +1,25 @@
+# Seven.Master 仓库根目录
+
+# 操作系统
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 环境变量与密钥（勿提交真实配置）
+.env
+.env.*
+!.env.example
+
+# Docker 本地数据卷
+**/docker-data/
+**/data/mysql/
+**/data/redis/
+**/data/minio/
+
+# IDE
+.idea/
+
+# 临时文件
+*.tmp
+*.bak
+*~

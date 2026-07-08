@@ -1,0 +1,6 @@
+@Seven.WebApi_HostAddress = http://localhost:5228
+
+GET {{Seven.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
