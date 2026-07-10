@@ -1,10 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seven-vue3</title>
+    <meta name="description" content="Seven WMS/WCS 工业级仓储管理与设备调度平台" />
+    <title>Seven WMS · 仓储控制系统</title>
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('theme');
+          var mode = 'system';
+          if (raw) {
+            var p = JSON.parse(raw);
+            if (p.mode === 'light' || p.mode === 'dark' || p.mode === 'system') mode = p.mode;
+          }
+          var dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.dataset.sevenTheme = dark ? 'dark' : 'light';
+        } catch (e) {}
+        try {
+          var localeRaw = localStorage.getItem('locale');
+          var lang = 'zh-CN';
+          if (localeRaw) {
+            var lp = JSON.parse(localeRaw);
+            if (lp.locale) lang = lp.locale;
+          }
+          document.documentElement.lang = lang;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -1,10 +1,11 @@
 <template>
-  <router-view />
+  <el-config-provider :locale="localeStore.elementLocale">
+    <router-view />
+  </el-config-provider>
 </template>
 
 <script setup lang="ts">
-</script>
+import { useLocaleStore } from './stores/locale'
 
-<style>
-html, body, #app { margin: 0; padding: 0; height: 100%; }
-</style>
+const localeStore = useLocaleStore()
+</script>

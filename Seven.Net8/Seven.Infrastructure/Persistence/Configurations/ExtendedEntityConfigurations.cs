@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Entities.Board;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.Flow;
@@ -151,5 +152,36 @@ public class AppNewsConfiguration : IEntityTypeConfiguration<App_News>
     {
         builder.ToTable("App_News");
         builder.HasKey(x => x.Id);
+    }
+}
+
+/// <summary>告警码配置</summary>
+public class SysAlarmCodeConfiguration : IEntityTypeConfiguration<Sys_AlarmCode>
+{
+    /// <inheritdoc />
+    public void Configure(EntityTypeBuilder<Sys_AlarmCode> builder)
+    {
+        builder.ToTable("Sys_AlarmCode");
+        builder.HasKey(x => x.AlarmCode_Id);
+        builder.HasIndex(x => x.Code).IsUnique();
+        builder.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        builder.Property(x => x.Message).HasMaxLength(500).IsRequired();
+        builder.Property(x => x.Category).HasMaxLength(32);
+    }
+}
+
+/// <summary>告警记录</summary>
+public class SysAlarmConfiguration : IEntityTypeConfiguration<Sys_Alarm>
+{
+    /// <inheritdoc />
+    public void Configure(EntityTypeBuilder<Sys_Alarm> builder)
+    {
+        builder.ToTable("Sys_Alarm");
+        builder.HasKey(x => x.Alarm_Id);
+        builder.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        builder.Property(x => x.Message).HasMaxLength(500).IsRequired();
+        builder.Property(x => x.Category).HasMaxLength(32);
+        builder.Property(x => x.Source).HasMaxLength(128);
+        builder.Property(x => x.DeviceName).HasMaxLength(128);
     }
 }

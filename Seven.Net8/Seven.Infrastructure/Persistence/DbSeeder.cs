@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Seven.Application.Interfaces;
+using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Entities.System;
+using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.Security;
 
 namespace Seven.Infrastructure.Persistence;
@@ -19,8 +22,11 @@ public static class DbSeeder
         var db = scope.ServiceProvider.GetRequiredService<SevenDbContext>();
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SevenDbContext>>();
+        var alarmOptions = scope.ServiceProvider.GetRequiredService<IOptions<AlarmOptions>>().Value;
 
         await db.Database.EnsureCreatedAsync();
+
+        await SeedAlarmCodesAsync(db, alarmOptions, logger);
 
         if (await db.Sys_Users.AnyAsync()) return;
 
@@ -57,8 +63,9 @@ public static class DbSeeder
             new { ParentId = 0, MenuName = "部门管理", Icon = (string?)null, OrderNo = 4, Url = "/Sys_Department", TableName = "Sys_Department", Auth = "Search,Add,Update,Delete" },
             new { ParentId = 0, MenuName = "字典管理", Icon = (string?)null, OrderNo = 5, Url = "/Sys_Dictionary", TableName = "Sys_Dictionary", Auth = "Search,Add,Update,Delete" },
             new { ParentId = 0, MenuName = "日志管理", Icon = (string?)null, OrderNo = 6, Url = "/Sys_Log", TableName = "Sys_Log", Auth = "Search" },
-            new { ParentId = 0, MenuName = "代码生成", Icon = (string?)null, OrderNo = 7, Url = "/coder", TableName = "Sys_TableInfo", Auth = "Search,Add" },
-            new { ParentId = 0, MenuName = "设备管理", Icon = (string?)null, OrderNo = 8, Url = "/Device", TableName = "Device", Auth = "Search,Add,Update,Delete" }
+            new { ParentId = 0, MenuName = "告警管理", Icon = (string?)null, OrderNo = 7, Url = "/Sys_Alarm", TableName = "Sys_Alarm", Auth = "Search,Acknowledge,Clear,Raise" },
+            new { ParentId = 0, MenuName = "代码生成", Icon = (string?)null, OrderNo = 8, Url = "/coder", TableName = "Sys_TableInfo", Auth = "Search,Add" },
+            new { ParentId = 0, MenuName = "设备管理", Icon = (string?)null, OrderNo = 9, Url = "/Device", TableName = "Device", Auth = "Search,Add,Update,Delete" }
         };
 
         var menus = menuDefs.Select(m => new Sys_Menu
@@ -88,5 +95,38 @@ public static class DbSeeder
 
         await db.SaveChangesAsync();
         logger.LogInformation("Seven 种子数据初始化完成。默认账号 admin / 123456");
+    }
+
+    /// <summary>从 appsettings Alarm:Codes 同步报警码到数据库</summary>
+    static async Task SeedAlarmCodesAsync(SevenDbContext db, AlarmOptions options, ILogger logger)
+    {
+        if (options.Codes.Count == 0) return;
+
+        var existing = await db.Sys_AlarmCodes.Select(c => c.Code).ToListAsync();
+        var added = 0;
+
+        foreach (var def in options.Codes)
+        {
+            if (string.IsNullOrWhiteSpace(def.Code) || existing.Contains(def.Code)) continue;
+
+            db.Sys_AlarmCodes.Add(new Sys_AlarmCode
+            {
+                Code = def.Code.Trim(),
+                Message = def.Message,
+                Level = def.Level,
+                Category = def.Category,
+                Remark = def.Remark,
+                Enable = 1,
+                CreateDate = DateTime.Now,
+                Creator = "system"
+            });
+            added++;
+        }
+
+        if (added > 0)
+        {
+            await db.SaveChangesAsync();
+            logger.LogInformation("已同步 {Count} 条报警码配置", added);
+        }
     }
 }

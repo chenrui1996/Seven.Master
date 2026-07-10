@@ -15,6 +15,7 @@ using Seven.Infrastructure.Caching;
 using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.Persistence;
 using Seven.Infrastructure.Security;
+using Seven.Infrastructure.Messaging;
 using Seven.Infrastructure.Storage;
 
 namespace Seven.Infrastructure;
@@ -32,10 +33,12 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<MinioOptions>(configuration.GetSection(MinioOptions.SectionName));
         services.Configure<CorsOptions>(configuration.GetSection(CorsOptions.SectionName));
+        services.Configure<AlarmOptions>(configuration.GetSection(AlarmOptions.SectionName));
 
         AddDatabase(services, configuration);
         AddCache(services, configuration);
         AddAuthentication(services, configuration);
+        services.AddSevenMessageQueue(configuration);
         AddApplicationServices(services);
 
         services.AddHttpContextAccessor();
@@ -107,6 +110,20 @@ public static class DependencyInjection
                     ValidAudience = jwt.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/hub/alarm") || path.StartsWithSegments("/hub/message")))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
         services.AddAuthorization();
     }
@@ -121,5 +138,6 @@ public static class DependencyInjection
         services.AddScoped<ISysDictionaryService, SysDictionaryService>();
         services.AddScoped<ISysLogService, SysLogService>();
         services.AddScoped<IWorkFlowService, WorkFlowService>();
+        services.AddScoped<IAlarmService, AlarmService>();
     }
 }

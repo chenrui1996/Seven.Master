@@ -1,41 +1,96 @@
 <template>
   <div class="login-page">
-    <el-card class="login-card">
-      <h2>Seven.Master</h2>
-      <p class="subtitle">企业级后台管理系统</p>
-      <el-form :model="form" @submit.prevent="handleLogin">
-        <el-form-item>
-          <el-input v-model="form.userName" placeholder="用户名" prefix-icon="User" />
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="form.password" type="password" placeholder="密码" prefix-icon="Lock" show-password />
-        </el-form-item>
-        <el-button type="primary" native-type="submit" :loading="loading" style="width:100%">登录</el-button>
-      </el-form>
-    </el-card>
+    <div class="login-toolbar">
+      <LocaleSwitch />
+      <ThemeToggle />
+    </div>
+    <div class="login-bg" aria-hidden="true">
+      <div class="login-bg__grid" />
+      <div class="login-bg__glow login-bg__glow--orange" />
+      <div class="login-bg__glow login-bg__glow--blue" />
+    </div>
+
+    <div class="login-shell">
+      <section class="login-brand">
+        <img src="../assets/icons/logo-wms.svg" alt="" class="brand-logo" />
+        <h1>{{ t('login.title') }}</h1>
+        <p class="brand-tagline">{{ t('login.tagline') }}</p>
+        <ul class="feature-list">
+          <li><el-icon><Box /></el-icon>{{ t('login.featureWms') }}</li>
+          <li><el-icon><Operation /></el-icon>{{ t('login.featureWcs') }}</li>
+          <li><el-icon><Monitor /></el-icon>{{ t('login.featureDevice') }}</li>
+        </ul>
+        <div class="brand-footer">
+          <span class="seven-status-dot" />
+          <span>{{ t('login.footer') }}</span>
+        </div>
+      </section>
+
+      <section class="login-panel">
+        <div class="panel-header">
+          <h2>{{ t('login.panelTitle') }}</h2>
+          <p>{{ t('login.panelSubtitle') }}</p>
+        </div>
+        <el-form :model="form" class="login-form" @submit.prevent="handleLogin">
+          <el-form-item :label="t('login.userName')">
+            <el-input
+              v-model="form.userName"
+              :placeholder="t('login.userNamePlaceholder')"
+              size="large"
+              :prefix-icon="User"
+              autocomplete="username"
+            />
+          </el-form-item>
+          <el-form-item :label="t('login.password')">
+            <el-input
+              v-model="form.password"
+              type="password"
+              :placeholder="t('login.passwordPlaceholder')"
+              size="large"
+              :prefix-icon="Lock"
+              show-password
+              autocomplete="current-password"
+            />
+          </el-form-item>
+          <el-button
+            type="primary"
+            native-type="submit"
+            size="large"
+            class="login-btn"
+            :loading="loading"
+          >
+            {{ t('login.submit') }}
+          </el-button>
+        </el-form>
+      </section>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
+import { Box, Lock, Monitor, Operation, User } from '@element-plus/icons-vue'
 import { login } from '../api/http'
 import { useUserStore } from '../stores/user'
+import ThemeToggle from '../components/ThemeToggle.vue'
+import LocaleSwitch from '../components/LocaleSwitch.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const form = reactive({ userName: 'admin', password: '123456' })
 
-/** 登录处理 */
 async function handleLogin() {
   loading.value = true
   try {
     const res = await login(form.userName, form.password)
     if (res.status && res.data) {
       const data = res.data as {
-        token: string; refreshToken: string; userId: number; userName: string;
+        token: string; refreshToken: string; userId: number; userName: string
         userTrueName: string; roleId: number; permissions: string[]
       }
       userStore.setToken(data.token, data.refreshToken)
@@ -44,15 +99,15 @@ async function handleLogin() {
         userName: data.userName,
         userTrueName: data.userTrueName,
         roleId: data.roleId,
-        permissions: data.permissions || []
+        permissions: data.permissions || [],
       })
-      ElMessage.success('登录成功')
+      ElMessage.success(t('login.success'))
       router.push('/home')
     } else {
-      ElMessage.error(res.message || '登录失败')
+      ElMessage.error(res.message || t('login.failed'))
     }
   } catch {
-    ElMessage.error('登录请求失败')
+    ElMessage.error(t('login.requestFailed'))
   } finally {
     loading.value = false
   }
@@ -60,8 +115,182 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-page { display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.login-card { width: 400px; padding: 20px; }
-h2 { text-align: center; margin: 0; }
-.subtitle { text-align: center; color: #999; margin-bottom: 24px; }
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--seven-space-6);
+  overflow: hidden;
+}
+
+.login-toolbar {
+  position: absolute;
+  top: var(--seven-space-4);
+  right: var(--seven-space-4);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--seven-space-2);
+}
+
+.login-bg {
+  position: absolute;
+  inset: 0;
+  background: #0b1220;
+}
+
+.login-bg__grid {
+  position: absolute;
+  inset: 0;
+  background-image: url('../assets/patterns/industrial-grid.svg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.9;
+}
+
+.login-bg__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.login-bg__glow--orange {
+  width: 420px;
+  height: 420px;
+  top: -80px;
+  right: 10%;
+  background: rgba(249, 115, 22, 0.18);
+}
+
+.login-bg__glow--blue {
+  width: 320px;
+  height: 320px;
+  bottom: -60px;
+  left: 8%;
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.login-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  max-width: 960px;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.login-brand {
+  padding: 48px 40px;
+  border-right: 1px solid rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+}
+
+.login-brand h1 {
+  margin: 0 0 8px;
+  font-family: var(--seven-font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.02em;
+}
+
+.brand-tagline {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.feature-list .el-icon {
+  color: var(--seven-accent);
+  font-size: 18px;
+}
+
+.brand-footer {
+  display: flex;
+  align-items: center;
+  margin-top: 40px;
+  font-size: 12px;
+  color: #64748b;
+  font-family: var(--seven-font-mono);
+}
+
+.login-panel {
+  padding: var(--seven-space-8) var(--seven-space-6);
+  background: var(--seven-bg-panel);
+  transition: background-color 0.2s ease;
+}
+
+.panel-header h2 {
+  margin: 0 0 6px;
+  font-family: var(--seven-font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+}
+
+.panel-header p {
+  margin: 0 0 28px;
+  font-size: 13px;
+  color: var(--seven-text-muted);
+}
+
+.login-form :deep(.el-form-item__label) {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--seven-text);
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+
+  .login-brand {
+    display: none;
+  }
+
+  .login-panel {
+    padding: 36px 28px;
+  }
+}
 </style>

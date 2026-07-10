@@ -13,11 +13,14 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 | [05-工作流](./05-工作流.md) | 审批流程 |
 | [06-代码生成器](./06-代码生成器.md) | Builder 使用 |
 | [07-部署指南](./07-部署指南.md) | Docker Compose 部署 |
+| [08-国际化指南](./08-国际化指南.md) | 多语言配置、新增语言、自动翻译 |
+| [09-告警模块](./09-告警模块.md) | 报警码配置、后端抛警、SignalR 推送 |
+| [10-消息队列指南](./10-消息队列指南.md) | RabbitMQ + MassTransit 配置与使用 |
 
 ## 技术栈
 
-- **后端**: .NET 8 + EF Core 8 + JWT + Redis + Quartz + MinIO + Serilog
-- **前端**: Vue 3 + Vite + TypeScript + Pinia + Element Plus
+- **后端**: .NET 8 + EF Core 8 + JWT + Redis + RabbitMQ + Quartz + MinIO + Serilog
+- **前端**: Vue 3 + Vite + TypeScript + Pinia + Element Plus + vue-i18n
 
 ## 参考
 

@@ -21,6 +21,7 @@ builder.Services.AddSevenInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IBuilderService, BuilderService>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IMessagePushService, MessagePushService>();
+builder.Services.AddScoped<IAlarmPushService, AlarmPushService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -76,6 +77,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<MessageHub>("/hub/message");
+app.MapHub<AlarmHub>("/hub/alarm");
 app.MapHealthChecks("/health");
 
 // 数据库迁移与种子数据（测试环境由测试项目自行初始化）

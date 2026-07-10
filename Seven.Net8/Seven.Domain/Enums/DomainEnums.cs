@@ -28,6 +28,18 @@ public enum CacheProvider
 }
 
 /// <summary>
+/// 消息队列提供程序
+/// </summary>
+public enum MessageQueueProvider
+{
+    /// <summary>禁用 MQ（本地开发零依赖）</summary>
+    None,
+
+    /// <summary>RabbitMQ + MassTransit</summary>
+    RabbitMQ
+}
+
+/// <summary>
 /// 审批状态
 /// </summary>
 public enum AuditStatus
@@ -46,4 +58,37 @@ public enum AuditStatus
 
     /// <summary>驳回</summary>
     Returned = 4
+}
+
+/// <summary>
+/// 告警级别
+/// </summary>
+public enum AlarmLevel
+{
+    /// <summary>信息</summary>
+    Info = 1,
+
+    /// <summary>警告</summary>
+    Warning = 2,
+
+    /// <summary>错误</summary>
+    Error = 3,
+
+    /// <summary>严重</summary>
+    Critical = 4
+}
+
+/// <summary>
+/// 告警状态
+/// </summary>
+public enum AlarmStatus
+{
+    /// <summary>活跃，待处理</summary>
+    Active = 0,
+
+    /// <summary>已确认</summary>
+    Acknowledged = 1,
+
+    /// <summary>已清除</summary>
+    Cleared = 2
 }

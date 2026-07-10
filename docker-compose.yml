@@ -10,11 +10,17 @@ services:
       Database__ConnectionString: "Server=mysql;Database=seven;User=root;Password=seven123;"
       Cache__Provider: Redis
       Cache__RedisConnectionString: "redis:6379"
+      MessageQueue__Provider: RabbitMQ
+      MessageQueue__RabbitMq__Host: rabbitmq
+      MessageQueue__RabbitMq__Port: 5672
+      MessageQueue__RabbitMq__Username: guest
+      MessageQueue__RabbitMq__Password: guest
       Jwt__Secret: "SevenMasterJwtSecretKey2026MustBe32Chars!"
       Cors__Origins: "http://localhost:5173"
     depends_on:
       - mysql
       - redis
+      - rabbitmq
 
   mysql:
     image: mysql:8.0
@@ -30,6 +36,15 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
   minio:
     image: minio/minio

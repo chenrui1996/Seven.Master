@@ -375,6 +375,80 @@ public class DeviceController : ControllerBase
         _service.GetChartDataAsync(cancellationToken);
 }
 
+/// <summary>告警管理 API</summary>
+[Route("api/Sys_Alarm")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+public class Sys_AlarmController : ControllerBase
+{
+    private readonly IAlarmService _service;
+
+    /// <summary>构造函数</summary>
+    public Sys_AlarmController(IAlarmService service) => _service = service;
+
+    /// <summary>分页查询告警</summary>
+    [HttpPost("getPageData")]
+    public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken cancellationToken) =>
+        WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, cancellationToken));
+
+    /// <summary>活跃告警数量</summary>
+    [HttpGet("getActiveCount")]
+    public Task<WebResponseContent> GetActiveCount(CancellationToken cancellationToken) =>
+        _service.GetActiveCountAsync(cancellationToken);
+
+    /// <summary>抛出告警（业务/测试调用）</summary>
+    [HttpPost("raise")]
+    public Task<WebResponseContent> Raise([FromBody] RaiseAlarmRequest request, CancellationToken cancellationToken) =>
+        _service.RaiseAsync(request, cancellationToken);
+
+    /// <summary>确认告警</summary>
+    [HttpPost("acknowledge")]
+    public Task<WebResponseContent> Acknowledge([FromBody] int[] ids, CancellationToken cancellationToken) =>
+        _service.AcknowledgeAsync(ids, cancellationToken);
+
+    /// <summary>清除告警</summary>
+    [HttpPost("clear")]
+    public Task<WebResponseContent> Clear([FromBody] int[] ids, CancellationToken cancellationToken) =>
+        _service.ClearAsync(ids, cancellationToken);
+
+    /// <summary>分页查询报警码配置</summary>
+    [HttpPost("getAlarmCodes")]
+    public async Task<WebResponseContent> GetAlarmCodes([FromBody] PageDataOptions options, CancellationToken cancellationToken) =>
+        WebResponseContent.Ok(data: await _service.GetAlarmCodesAsync(options, cancellationToken));
+
+    /// <summary>保存报警码</summary>
+    [HttpPost("saveAlarmCode")]
+    public Task<WebResponseContent> SaveAlarmCode([FromBody] Domain.Entities.Alarm.Sys_AlarmCode entity, CancellationToken cancellationToken) =>
+        _service.SaveAlarmCodeAsync(entity, cancellationToken);
+
+    /// <summary>删除报警码</summary>
+    [HttpPost("delAlarmCode")]
+    public Task<WebResponseContent> DeleteAlarmCode([FromBody] int[] ids, CancellationToken cancellationToken) =>
+        _service.DeleteAlarmCodeAsync(ids, cancellationToken);
+}
+
+/// <summary>消息队列 API</summary>
+[Route("api/MessageQueue")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+public class MessageQueueController : ControllerBase
+{
+    private readonly IMessageQueueService _service;
+
+    /// <summary>构造函数</summary>
+    public MessageQueueController(IMessageQueueService service) => _service = service;
+
+    /// <summary>获取 MQ 状态</summary>
+    [HttpGet("status")]
+    public Task<WebResponseContent> GetStatus(CancellationToken cancellationToken) =>
+        _service.GetStatusAsync(cancellationToken);
+
+    /// <summary>发布抛警命令到队列（WCS 入站测试）</summary>
+    [HttpPost("publishRaiseAlarm")]
+    public Task<WebResponseContent> PublishRaiseAlarm([FromBody] Seven.Application.Messaging.RaiseAlarmCommand command, CancellationToken cancellationToken) =>
+        _service.PublishRaiseAlarmAsync(command, cancellationToken);
+}
+
 /// <summary>文件上传 API</summary>
 [Route("api/File")]
 [ApiController]

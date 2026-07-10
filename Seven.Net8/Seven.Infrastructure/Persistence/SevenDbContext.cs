@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Entities.Board;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.Flow;
@@ -82,6 +83,12 @@ public class SevenDbContext : DbContext
 
     /// <summary>新闻</summary>
     public DbSet<App_News> App_News => Set<App_News>();
+
+    /// <summary>告警码</summary>
+    public DbSet<Sys_AlarmCode> Sys_AlarmCodes => Set<Sys_AlarmCode>();
+
+    /// <summary>告警记录</summary>
+    public DbSet<Sys_Alarm> Sys_Alarms => Set<Sys_Alarm>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

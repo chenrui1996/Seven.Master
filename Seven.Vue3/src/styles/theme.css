@@ -1,0 +1,305 @@
+/**
+ * Seven WMS/WCS 设计令牌 · 字体 · 布局 · 双主题
+ */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --seven-primary: #475569;
+  --seven-primary-dark: #0f172a;
+  --seven-accent: #f97316;
+  --seven-accent-hover: #ea580c;
+  --seven-accent-soft: rgba(249, 115, 22, 0.12);
+
+  --seven-bg-page: #eef2f6;
+  --seven-bg-panel: #ffffff;
+  --seven-bg-panel-header: linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
+  --seven-bg-subtle: #f8fafc;
+  --seven-bg-sidebar: #0b1220;
+  --seven-bg-sidebar-hover: #151d2e;
+  --seven-border: #cbd5e1;
+  --seven-border-light: #e2e8f0;
+
+  --seven-text: #334155;
+  --seven-text-muted: #64748b;
+  --seven-text-inverse: #f8fafc;
+
+  --seven-success: #16a34a;
+  --seven-warning: #eab308;
+  --seven-danger: #dc2626;
+  --seven-info: #0ea5e9;
+
+  --seven-font-body: 'Fira Sans', 'Segoe UI', system-ui, sans-serif;
+  --seven-font-mono: 'Fira Code', ui-monospace, Consolas, monospace;
+
+  --seven-text-xs: 0.75rem;
+  --seven-text-sm: 0.8125rem;
+  --seven-text-base: 0.875rem;
+  --seven-text-md: 1rem;
+  --seven-text-lg: 1.125rem;
+  --seven-text-xl: 1.5rem;
+  --seven-text-2xl: 1.75rem;
+
+  --seven-leading-tight: 1.25;
+  --seven-leading-normal: 1.5;
+  --seven-leading-relaxed: 1.625;
+
+  --seven-space-1: 4px;
+  --seven-space-2: 8px;
+  --seven-space-3: 12px;
+  --seven-space-4: 16px;
+  --seven-space-5: 20px;
+  --seven-space-6: 24px;
+  --seven-space-8: 32px;
+
+  --seven-sidebar-width: 240px;
+  --seven-header-height: 56px;
+  --seven-tabs-height: 40px;
+  --seven-content-max-width: 1440px;
+  --seven-radius: 6px;
+  --seven-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+
+  --el-color-primary: #f97316;
+  --el-color-primary-light-3: #fb923c;
+  --el-color-primary-light-5: #fdba74;
+  --el-color-primary-light-7: #fed7aa;
+  --el-color-primary-light-8: #ffedd5;
+  --el-color-primary-light-9: #fff7ed;
+  --el-color-primary-dark-2: #ea580c;
+  --el-font-family: var(--seven-font-body);
+  --el-border-radius-base: 6px;
+  --el-bg-color: var(--seven-bg-panel);
+  --el-bg-color-page: var(--seven-bg-page);
+  --el-text-color-primary: var(--seven-primary-dark);
+  --el-text-color-regular: var(--seven-text);
+  --el-border-color: var(--seven-border-light);
+  --el-fill-color-blank: var(--seven-bg-panel);
+}
+
+html.dark {
+  --seven-primary: #94a3b8;
+  --seven-primary-dark: #f1f5f9;
+  --seven-accent-soft: rgba(249, 115, 22, 0.18);
+
+  --seven-bg-page: #0f172a;
+  --seven-bg-panel: #1e293b;
+  --seven-bg-panel-header: linear-gradient(180deg, #1e293b 0%, #172033 100%);
+  --seven-bg-subtle: #172033;
+  --seven-border: #475569;
+  --seven-border-light: #334155;
+
+  --seven-text: #cbd5e1;
+  --seven-text-muted: #94a3b8;
+
+  --seven-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  --el-bg-color: var(--seven-bg-panel);
+  --el-bg-color-page: var(--seven-bg-page);
+  --el-text-color-primary: var(--seven-primary-dark);
+  --el-text-color-regular: var(--seven-text);
+  --el-border-color: var(--seven-border-light);
+  --el-fill-color-blank: var(--seven-bg-panel);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--seven-font-body);
+  font-size: var(--seven-text-base);
+  line-height: var(--seven-leading-normal);
+  color: var(--seven-text);
+  background: var(--seven-bg-page);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.seven-page {
+  min-height: 100%;
+  max-width: var(--seven-content-max-width);
+  margin: 0 auto;
+}
+
+.seven-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--seven-space-4);
+  margin-bottom: var(--seven-space-5);
+}
+
+.seven-page-title {
+  margin: 0;
+  font-family: var(--seven-font-mono);
+  font-size: var(--seven-text-lg);
+  font-weight: 600;
+  line-height: var(--seven-leading-tight);
+  color: var(--seven-primary-dark);
+  letter-spacing: 0.02em;
+}
+
+.seven-page-subtitle {
+  margin: var(--seven-space-1) 0 0;
+  font-size: var(--seven-text-sm);
+  line-height: var(--seven-leading-relaxed);
+  color: var(--seven-text-muted);
+  max-width: 52ch;
+}
+
+.seven-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--seven-space-4);
+  margin-bottom: var(--seven-space-4);
+}
+
+@media (max-width: 1200px) {
+  .seven-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .seven-kpi-grid { grid-template-columns: 1fr; }
+}
+
+.seven-kpi-card {
+  background: var(--seven-bg-panel);
+  border: 1px solid var(--seven-border-light);
+  border-radius: var(--seven-radius);
+  padding: var(--seven-space-4) var(--seven-space-5);
+  box-shadow: var(--seven-shadow);
+  border-left: 4px solid var(--seven-accent);
+  transition: box-shadow 0.2s ease;
+}
+
+.seven-kpi-card--success { border-left-color: var(--seven-success); }
+.seven-kpi-card--warning { border-left-color: var(--seven-warning); }
+.seven-kpi-card--info { border-left-color: var(--seven-info); }
+.seven-kpi-card--danger { border-left-color: var(--seven-danger); }
+
+.seven-kpi-label {
+  font-size: var(--seven-text-xs);
+  color: var(--seven-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--seven-space-2);
+}
+
+.seven-kpi-value {
+  font-family: var(--seven-font-mono);
+  font-size: var(--seven-text-2xl);
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+  line-height: var(--seven-leading-tight);
+}
+
+.seven-kpi-meta {
+  margin-top: var(--seven-space-2);
+  font-size: var(--seven-text-xs);
+  color: var(--seven-text-muted);
+}
+
+.seven-panel {
+  background: var(--seven-bg-panel);
+  border: 1px solid var(--seven-border-light);
+  border-radius: var(--seven-radius);
+  box-shadow: var(--seven-shadow);
+  overflow: hidden;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.seven-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--seven-space-3) var(--seven-space-5);
+  border-bottom: 1px solid var(--seven-border-light);
+  background: var(--seven-bg-panel-header);
+}
+
+.seven-panel__title {
+  margin: 0;
+  font-family: var(--seven-font-mono);
+  font-size: var(--seven-text-sm);
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+  letter-spacing: 0.03em;
+}
+
+.seven-panel__body { padding: var(--seven-space-5); }
+
+.crud-page .el-card {
+  border: 1px solid var(--seven-border-light);
+  border-radius: var(--seven-radius);
+  box-shadow: var(--seven-shadow);
+  background: var(--seven-bg-panel);
+}
+
+.crud-page .el-card__header {
+  background: var(--seven-bg-panel-header);
+  border-bottom: 1px solid var(--seven-border-light);
+  padding: var(--seven-space-3) var(--seven-space-5);
+}
+
+.crud-page .toolbar span {
+  font-family: var(--seven-font-mono);
+  font-size: var(--seven-text-sm);
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+}
+
+.el-table {
+  --el-table-header-bg-color: var(--seven-bg-subtle);
+  --el-table-header-text-color: var(--seven-primary-dark);
+  --el-table-bg-color: var(--seven-bg-panel);
+  --el-table-tr-bg-color: var(--seven-bg-panel);
+  --el-table-row-hover-bg-color: var(--seven-accent-soft);
+  font-size: var(--seven-text-sm);
+}
+
+.el-table th.el-table__cell {
+  font-family: var(--seven-font-mono);
+  font-weight: 600;
+  font-size: var(--seven-text-xs);
+  letter-spacing: 0.04em;
+}
+
+.el-form-item__label {
+  font-size: var(--seven-text-sm);
+  font-weight: 500;
+  color: var(--seven-text);
+}
+
+.cursor-pointer { cursor: pointer; }
+
+.seven-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background: var(--seven-success);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+}
+
+.seven-status-dot--warn {
+  background: var(--seven-warning);
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
+}
+
+.seven-status-dot--off {
+  background: var(--seven-text-muted);
+  box-shadow: none;
+}

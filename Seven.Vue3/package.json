@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "i18n:missing": "node scripts/i18n-auto-translate.mjs --target en-US",
+    "i18n:translate": "node scripts/i18n-auto-translate.mjs --target en-US",
+    "i18n:translate:ja": "node scripts/i18n-auto-translate.mjs --target ja-JP"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

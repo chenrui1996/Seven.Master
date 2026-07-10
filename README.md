@@ -50,7 +50,8 @@ docker compose up -d
 - 延迟双删缓存（Memory/Redis 可切换）
 - EF Core 8 CodeFirst
 - Serilog 日志
-- SignalR 消息推送
+- SignalR 实时推送
+- RabbitMQ + MassTransit 消息队列（与告警模块集成）
 - MinIO/本地文件存储
 
 ## 文档

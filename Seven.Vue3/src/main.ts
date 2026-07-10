@@ -3,17 +3,24 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import { setupDirectives } from './directives/permission'
-import './style.css'
+import './styles/theme.css'
+import i18n from './locales'
+import { useThemeStore } from './stores/theme'
+import { useLocaleStore } from './stores/locale'
 
 const app = createApp(App)
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
+app.use(i18n)
+useThemeStore(pinia).init()
+useLocaleStore(pinia).init()
 app.use(router)
 app.use(ElementPlus)
 setupDirectives(app)
