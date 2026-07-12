@@ -1,0 +1,21 @@
+using Microsoft.AspNetCore.Mvc;
+using Seven.Application.Interfaces;
+using Seven.Domain.Common;
+using Seven.Domain.Entities.System;
+
+namespace Seven.WebApi.Controllers.Generated;
+
+/// <summary>{{TableName}} API（代码生成）</summary>
+[Route("api/{{RouteName}}")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+public class {{TableName}}Controller : ControllerBase
+{
+    private readonly {{InterfaceName}} _service;
+
+    public {{TableName}}Controller({{InterfaceName}} service) => _service = service;
+
+    [HttpPost("getPageData")]
+    public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken cancellationToken) =>
+        WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, cancellationToken));
+}

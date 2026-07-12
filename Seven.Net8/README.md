@@ -30,3 +30,15 @@ dotnet build Seven.sln
 dotnet test Seven.sln
 dotnet run --project Seven.WebApi
 ```
+
+## 数据库迁移
+
+迁移文件：`Seven.Infrastructure/Migrations/`。启动时自动 `MigrateAsync()`。
+
+```bash
+dotnet tool restore
+dotnet ef database update --project Seven.Infrastructure --startup-project Seven.WebApi
+dotnet ef migrations add <Name> --project Seven.Infrastructure --startup-project Seven.WebApi
+```
+
+详见 [doc/01-快速开始.md](../doc/01-快速开始.md) §3。

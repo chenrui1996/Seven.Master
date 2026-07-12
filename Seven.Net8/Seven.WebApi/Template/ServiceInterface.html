@@ -1,0 +1,8 @@
+namespace {{InterfaceName}};
+
+/// <summary>{{TableName}} 服务接口（代码生成）</summary>
+public interface {{InterfaceName}}
+{
+    Task<Seven.Domain.Common.PageGridData<Seven.Domain.Entities.System.{{EntityName}}>> GetPageDataAsync(
+        Seven.Domain.Common.PageDataOptions options, CancellationToken cancellationToken = default);
+}

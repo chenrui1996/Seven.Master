@@ -10,6 +10,7 @@ export interface MenuItem {
   icon?: string
   tableName?: string
   auth?: string
+  orderNo?: number
   children?: MenuItem[]
 }
 

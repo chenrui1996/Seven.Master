@@ -57,6 +57,7 @@
             native-type="submit"
             size="large"
             class="login-btn"
+            :icon="ActionIcons.login"
             :loading="loading"
           >
             {{ t('login.submit') }}
@@ -75,6 +76,7 @@ import { ElMessage } from 'element-plus'
 import { Box, Lock, Monitor, Operation, User } from '@element-plus/icons-vue'
 import { login } from '../api/http'
 import { useUserStore } from '../stores/user'
+import { ActionIcons } from '../constants/actionIcons'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import LocaleSwitch from '../components/LocaleSwitch.vue'
 
@@ -277,6 +279,15 @@ async function handleLogin() {
   margin-top: 8px;
   font-weight: 600;
   letter-spacing: 0.04em;
+  color: var(--seven-btn-on-solid);
+}
+
+.login-btn:not(.is-link):not(.is-text) {
+  box-shadow: var(--seven-btn-primary-shadow);
+}
+
+.login-btn:not(.is-link):not(.is-text):hover {
+  box-shadow: var(--seven-btn-primary-hover-shadow);
 }
 
 @media (max-width: 768px) {

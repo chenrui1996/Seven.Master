@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Seven.Application.Interfaces;
+using Seven.Application.Models;
 using Seven.Domain.Common;
 using Seven.Domain.Entities.System;
 
@@ -129,6 +130,11 @@ public class Sys_RoleController : ControllerBase
     public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken cancellationToken) =>
         WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, cancellationToken));
 
+    /// <summary>获取角色详情（含权限）</summary>
+    [HttpGet("getDetail/{id}")]
+    public Task<WebResponseContent> GetDetail(int id, CancellationToken cancellationToken) =>
+        _service.GetByIdAsync(id, cancellationToken);
+
     /// <summary>新增</summary>
     [HttpPost("add")]
     public Task<WebResponseContent> Add([FromBody] Sys_Role entity, CancellationToken cancellationToken) =>
@@ -146,11 +152,28 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>保存权限</summary>
     [HttpPost("savePermission")]
-    public Task<WebResponseContent> SavePermission([FromBody] SavePermissionRequest request, CancellationToken cancellationToken) =>
-        _service.SavePermissionAsync(request.RoleId, request.MenuIds, request.AuthValues, cancellationToken);
+    public Task<WebResponseContent> SavePermission([FromBody] SaveRolePermissionRequest request, CancellationToken cancellationToken) =>
+        _service.SavePermissionAsync(request, cancellationToken);
+
+    /// <summary>获取当前用户可分配的菜单权限树</summary>
+    [HttpPost("getCurrentTreePermission")]
+    public Task<WebResponseContent> GetCurrentTreePermission(CancellationToken cancellationToken) =>
+        _service.GetCurrentTreePermissionAsync(cancellationToken);
+
+    /// <summary>获取指定角色已分配权限</summary>
+    [HttpPost("getUserTreePermission")]
+    public Task<WebResponseContent> GetUserTreePermission([FromBody] RolePermissionQueryRequest request, CancellationToken cancellationToken) =>
+        _service.GetUserTreePermissionAsync(request.RoleId, cancellationToken);
 }
 
-/// <summary>保存权限请求</summary>
+/// <summary>角色权限查询</summary>
+public class RolePermissionQueryRequest
+{
+    /// <summary>角色 Id</summary>
+    public int RoleId { get; set; }
+}
+
+/// <summary>保存权限请求（兼容旧格式）</summary>
 public class SavePermissionRequest
 {
     /// <summary>角色 Id</summary>
@@ -177,10 +200,25 @@ public class Sys_MenuController : ControllerBase
     public Task<WebResponseContent> GetTree(CancellationToken cancellationToken) =>
         _service.GetTreeAsync(cancellationToken);
 
+    /// <summary>菜单管理：获取全部菜单扁平列表</summary>
+    [HttpGet("getMenuList")]
+    public Task<WebResponseContent> GetMenuList(CancellationToken cancellationToken) =>
+        _service.GetMenuListAsync(cancellationToken);
+
+    /// <summary>菜单管理：获取单条菜单详情</summary>
+    [HttpPost("getTreeItem")]
+    public Task<WebResponseContent> GetTreeItem([FromQuery] int menuId, CancellationToken cancellationToken) =>
+        _service.GetTreeItemAsync(menuId, cancellationToken);
+
     /// <summary>获取当前用户菜单（动态路由）</summary>
     [HttpGet("getMenu")]
     public Task<WebResponseContent> GetMenu(CancellationToken cancellationToken) =>
         _service.GetCurrentUserMenuAsync(cancellationToken);
+
+    /// <summary>新建或编辑菜单</summary>
+    [HttpPost("save")]
+    public Task<WebResponseContent> Save([FromBody] Sys_Menu entity, CancellationToken cancellationToken) =>
+        _service.SaveAsync(entity, cancellationToken);
 
     /// <summary>新增菜单</summary>
     [HttpPost("add")]
@@ -194,8 +232,8 @@ public class Sys_MenuController : ControllerBase
 
     /// <summary>删除菜单</summary>
     [HttpPost("del")]
-    public Task<WebResponseContent> Delete([FromBody] int id, CancellationToken cancellationToken) =>
-        _service.DeleteAsync(id, cancellationToken);
+    public Task<WebResponseContent> Delete([FromQuery] int menuId, CancellationToken cancellationToken) =>
+        _service.DeleteAsync(menuId, cancellationToken);
 }
 
 /// <summary>部门管理 API</summary>
@@ -250,6 +288,11 @@ public class Sys_DictionaryController : ControllerBase
     [HttpPost("getVueDictionary")]
     public Task<WebResponseContent> GetVueDictionary([FromBody] string[] dicNos, CancellationToken cancellationToken) =>
         _service.GetVueDictionaryAsync(dicNos, cancellationToken);
+
+    /// <summary>代码生成器字典</summary>
+    [HttpPost("GetBuilderDictionary")]
+    public Task<WebResponseContent> GetBuilderDictionary(CancellationToken cancellationToken) =>
+        _service.GetBuilderDictionaryAsync(cancellationToken);
 
     /// <summary>新增</summary>
     [HttpPost("add")]
@@ -342,15 +385,50 @@ public class BuilderController : ControllerBase
     /// <summary>构造函数</summary>
     public BuilderController(IBuilderService service) => _service = service;
 
-    /// <summary>加载表信息</summary>
+    /// <summary>获取配置树</summary>
+    [HttpPost("GetTableTree")]
+    public Task<WebResponseContent> GetTableTree(CancellationToken cancellationToken) =>
+        _service.GetTableTreeAsync(cancellationToken);
+
+    /// <summary>加载/新建单表配置</summary>
+    [HttpPost("LoadTableInfo")]
+    public Task<WebResponseContent> LoadTableInfo([FromBody] LoadTableRequest request, CancellationToken cancellationToken) =>
+        _service.LoadTableAsync(request, cancellationToken);
+
+    /// <summary>加载全部表信息</summary>
     [HttpGet("loadTableInfo")]
-    public Task<WebResponseContent> LoadTableInfo(CancellationToken cancellationToken) =>
+    public Task<WebResponseContent> LoadAllTableInfo(CancellationToken cancellationToken) =>
         _service.LoadTableInfoAsync(cancellationToken);
+
+    /// <summary>保存配置</summary>
+    [HttpPost("Save")]
+    public Task<WebResponseContent> Save([FromBody] Domain.Entities.Core.Sys_TableInfo tableInfo, CancellationToken cancellationToken) =>
+        _service.SaveAsync(tableInfo, cancellationToken);
 
     /// <summary>同步表结构</summary>
     [HttpPost("syncTable")]
     public Task<WebResponseContent> SyncTable([FromBody] string tableName, CancellationToken cancellationToken) =>
         _service.SyncTableAsync(tableName, cancellationToken);
+
+    /// <summary>生成 Entity</summary>
+    [HttpPost("CreateModel")]
+    public Task<WebResponseContent> CreateModel([FromBody] Domain.Entities.Core.Sys_TableInfo tableInfo, CancellationToken cancellationToken) =>
+        _service.CreateModelAsync(tableInfo, cancellationToken);
+
+    /// <summary>生成业务类</summary>
+    [HttpPost("CreateServices")]
+    public Task<WebResponseContent> CreateServices([FromBody] CreateServicesRequest request, CancellationToken cancellationToken) =>
+        _service.CreateServicesAsync(request, cancellationToken);
+
+    /// <summary>生成 Vue 页面</summary>
+    [HttpPost("CreateVuePage")]
+    public Task<WebResponseContent> CreateVuePage([FromBody] CreateVuePageRequest request, CancellationToken cancellationToken) =>
+        _service.CreateVuePageAsync(request, cancellationToken);
+
+    /// <summary>删除空树节点</summary>
+    [HttpPost("delTree")]
+    public Task<WebResponseContent> DelTree([FromBody] int tableId, CancellationToken cancellationToken) =>
+        _service.DelTreeAsync(tableId, cancellationToken);
 }
 
 /// <summary>设备/大屏 API</summary>

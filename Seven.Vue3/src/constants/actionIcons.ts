@@ -1,0 +1,49 @@
+/**
+ * 全局操作按钮图标（Element Plus Icons）
+ * 与 ui-ux-pro-max 规范一致：SVG 图标、语义统一
+ */
+import {
+  ArrowRight,
+  Check,
+  CircleCheck,
+  CircleClose,
+  Close,
+  Delete,
+  Document,
+  DocumentCopy,
+  Edit,
+  Files,
+  FolderAdd,
+  Key,
+  Lock,
+  Plus,
+  CirclePlus,
+  Refresh,
+  Right,
+  Select,
+  Setting,
+  Warning,
+} from '@element-plus/icons-vue'
+
+export const ActionIcons = {
+  add: Plus,
+  edit: Edit,
+  delete: Delete,
+  save: Check,
+  confirm: Select,
+  cancel: Close,
+  resetPwd: Key,
+  permission: Lock,
+  sync: Refresh,
+  model: Document,
+  services: Files,
+  vue: DocumentCopy,
+  addChild: FolderAdd,
+  addSibling: CirclePlus,
+  config: Setting,
+  acknowledge: CircleCheck,
+  clear: CircleClose,
+  testRaise: Warning,
+  viewAll: ArrowRight,
+  login: Right,
+} as const

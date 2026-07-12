@@ -38,7 +38,7 @@
       </ul>
 
       <div class="alarm-panel__footer">
-        <el-button type="primary" link @click="goAlarmPage">{{ t('alarm.viewAll') }}</el-button>
+        <el-button type="primary" link :icon="ActionIcons.viewAll" @click="goAlarmPage">{{ t('alarm.viewAll') }}</el-button>
       </div>
     </div>
   </el-popover>
@@ -46,6 +46,7 @@
 
 <script setup lang="ts">
 import { Bell } from '@element-plus/icons-vue'
+import { ActionIcons } from '../constants/actionIcons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAlarmStore } from '../stores/alarm'

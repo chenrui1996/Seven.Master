@@ -1,3 +1,4 @@
+using Seven.Application.Models;
 using Seven.Domain.Common;
 
 namespace Seven.Application.Interfaces;
@@ -42,6 +43,9 @@ public interface ISysRoleService
     Task<WebResponseContent> AddAsync(Domain.Entities.System.Sys_Role entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> UpdateAsync(Domain.Entities.System.Sys_Role entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> DeleteAsync(int[] ids, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetCurrentTreePermissionAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetUserTreePermissionAsync(int roleId, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> SavePermissionAsync(SaveRolePermissionRequest request, CancellationToken cancellationToken = default);
     Task<WebResponseContent> SavePermissionAsync(int roleId, int[] menuIds, Dictionary<int, string> authValues, CancellationToken cancellationToken = default);
 }
 
@@ -51,8 +55,11 @@ public interface ISysRoleService
 public interface ISysMenuService
 {
     Task<WebResponseContent> GetTreeAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetMenuListAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetTreeItemAsync(int menuId, CancellationToken cancellationToken = default);
     Task<WebResponseContent> GetMenuByRoleAsync(int roleId, CancellationToken cancellationToken = default);
     Task<WebResponseContent> GetCurrentUserMenuAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> SaveAsync(Domain.Entities.System.Sys_Menu entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> AddAsync(Domain.Entities.System.Sys_Menu entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> UpdateAsync(Domain.Entities.System.Sys_Menu entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> DeleteAsync(int id, CancellationToken cancellationToken = default);
@@ -76,6 +83,7 @@ public interface ISysDictionaryService
 {
     Task<WebResponseContent> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default);
     Task<WebResponseContent> GetVueDictionaryAsync(string[] dicNos, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetBuilderDictionaryAsync(CancellationToken cancellationToken = default);
     Task<WebResponseContent> AddAsync(Domain.Entities.System.Sys_Dictionary entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> UpdateAsync(Domain.Entities.System.Sys_Dictionary entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> DeleteAsync(int[] ids, CancellationToken cancellationToken = default);
@@ -104,8 +112,15 @@ public interface IWorkFlowService
 /// </summary>
 public interface IBuilderService
 {
+    Task<WebResponseContent> GetTableTreeAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> LoadTableAsync(LoadTableRequest request, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> SaveAsync(Domain.Entities.Core.Sys_TableInfo tableInfo, CancellationToken cancellationToken = default);
     Task<WebResponseContent> LoadTableInfoAsync(CancellationToken cancellationToken = default);
     Task<WebResponseContent> SyncTableAsync(string tableName, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> CreateModelAsync(Domain.Entities.Core.Sys_TableInfo tableInfo, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> CreateServicesAsync(CreateServicesRequest request, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> CreateVuePageAsync(CreateVuePageRequest request, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> DelTreeAsync(int tableId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

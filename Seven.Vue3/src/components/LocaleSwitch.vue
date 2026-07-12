@@ -6,7 +6,7 @@
       :aria-label="`${t('locale.label')}: ${localeStore.localeLabel}`"
       :title="`${t('locale.label')}: ${localeStore.localeLabel}`"
     >
-      <el-icon :size="18"><Place /></el-icon>
+      <el-icon :size="16"><Place /></el-icon>
       <span class="locale-code">{{ localeStore.locale }}</span>
     </button>
     <template #dropdown>
@@ -43,14 +43,15 @@ function onCommand(code: string) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 36px;
-  padding: 0 10px;
+  height: 32px;
+  padding: 0 8px;
   border: 1px solid var(--seven-border-light);
-  border-radius: var(--seven-radius);
+  border-radius: var(--seven-radius-sm);
   background: var(--seven-bg-panel);
   color: var(--seven-text);
-  font-family: var(--seven-font-mono);
+  font-family: var(--seven-font-body);
   font-size: var(--seven-text-xs);
+  font-weight: 600;
   transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 

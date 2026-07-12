@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useMenuStore, type MenuItem } from '../stores'
+import { buildMenuTree, flattenMenus } from '../utils/menuTree'
 
 /** 静态路由 */
 const staticRoutes: RouteRecordRaw[] = [
@@ -24,11 +25,11 @@ const router = createRouter({
 /** 动态路由组件映射 */
 const viewModules = import.meta.glob('../views/**/*.vue')
 
-/** 将菜单转为路由并注册 */
+/** 将菜单转为路由并注册（递归扁平化后注册叶子路由） */
 export function generateRoutes(menus: MenuItem[]): RouteRecordRaw[] {
   const routes: RouteRecordRaw[] = []
-  for (const menu of menus) {
-    if (!menu.url || menu.url.startsWith('http')) continue
+  for (const menu of flattenMenus(menus)) {
+    if (!menu.url || menu.url.startsWith('http') || menu.url === '#') continue
     const path = menu.url.startsWith('/') ? menu.url.slice(1) : menu.url
     const componentPath = `../views/system/${menu.tableName || path.split('/').pop()}.vue`
     const component = viewModules[componentPath] ?? viewModules[`../views/system/${path}.vue`]
@@ -58,8 +59,10 @@ router.beforeEach(async (to, _from, next) => {
     try {
       const res = await getMenu()
       if (res.status && res.data) {
-        menuStore.setMenus(res.data as unknown as MenuItem[])
-        const dynamicRoutes = generateRoutes(res.data)
+        const flat = res.data as unknown as MenuItem[]
+        const tree = buildMenuTree(flat)
+        menuStore.setMenus(tree)
+        const dynamicRoutes = generateRoutes(tree)
         dynamicRoutes.forEach((r) => router.addRoute('Layout', r))
         menuStore.routesLoaded = true
         return next({ ...to, replace: true })

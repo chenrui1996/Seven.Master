@@ -1,17 +1,5 @@
 <template>
   <div class="crud-page seven-page">
-    <div class="seven-page-header">
-      <div>
-        <h1 class="seven-page-title">{{ t('sysAlarm.title') }}</h1>
-        <p class="seven-page-subtitle">{{ t('sysAlarm.subtitle') }}</p>
-      </div>
-      <div class="header-actions">
-        <el-button v-permission="'Sys_Alarm.Raise'" type="warning" @click="openTestDialog">
-          {{ t('sysAlarm.testRaise') }}
-        </el-button>
-      </div>
-    </div>
-
     <el-tabs v-model="activeTab">
       <el-tab-pane :label="t('sysAlarm.tabRecords')" name="records">
         <el-card>
@@ -19,6 +7,9 @@
             <div class="toolbar">
               <span>{{ t('sysAlarm.listTitle') }}</span>
               <div class="toolbar-actions">
+                <el-button v-permission="'Sys_Alarm.Raise'" type="warning" :icon="ActionIcons.testRaise" @click="openTestDialog">
+                  {{ t('sysAlarm.testRaise') }}
+                </el-button>
                 <el-select
                   v-model="statusFilter"
                   clearable
@@ -33,6 +24,7 @@
                 <el-button
                   v-permission="'Sys_Alarm.Acknowledge'"
                   type="primary"
+                  :icon="ActionIcons.acknowledge"
                   :disabled="!selectedIds.length"
                   @click="acknowledge"
                 >
@@ -40,6 +32,7 @@
                 </el-button>
                 <el-button
                   v-permission="'Sys_Alarm.Clear'"
+                  :icon="ActionIcons.clear"
                   :disabled="!selectedIds.length"
                   @click="clearAlarms"
                 >
@@ -83,7 +76,7 @@
           <template #header>
             <div class="toolbar">
               <span>{{ t('sysAlarm.codesTitle') }}</span>
-              <el-button type="primary" @click="openCodeForm()">{{ t('common.add') }}</el-button>
+              <el-button type="primary" :icon="ActionIcons.add" @click="openCodeForm()">{{ t('common.add') }}</el-button>
             </div>
           </template>
           <el-table :data="codeRows" v-loading="codeLoading" border>
@@ -100,7 +93,7 @@
             </el-table-column>
             <el-table-column :label="t('sysAlarm.colActions')" width="100">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openCodeForm(row)">{{ t('sysAlarm.edit') }}</el-button>
+                <el-button link type="primary" :icon="ActionIcons.edit" @click="openCodeForm(row)">{{ t('sysAlarm.edit') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -127,8 +120,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="testDialogVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="raiseTest">{{ t('common.confirm') }}</el-button>
+        <div class="dialog-footer-actions">
+          <el-button :icon="ActionIcons.cancel" @click="testDialogVisible = false">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" :icon="ActionIcons.confirm" @click="raiseTest">{{ t('common.confirm') }}</el-button>
+        </div>
       </template>
     </el-dialog>
 
@@ -165,8 +160,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="codeDialogVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="saveCode">{{ t('common.confirm') }}</el-button>
+        <div class="dialog-footer-actions">
+          <el-button :icon="ActionIcons.cancel" @click="codeDialogVisible = false">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" :icon="ActionIcons.save" @click="saveCode">{{ t('common.confirm') }}</el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -177,6 +174,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import http, { getPageData } from '../../api/http'
+import { ActionIcons } from '../../constants/actionIcons'
 import { useAlarmStore } from '../../stores/alarm'
 
 interface AlarmCodeRow {
@@ -369,25 +367,3 @@ onMounted(async () => {
   await loadAlarms()
 })
 </script>
-
-<style scoped>
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.header-actions {
-  display: flex;
-  gap: 8px;
-}
-</style>

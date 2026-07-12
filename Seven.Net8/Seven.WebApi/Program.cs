@@ -80,7 +80,7 @@ app.MapHub<MessageHub>("/hub/message");
 app.MapHub<AlarmHub>("/hub/alarm");
 app.MapHealthChecks("/health");
 
-// 数据库迁移与种子数据（测试环境由测试项目自行初始化）
+// 数据库迁移与种子数据（测试环境使用 InMemory，由测试项目自行初始化）
 if (!app.Environment.IsEnvironment("Testing"))
 {
     await DbSeeder.SeedAsync(app.Services);

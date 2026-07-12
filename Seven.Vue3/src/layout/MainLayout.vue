@@ -77,7 +77,9 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">{{ t('common.logout') }}</el-dropdown-item>
+                <el-dropdown-item command="logout">
+                  <el-icon><SwitchButton /></el-icon>{{ t('common.logout') }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -122,6 +124,7 @@ import {
   Close,
   Connection,
   HomeFilled,
+  SwitchButton,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { useMenuStore, useTabsStore, type MenuItem } from '../stores'
@@ -230,14 +233,14 @@ onUnmounted(() => {
 .logo-block {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 16px 12px;
+  gap: 10px;
+  padding: 14px 12px 8px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .logo-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
 }
 
@@ -249,7 +252,7 @@ onUnmounted(() => {
 
 .logo-title {
   font-family: var(--seven-font-mono);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #f8fafc;
   letter-spacing: 0.04em;
@@ -265,8 +268,8 @@ onUnmounted(() => {
 .aside-status {
   display: flex;
   align-items: center;
-  padding: 10px 18px;
-  font-size: 12px;
+  padding: 8px 14px;
+  font-size: 11px;
   color: #94a3b8;
   font-family: var(--seven-font-mono);
 }
@@ -277,14 +280,15 @@ onUnmounted(() => {
 
 .industrial-menu {
   border-right: none;
-  padding: 8px;
+  padding: 6px;
 }
 
 .industrial-menu :deep(.el-menu-item),
 .industrial-menu :deep(.el-sub-menu__title) {
-  border-radius: 6px;
-  margin-bottom: 2px;
-  height: 44px;
+  border-radius: var(--seven-radius-sm);
+  margin-bottom: 1px;
+  height: 38px;
+  font-size: 13px;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -307,7 +311,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
   background: var(--seven-bg-panel);
   border-bottom: 1px solid var(--seven-border-light);
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
@@ -321,7 +325,7 @@ onUnmounted(() => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .header-meta {
@@ -378,8 +382,8 @@ onUnmounted(() => {
 .tab-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 4px;
+  padding: 4px 10px;
   font-size: 12px;
   color: var(--seven-text-muted);
   background: transparent;
@@ -414,7 +418,7 @@ onUnmounted(() => {
 }
 
 .main-content {
-  padding: var(--seven-space-4) var(--seven-space-5) var(--seven-space-6);
+  padding: var(--seven-space-3) var(--seven-space-4) var(--seven-space-5);
   background: var(--seven-bg-page);
   overflow: auto;
 }

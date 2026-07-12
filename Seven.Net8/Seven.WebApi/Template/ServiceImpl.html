@@ -1,0 +1,21 @@
+using Microsoft.EntityFrameworkCore;
+using Seven.Application.Interfaces;
+using Seven.Domain.Common;
+using Seven.Domain.Entities.System;
+using Seven.Infrastructure.Persistence;
+
+namespace Seven.Infrastructure.Services;
+
+/// <summary>{{TableName}} 服务（代码生成，需在 Program.cs 注册 DI）</summary>
+public class {{ServiceName}} : {{InterfaceName}}
+{
+    private readonly SevenDbContext _db;
+
+    public {{ServiceName}}(SevenDbContext db) => _db = db;
+
+    public async Task<PageGridData<{{EntityName}}>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
+    {
+        var query = _db.Set<{{EntityName}}>().AsNoTracking().OrderByDescending(x => 1);
+        return await CrudHelper.PaginateAsync(query, options, cancellationToken);
+    }
+}

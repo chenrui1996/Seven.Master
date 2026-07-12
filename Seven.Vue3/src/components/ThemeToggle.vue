@@ -6,7 +6,7 @@
       :aria-label="`${t('theme.label')}: ${themeStore.modeLabel}`"
       :title="`${t('theme.label')}: ${themeStore.modeLabel}`"
     >
-      <el-icon :size="18">
+      <el-icon :size="16">
         <Sunny v-if="themeStore.isDark" />
         <Moon v-else />
       </el-icon>
@@ -46,11 +46,11 @@ function onCommand(cmd: string) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid var(--seven-border-light);
-  border-radius: var(--seven-radius);
+  border-radius: var(--seven-radius-sm);
   background: var(--seven-bg-panel);
   color: var(--seven-text);
   transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;

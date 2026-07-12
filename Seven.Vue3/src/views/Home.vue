@@ -1,17 +1,5 @@
 <template>
   <div class="seven-page home-dashboard">
-    <div class="seven-page-header">
-      <div>
-        <h1 class="seven-page-title">{{ t('home.title') }}</h1>
-        <p class="seven-page-subtitle">{{ t('home.subtitle') }}</p>
-      </div>
-      <div class="header-actions">
-        <el-tag type="success" effect="dark" round>
-          <span class="seven-status-dot" />{{ t('home.systemOk') }}
-        </el-tag>
-      </div>
-    </div>
-
     <div class="seven-kpi-grid">
       <div v-for="kpi in kpiCards" :key="kpi.label" class="seven-kpi-card" :class="kpi.variant">
         <div class="seven-kpi-label">{{ kpi.label }}</div>

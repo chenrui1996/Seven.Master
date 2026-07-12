@@ -1,0 +1,236 @@
+/**
+ * 全局按钮与工具栏（紧凑 Data-Dense · ui-ux-pro-max）
+ *
+ * 文字色策略：
+ * - 实心 + 深底（primary / danger / success / info）→ 始终白字（--seven-btn-on-solid）
+ * - 浅底（default / warning）→ 深色字，保证对比度
+ * - 链接型（is-link）→ 语义色字，适配表格白底/浅底行
+ */
+
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--seven-space-2);
+  flex-wrap: wrap;
+  min-height: 32px;
+}
+
+.toolbar-title {
+  font-family: var(--seven-font-body);
+  font-size: var(--seven-text-sm);
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+  letter-spacing: 0.01em;
+}
+
+.toolbar-actions,
+.seven-btn-group,
+.header-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Element Plus 按钮 — 紧凑尺寸 */
+.el-button {
+  font-family: var(--seven-font-body);
+  font-weight: 500;
+  font-size: var(--seven-text-sm);
+  letter-spacing: 0.01em;
+  border-radius: var(--seven-radius-sm);
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.el-button:not(.is-link):not(.is-text) {
+  min-height: 32px;
+  padding: 4px 11px;
+}
+
+.el-button--small:not(.is-link):not(.is-text) {
+  min-height: 28px;
+  padding: 2px 9px;
+  font-size: var(--seven-text-xs);
+}
+
+.el-button.is-link {
+  font-weight: 500;
+  font-size: var(--seven-text-sm);
+  padding: 2px 4px;
+  height: auto;
+}
+
+.el-button .el-icon {
+  font-size: 14px;
+}
+
+.el-button:not(.is-link) .el-icon + span,
+.el-button:not(.is-link) span + .el-icon {
+  margin-inline-start: 4px;
+}
+
+.el-button:focus-visible {
+  outline: 2px solid var(--seven-accent);
+  outline-offset: 1px;
+}
+
+.el-button.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* 实心深底按钮 — 统一白字（对比度以按钮自身底色为准，与页面浅/深背景无关） */
+.el-button--primary:not(.is-link):not(.is-text),
+.el-button--danger:not(.is-link):not(.is-text),
+.el-button--success:not(.is-link):not(.is-text),
+.el-button--info:not(.is-link):not(.is-text) {
+  --el-button-text-color: var(--seven-btn-on-solid);
+  --el-button-hover-text-color: var(--seven-btn-on-solid);
+  --el-button-active-text-color: var(--seven-btn-on-solid);
+  --el-button-disabled-text-color: var(--seven-btn-on-solid);
+  color: var(--seven-btn-on-solid);
+  font-weight: 600;
+}
+
+.el-button--primary:not(.is-link):not(.is-text) .el-icon,
+.el-button--danger:not(.is-link):not(.is-text) .el-icon,
+.el-button--success:not(.is-link):not(.is-text) .el-icon,
+.el-button--info:not(.is-link):not(.is-text) .el-icon {
+  color: currentColor;
+}
+
+/* 主色 — 安全橙实心 CTA */
+.el-button--primary:not(.is-link):not(.is-text) {
+  --el-button-bg-color: var(--seven-btn-primary-bg);
+  --el-button-border-color: var(--seven-btn-primary-border);
+  --el-button-hover-bg-color: var(--seven-btn-primary-hover);
+  --el-button-hover-border-color: var(--seven-btn-primary-hover);
+  --el-button-active-bg-color: var(--seven-btn-primary-active);
+  --el-button-active-border-color: var(--seven-btn-primary-active);
+  --el-button-disabled-bg-color: #fdba74;
+  --el-button-disabled-border-color: #fdba74;
+  box-shadow: var(--seven-btn-primary-shadow);
+}
+
+.el-button--primary:not(.is-link):not(.is-text):hover {
+  box-shadow: var(--seven-btn-primary-hover-shadow);
+}
+
+.el-button--primary:not(.is-link):not(.is-text):active {
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .el-button--primary:not(.is-link):not(.is-text):active {
+    transform: translateY(0.5px);
+  }
+}
+
+/* 默认 — 浅灰底 + 深灰字 */
+.el-button--default {
+  --el-button-bg-color: var(--seven-btn-default-bg);
+  --el-button-border-color: var(--seven-btn-default-border);
+  --el-button-text-color: var(--seven-btn-default-text);
+  --el-button-hover-bg-color: var(--seven-btn-default-hover);
+  --el-button-hover-border-color: var(--seven-btn-default-border-hover);
+  --el-button-hover-text-color: var(--seven-btn-default-text);
+  --el-button-active-bg-color: var(--seven-btn-default-active);
+}
+
+/* 危险 — 深红实心 + 白字 */
+.el-button--danger:not(.is-link):not(.is-text) {
+  --el-button-bg-color: var(--seven-btn-danger-bg);
+  --el-button-border-color: var(--seven-btn-danger-border);
+  --el-button-hover-bg-color: var(--seven-btn-danger-hover);
+  --el-button-hover-border-color: var(--seven-btn-danger-hover-border);
+  --el-button-active-bg-color: var(--seven-btn-danger-active);
+  --el-button-active-border-color: var(--seven-btn-danger-active);
+  --el-button-disabled-bg-color: var(--seven-btn-danger-disabled-bg, #f87171);
+  --el-button-disabled-border-color: var(--seven-btn-danger-disabled-border, #f87171);
+}
+
+.el-button--danger.is-link {
+  --el-button-text-color: var(--seven-danger);
+}
+
+/* 警告 — 浅琥珀底 + 深字（非深底，不用白字） */
+.el-button--warning:not(.is-link):not(.is-text) {
+  --el-button-bg-color: var(--seven-btn-warning-bg);
+  --el-button-border-color: var(--seven-btn-warning-border);
+  --el-button-text-color: var(--seven-btn-warning-text);
+  --el-button-hover-bg-color: var(--seven-btn-warning-hover);
+  --el-button-hover-border-color: var(--seven-btn-warning-border-hover);
+  --el-button-hover-text-color: var(--seven-btn-warning-text);
+  font-weight: 600;
+}
+
+.el-button--warning.is-link {
+  --el-button-text-color: #b45309;
+}
+
+html.dark .el-button--warning.is-link {
+  --el-button-text-color: #fbbf24;
+}
+
+/* 链接型主色 — 安全橙（表格行内操作，非实心） */
+.el-button--primary.is-link {
+  --el-button-text-color: var(--seven-accent);
+  font-weight: 500;
+}
+
+.el-button--primary.is-link:hover {
+  color: var(--seven-accent-hover);
+}
+
+.el-dropdown-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--seven-font-body);
+  font-size: var(--seven-text-sm);
+  padding: 6px 12px;
+}
+
+.dialog-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.crud-page .el-card__header .toolbar span {
+  font-family: var(--seven-font-body);
+  font-size: var(--seven-text-sm);
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+}
+
+.auth-panel {
+  margin-top: var(--seven-space-3);
+  padding-top: var(--seven-space-2);
+  border-top: 1px solid var(--seven-border-light);
+}
+
+/* 移动端保持 36px 触控目标 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-actions,
+  .seven-btn-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .el-button:not(.is-link):not(.is-text) {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+}
