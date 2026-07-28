@@ -1,12 +1,12 @@
 using Serilog;
 using Seven.Application.Interfaces;
-using Seven.Board;
 using Seven.Builder;
 using Seven.Infrastructure;
 using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.Middleware;
 using Seven.Infrastructure.Persistence;
 using Seven.WebApi.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Serilog 日志
@@ -19,44 +19,90 @@ builder.Host.UseSerilog();
 
 builder.Services.AddSevenInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IBuilderService, BuilderService>();
-builder.Services.AddScoped<IDeviceService, DeviceService>();
+
+//builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IMessagePushService, MessagePushService>();
 builder.Services.AddScoped<IAlarmPushService, AlarmPushService>();
 
-builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
+builder
+    .Services.AddControllers()
+    .AddJsonOptions(o =>
+        o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    );
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Seven API", Version = "v1", Description = "Seven.Master 企业级后台 API" });
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "JWT: Bearer {token}",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
+    c.SwaggerDoc(
+        "v1",
+        new()
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            Array.Empty<string>()
+            Title = "Seven API",
+            Version = "v1",
+            Description = "Seven.Master 企业级后台 API",
         }
-    });
+    );
+    c.AddSecurityDefinition(
+        "Bearer",
+        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Description = "JWT: Bearer {token}",
+            Name = "Authorization",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
+        }
+    );
+    c.AddSecurityRequirement(
+        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer",
+                    },
+                },
+                Array.Empty<string>()
+            },
+        }
+    );
 });
 
 builder.Services.AddSignalR();
 builder.Services.AddHealthChecks();
 
-var corsOrigins = builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()?.Origins
+var corsOrigins =
+    builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()?.Origins
     ?? "http://localhost:5173";
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins(corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-     .AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+var isDev = builder.Environment.IsDevelopment();
+builder.Services.AddCors(o =>
+    o.AddDefaultPolicy(p =>
+    {
+        // 开发环境：允许任意 localhost / 127.0.0.1 端口（Vite 占用 5173 时会落到 5174+）
+        if (isDev)
+        {
+            p.SetIsOriginAllowed(static origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin)) return false;
+                return origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase)
+                       || origin.StartsWith("http://127.0.0.1:", StringComparison.OrdinalIgnoreCase);
+            });
+        }
+        else
+        {
+            p.WithOrigins(
+                corsOrigins.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+            );
+        }
+
+        p.AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+    })
+);
 
 var app = builder.Build();
 
@@ -72,6 +118,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+// CORS 须在 Authentication 之前；开发环境已允许任意 localhost 端口
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

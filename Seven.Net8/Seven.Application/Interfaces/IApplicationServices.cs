@@ -19,6 +19,9 @@ public interface IAuthService
 
     /// <summary>修改密码</summary>
     Task<WebResponseContent> ChangePasswordAsync(int userId, string oldPassword, string newPassword, CancellationToken cancellationToken = default);
+
+    /// <summary>获取当前登录用户权限码列表（用于改权后刷新前端）</summary>
+    Task<WebResponseContent> GetMyPermissionsAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

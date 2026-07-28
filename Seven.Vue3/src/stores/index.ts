@@ -50,7 +50,11 @@ export const useTabsStore = defineStore('tabs', () => {
   }
 
   function removeTab(path: string) {
-    tabs.value = tabs.value.filter((t) => t.path !== path)
+    const list = tabs.value.filter((t) => t.path !== path)
+    tabs.value = list
+    if (activeTab.value === path) {
+      activeTab.value = list[list.length - 1]?.path ?? '/home'
+    }
   }
 
   return { tabs, activeTab, addTab, removeTab }

@@ -106,7 +106,7 @@
       <el-main class="main-content">
         <router-view v-slot="{ Component }">
           <transition name="fade-slide" mode="out-in">
-            <component :is="Component" />
+            <component :is="Component" v-if="Component" :key="route.path" />
           </transition>
         </router-view>
       </el-main>
@@ -182,10 +182,10 @@ function switchTab(path: string) {
 }
 
 function closeTab(path: string) {
+  const wasActive = tabsStore.activeTab === path || route.path === path
   tabsStore.removeTab(path)
-  if (tabsStore.activeTab === path) {
-    const last = tabsStore.tabs[tabsStore.tabs.length - 1]
-    if (last) router.push(last.path)
+  if (wasActive && tabsStore.activeTab !== route.path) {
+    router.push(tabsStore.activeTab)
   }
 }
 

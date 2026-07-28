@@ -25,7 +25,6 @@
               <div class="seven-btn-group">
                 <el-button type="primary" :icon="ActionIcons.save" @click="save">{{ t('sysCoder.save') }}</el-button>
                 <el-button :icon="ActionIcons.sync" @click="syncTable">{{ t('sysCoder.syncTable') }}</el-button>
-                <el-button :icon="ActionIcons.model" @click="createModel">{{ t('sysCoder.createModel') }}</el-button>
                 <el-button :icon="ActionIcons.services" @click="createServices">{{ t('sysCoder.createServices') }}</el-button>
                 <el-button :icon="ActionIcons.vue" @click="createVue">{{ t('sysCoder.createVue') }}</el-button>
                 <el-button type="danger" :icon="ActionIcons.delete" @click="delTree">{{ t('sysCoder.deleteTree') }}</el-button>
@@ -238,11 +237,6 @@ async function syncTable() {
   } else {
     ElMessage.error(res.message || '同步失败')
   }
-}
-
-async function createModel() {
-  const res = await http.post('/api/Builder/CreateModel', { ...tableInfo })
-  ElMessage.success(res.message || (res.status ? t('common.success') : '失败'))
 }
 
 async function createServices() {

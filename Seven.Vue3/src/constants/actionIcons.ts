@@ -11,6 +11,7 @@ import {
   Delete,
   Document,
   DocumentCopy,
+  Download,
   Edit,
   Files,
   FolderAdd,
@@ -22,6 +23,7 @@ import {
   Right,
   Select,
   Setting,
+  Upload,
   Warning,
 } from '@element-plus/icons-vue'
 
@@ -29,6 +31,7 @@ export const ActionIcons = {
   add: Plus,
   edit: Edit,
   delete: Delete,
+  batchDelete: Delete,
   save: Check,
   confirm: Select,
   cancel: Close,
@@ -41,6 +44,9 @@ export const ActionIcons = {
   addChild: FolderAdd,
   addSibling: CirclePlus,
   config: Setting,
+  columnSettings: Setting,
+  import: Upload,
+  export: Download,
   acknowledge: CircleCheck,
   clear: CircleClose,
   testRaise: Warning,

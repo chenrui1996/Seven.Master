@@ -1,37 +1,37 @@
 using Microsoft.EntityFrameworkCore;
 using Seven.Application.Interfaces;
 using Seven.Domain.Common;
-using {{EntityNamespace}};
+using Seven.Domain.Entities.Board;
 using Seven.Infrastructure.Excel;
 using Seven.Infrastructure.Persistence;
 
 namespace Seven.Infrastructure.Services;
 
-/// <summary>{{TableName}} 服务（代码生成）</summary>
-public class {{ServiceName}} : {{InterfaceName}}
+/// <summary>Device 服务（代码生成）</summary>
+public class SysDeviceService : ISysDeviceService
 {
     private readonly SevenDbContext _db;
 
-    public {{ServiceName}}(SevenDbContext db) => _db = db;
+    public SysDeviceService(SevenDbContext db) => _db = db;
 
-    public async Task<PageGridData<{{EntityName}}>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
+    public async Task<PageGridData<Device>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
     {
-        var query = _db.Set<{{EntityName}}>().AsNoTracking().Where(x => !x.IsDeleted);
+        var query = _db.Set<Device>().AsNoTracking().Where(x => !x.IsDeleted);
         return await CrudHelper.PaginateAsync(query, options, cancellationToken);
     }
 
-    public async Task<WebResponseContent> AddAsync({{EntityName}} entity, CancellationToken cancellationToken = default)
+    public async Task<WebResponseContent> AddAsync(Device entity, CancellationToken cancellationToken = default)
     {
         entity.CreateDate = DateTime.Now;
         entity.IsDeleted = false;
-        _db.Set<{{EntityName}}>().Add(entity);
+        _db.Set<Device>().Add(entity);
         await _db.SaveChangesAsync(cancellationToken);
         return WebResponseContent.Ok("添加成功", entity);
     }
 
-    public async Task<WebResponseContent> UpdateAsync({{EntityName}} entity, CancellationToken cancellationToken = default)
+    public async Task<WebResponseContent> UpdateAsync(Device entity, CancellationToken cancellationToken = default)
     {
-        var existing = await _db.Set<{{EntityName}}>().FirstOrDefaultAsync(x => x.{{KeyName}} == entity.{{KeyName}} && !x.IsDeleted, cancellationToken);
+        var existing = await _db.Set<Device>().FirstOrDefaultAsync(x => x.DeviceId == entity.DeviceId && !x.IsDeleted, cancellationToken);
         if (existing == null) return WebResponseContent.Error("数据不存在");
         _db.Entry(existing).CurrentValues.SetValues(entity);
         existing.ModifyDate = DateTime.Now;
@@ -42,7 +42,7 @@ public class {{ServiceName}} : {{InterfaceName}}
 
     public async Task<WebResponseContent> DeleteAsync(int[] ids, CancellationToken cancellationToken = default)
     {
-        var list = await _db.Set<{{EntityName}}>().Where(x => ids.Contains(x.{{KeyName}}) && !x.IsDeleted).ToListAsync(cancellationToken);
+        var list = await _db.Set<Device>().Where(x => ids.Contains(x.DeviceId) && !x.IsDeleted).ToListAsync(cancellationToken);
         foreach (var item in list)
         {
             item.IsDeleted = true;
@@ -57,15 +57,15 @@ public class {{ServiceName}} : {{InterfaceName}}
         options.Page = 1;
         options.Rows = CrudExcelHelper.MaxExportRows;
         var page = await GetPageDataAsync(options, cancellationToken);
-        return CrudExcelHelper.Export(page.Rows, nameof({{EntityName}}.{{KeyName}}));
+        return CrudExcelHelper.Export(page.Rows, nameof(Device.DeviceId));
     }
 
     public byte[] ExportTemplate() =>
-        CrudExcelHelper.BuildTemplate<{{EntityName}}>(nameof({{EntityName}}.{{KeyName}}));
+        CrudExcelHelper.BuildTemplate<Device>(nameof(Device.DeviceId));
 
     public async Task<WebResponseContent> ImportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        var rows = CrudExcelHelper.Import<{{EntityName}}>(stream, nameof({{EntityName}}.{{KeyName}}));
+        var rows = CrudExcelHelper.Import<Device>(stream, nameof(Device.DeviceId));
         if (rows.Count == 0)
             return WebResponseContent.Error("未读取到有效数据");
 
@@ -75,10 +75,10 @@ public class {{ServiceName}} : {{InterfaceName}}
         {
             try
             {
-                entity.{{KeyName}} = default;
+                entity.DeviceId = default;
                 entity.CreateDate = DateTime.Now;
                 entity.IsDeleted = false;
-                _db.Set<{{EntityName}}>().Add(entity);
+                _db.Set<Device>().Add(entity);
                 await _db.SaveChangesAsync(cancellationToken);
                 ok++;
             }

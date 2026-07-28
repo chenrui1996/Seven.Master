@@ -139,5 +139,27 @@ public static class DependencyInjection
         services.AddScoped<ISysLogService, SysLogService>();
         services.AddScoped<IWorkFlowService, WorkFlowService>();
         services.AddScoped<IAlarmService, AlarmService>();
+        RegisterUnregisteredSysServices(services);
+    }
+
+    /// <summary>
+    /// 约定注册代码生成的 Sys*Service（若同名接口尚未手动注册）
+    /// </summary>
+    private static void RegisterUnregisteredSysServices(IServiceCollection services)
+    {
+        var infraAssembly = typeof(SysUserService).Assembly;
+        foreach (var impl in infraAssembly.GetExportedTypes()
+                     .Where(t => t is { IsClass: true, IsAbstract: false }
+                                 && t.Namespace == "Seven.Infrastructure.Services"
+                                 && t.Name.StartsWith("Sys", StringComparison.Ordinal)
+                                 && t.Name.EndsWith("Service", StringComparison.Ordinal)))
+        {
+            var iface = impl.GetInterfaces()
+                .FirstOrDefault(i => i.Name == $"I{impl.Name}"
+                                     && i.Namespace == "Seven.Application.Interfaces");
+            if (iface == null) continue;
+            if (services.Any(d => d.ServiceType == iface)) continue;
+            services.AddScoped(iface, impl);
+        }
     }
 }

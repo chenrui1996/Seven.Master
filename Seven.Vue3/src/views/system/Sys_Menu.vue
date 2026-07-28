@@ -70,8 +70,19 @@
           </el-form-item>
           <el-form-item :label="t('sysMenu.colAuth')">
             <el-checkbox-group v-model="authList">
-              <el-checkbox v-for="a in authOptions" :key="a" :label="a">{{ a }}</el-checkbox>
+              <el-checkbox v-for="a in displayAuthOptions" :key="a" :label="a">{{ a }}</el-checkbox>
             </el-checkbox-group>
+            <div class="auth-custom">
+              <el-input
+                v-model="customAuth"
+                :placeholder="t('sysMenu.customAuthPlaceholder')"
+                clearable
+                style="width: 200px"
+                @keyup.enter="addCustomAuth"
+              />
+              <el-button type="primary" plain @click="addCustomAuth">{{ t('sysMenu.addAuth') }}</el-button>
+            </div>
+            <div class="auth-hint">{{ t('sysMenu.customAuthHint') }}</div>
           </el-form-item>
         </el-form>
       </el-card>
@@ -80,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '../../api/http'
@@ -91,8 +102,43 @@ import type { MenuItem } from '../../stores'
 const { t } = useI18n()
 const menuFlat = ref<MenuItem[]>([])
 const menuTree = ref<MenuItem[]>([])
-const authOptions = ['Search', 'Add', 'Update', 'Delete', 'Acknowledge', 'Clear', 'Raise']
+const authOptions = [
+  'Search',
+  'Add',
+  'Update',
+  'Delete',
+  'Import',
+  'Export',
+  'Upload',
+  'Audit',
+  'Acknowledge',
+  'Clear',
+  'Raise',
+]
 const authList = ref<string[]>([])
+const customAuth = ref('')
+
+/** 预设 + 本菜单已保存的自定义动作码 */
+const displayAuthOptions = computed(() => {
+  const set = new Set<string>([...authOptions, ...authList.value])
+  return [...set]
+})
+
+function addCustomAuth() {
+  const code = customAuth.value.trim()
+  if (!code) {
+    ElMessage.warning(t('sysMenu.customAuthRequired'))
+    return
+  }
+  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(code)) {
+    ElMessage.warning(t('sysMenu.customAuthInvalid'))
+    return
+  }
+  if (!authList.value.some((a) => a.toLowerCase() === code.toLowerCase())) {
+    authList.value = [...authList.value, code]
+  }
+  customAuth.value = ''
+}
 
 const form = reactive({
   menu_Id: 0,
@@ -244,5 +290,17 @@ onMounted(loadTree)
 }
 .menu-form {
   max-width: 560px;
+}
+.auth-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.auth-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.5;
 }
 </style>

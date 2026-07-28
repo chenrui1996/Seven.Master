@@ -140,6 +140,7 @@ import {
   type PermissionAction,
   type PermissionNode,
 } from '../../utils/rolePermission'
+import { useUserStore } from '../../stores/user'
 
 interface RoleRow {
   role_Id?: number
@@ -150,6 +151,7 @@ interface RoleRow {
 }
 
 const { t } = useI18n()
+const userStore = useUserStore()
 const loading = ref(false)
 const tableData = ref<RoleRow[]>([])
 const total = ref(0)
@@ -288,6 +290,17 @@ async function savePermission() {
     if (res.status) {
       ElMessage.success(res.message || t('common.success'))
       permDialogVisible.value = false
+      // 若改的是当前登录角色，立即刷新按钮权限
+      if (userStore.roleId === permRoleId.value) {
+        try {
+          await userStore.refreshPermissions()
+          ElMessage.info(t('sysRole.permissionRefreshed'))
+        } catch {
+          ElMessage.warning(t('sysRole.permissionReLogin'))
+        }
+      } else {
+        ElMessage.info(t('sysRole.permissionReLogin'))
+      }
     }
   } finally {
     permSaving.value = false

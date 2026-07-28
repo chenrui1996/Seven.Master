@@ -86,3 +86,57 @@ export const getPageData = (url: string, options: object) =>
 
 export const getVueDictionary = (dicNos: string[]) =>
   http.post('/api/Sys_Dictionary/getVueDictionary', dicNos)
+
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+async function blobOrThrow(res: { data: Blob; headers: Record<string, unknown> }, fallbackName: string) {
+  const blob = res.data
+  const contentType = String(res.headers['content-type'] ?? '')
+  if (contentType.includes('application/json')) {
+    const text = await blob.text()
+    let message = '操作失败'
+    try {
+      const json = JSON.parse(text) as ApiResponse
+      message = json.message || message
+    } catch { /* ignore */ }
+    throw new Error(message)
+  }
+  const disposition = String(res.headers['content-disposition'] ?? '')
+  const match = /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i.exec(disposition)
+  const filename = match ? decodeURIComponent(match[1]) : fallbackName
+  triggerBlobDownload(blob, filename)
+}
+
+/** POST 下载文件（绕过 JSON 响应拦截器） */
+export async function downloadFile(url: string, data?: unknown, filename = 'export.xlsx') {
+  const userStore = useUserStore()
+  const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${url}`, data ?? {}, {
+    responseType: 'blob',
+    headers: userStore.token ? { Authorization: `Bearer ${userStore.token}` } : {},
+  })
+  await blobOrThrow(res, filename)
+}
+
+/** GET 下载文件 */
+export async function downloadGet(url: string, filename = 'template.xlsx') {
+  const userStore = useUserStore()
+  const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}${url}`, {
+    responseType: 'blob',
+    headers: userStore.token ? { Authorization: `Bearer ${userStore.token}` } : {},
+  })
+  await blobOrThrow(res, filename)
+}
+
+/** 上传文件（multipart） */
+export const uploadFile = (url: string, file: File, fieldName = 'file') => {
+  const form = new FormData()
+  form.append(fieldName, file)
+  return http.post(url, form)
+}

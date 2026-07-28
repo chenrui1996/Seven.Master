@@ -1,4 +1,6 @@
+using Seven.Domain.Attributes;
 using Seven.Domain.Common;
+using Seven.Domain.Enums;
 
 namespace Seven.Domain.Entities.Board;
 
@@ -17,6 +19,7 @@ public class Device : BaseEntity
     public string? DeviceCode { get; set; }
 
     /// <summary>设备状态</summary>
+    [FormEnum(typeof(DeviceStatus))]
     public int Status { get; set; }
 
     /// <summary>位置</summary>

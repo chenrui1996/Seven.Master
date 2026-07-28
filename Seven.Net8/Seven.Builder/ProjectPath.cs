@@ -21,8 +21,22 @@ public static class ProjectPath
     public static string ApplicationPath => Path.Combine(GetSolutionRoot(), "Seven.Net8", "Seven.Application", "Interfaces");
     public static string InfrastructurePath => Path.Combine(GetSolutionRoot(), "Seven.Net8", "Seven.Infrastructure", "Services");
     public static string WebApiPath => Path.Combine(GetSolutionRoot(), "Seven.Net8", "Seven.WebApi", "Controllers");
-    public static string VueViewsPath => Path.Combine(GetSolutionRoot(), "Seven.Vue3", "src", "views", "system");
+    public static string VueSrcPath => Path.Combine(GetSolutionRoot(), "Seven.Vue3", "src");
+    public static string VueViewsPath => Path.Combine(VueSrcPath, "views");
+    public static string VueExtensionPath => Path.Combine(VueSrcPath, "extension");
+    public static string VueLocalesPath => Path.Combine(VueSrcPath, "locales", "lang");
     public static string TemplatePath => Path.Combine(GetSolutionRoot(), "Seven.Net8", "Seven.WebApi", "Template");
+
+    /// <summary>视图文件夹默认取命名空间最底层（如 Seven.Domain.Entities.Board → Board）</summary>
+    public static string ResolveVueFolder(string? folderName, string? nameSpace)
+    {
+        if (!string.IsNullOrWhiteSpace(folderName))
+            return folderName.Trim();
+        if (string.IsNullOrWhiteSpace(nameSpace))
+            return "system";
+        var last = nameSpace.Split('.', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+        return string.IsNullOrWhiteSpace(last) ? "system" : last;
+    }
 
     public static string[] GetNamespaces() =>
     [
@@ -53,7 +67,16 @@ public static class FileHelper
     {
         var result = template;
         foreach (var (key, value) in tokens)
+            result = result.Replace("__" + key + "__", value);
+        foreach (var (key, value) in tokens)
             result = result.Replace("{{" + key + "}}", value);
+
+        // Vue script 枚举 options：注释占位，未提供时清空，避免残留或 {{EnumOptions}} 运行时报错
+        var enumBlock = tokens.TryGetValue("EnumOptions", out var eo) ? eo ?? "" : "";
+        result = result
+            .Replace("/*__ENUM_OPTIONS__*/", enumBlock)
+            .Replace("{{EnumOptions}}", enumBlock)
+            .Replace("__EnumOptions__", enumBlock);
         return result;
     }
 }

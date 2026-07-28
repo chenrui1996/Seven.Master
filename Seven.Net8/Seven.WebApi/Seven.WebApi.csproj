@@ -25,4 +25,8 @@
     <ProjectReference Include="..\Seven.Board\Seven.Board.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Generated\" />
+  </ItemGroup>
+
 </Project>

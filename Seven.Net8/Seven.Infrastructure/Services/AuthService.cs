@@ -14,13 +14,19 @@ public class AuthService : IAuthService
     private readonly SevenDbContext _db;
     private readonly IPasswordHasher _hasher;
     private readonly ITokenService _tokenService;
+    private readonly ICurrentUserService _currentUser;
 
     /// <summary>构造函数</summary>
-    public AuthService(SevenDbContext db, IPasswordHasher hasher, ITokenService tokenService)
+    public AuthService(
+        SevenDbContext db,
+        IPasswordHasher hasher,
+        ITokenService tokenService,
+        ICurrentUserService currentUser)
     {
         _db = db;
         _hasher = hasher;
         _tokenService = tokenService;
+        _currentUser = currentUser;
     }
 
     /// <inheritdoc />
@@ -83,6 +89,15 @@ public class AuthService : IAuthService
         return WebResponseContent.Ok("密码修改成功");
     }
 
+    /// <inheritdoc />
+    public async Task<WebResponseContent> GetMyPermissionsAsync(CancellationToken cancellationToken = default)
+    {
+        var roleId = _currentUser.RoleId ?? 0;
+        if (roleId <= 0) return WebResponseContent.Error("未登录");
+        var permissions = await GetPermissionsAsync(roleId, cancellationToken);
+        return WebResponseContent.Ok(data: permissions);
+    }
+
     private async Task<List<string>> GetPermissionsAsync(int roleId, CancellationToken cancellationToken)
     {
         var auths = await _db.Sys_RoleAuths.Where(a => a.Role_Id == roleId).ToListAsync(cancellationToken);
@@ -92,9 +107,14 @@ public class AuthService : IAuthService
         foreach (var auth in auths)
         {
             var menu = menus.FirstOrDefault(m => m.Menu_Id == auth.Menu_Id);
-            if (menu?.TableName == null) continue;
-            foreach (var action in (auth.AuthValue ?? menu.Auth ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
-                permissions.Add($"{menu.TableName}.{action.Trim()}");
+            if (string.IsNullOrWhiteSpace(menu?.TableName)) continue;
+            // 只认角色已授权的 AuthValue，禁止回退到菜单全部 Auth（否则取消勾选仍有全量按钮权限）
+            foreach (var action in (auth.AuthValue ?? "")
+                         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (string.IsNullOrWhiteSpace(action)) continue;
+                permissions.Add($"{menu!.TableName}.{action}");
+            }
         }
         return permissions;
     }
@@ -106,8 +126,32 @@ public static class CrudHelper
     /// <summary>分页查询</summary>
     public static async Task<PageGridData<T>> PaginateAsync<T>(IQueryable<T> query, PageDataOptions options, CancellationToken ct)
     {
+        if (!string.IsNullOrWhiteSpace(options.Sort))
+            query = ApplySort(query, options.Sort, options.Order);
+
         var total = await query.CountAsync(ct);
         var rows = await query.Skip((options.Page - 1) * options.Rows).Take(options.Rows).ToListAsync(ct);
         return new PageGridData<T> { Total = total, Rows = rows };
+    }
+
+    static IQueryable<T> ApplySort<T>(IQueryable<T> query, string sort, string? order)
+    {
+        var prop = typeof(T).GetProperties()
+            .FirstOrDefault(p => p.Name.Equals(sort, StringComparison.OrdinalIgnoreCase));
+        if (prop == null) return query;
+
+        var param = System.Linq.Expressions.Expression.Parameter(typeof(T), "x");
+        var body = System.Linq.Expressions.Expression.Property(param, prop);
+        var keySelector = System.Linq.Expressions.Expression.Lambda(body, param);
+        var method = string.Equals(order, "asc", StringComparison.OrdinalIgnoreCase)
+            ? "OrderBy"
+            : "OrderByDescending";
+        var call = System.Linq.Expressions.Expression.Call(
+            typeof(Queryable),
+            method,
+            [typeof(T), prop.PropertyType],
+            query.Expression,
+            System.Linq.Expressions.Expression.Quote(keySelector));
+        return query.Provider.CreateQuery<T>(call);
     }
 }
