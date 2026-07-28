@@ -95,6 +95,8 @@ public class SysRoleService : ISysRoleService
         ["Acknowledge"] = "确认",
         ["Clear"] = "清除",
         ["Raise"] = "触发",
+        ["BatchCustom"] = "批量处理",
+        ["RowCustom"] = "行内处理",
     };
 
     private readonly SevenDbContext _db;

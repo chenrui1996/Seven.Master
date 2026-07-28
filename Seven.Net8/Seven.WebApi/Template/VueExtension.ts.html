@@ -3,42 +3,18 @@ import type { PageExtension } from '../types'
 /**
  * {{TableName}} 业务扩展（重新生成 Vue 不会覆盖本文件）
  *
- * 使用图标时：
- *   import { ActionIcons } from '../../constants/actionIcons'
- *   icon: ActionIcons.sync
+ * 能力：
+ * - toolbarButtons / rowButtons：自定义按钮
+ * - overlay：弹窗组件
+ * - searchFields：列表查询区
+ * - detailTables：主子表 below | dialog
+ * - hooks：拦截默认新增/修改/删除
  *
- * 示例 — 提交后台：
- * {
- *   key: 'customAction',
- *   label: '自定义处理',
- *   icon: ActionIcons.sync,
- *   permission: '{{TableName}}.Update',
- *   type: 'warning',
- *   requireSelection: true,
- *   async onClick(ctx) {
- *     const res = await ctx.http.post('/api/{{TableName}}/custom', ctx.selectedIds)
- *     if ((res as { status?: boolean }).status) await ctx.reload()
- *   },
- * }
- *
- * 示例 — 打开自定义页并传入选中 Id：
- * {
- *   key: 'openBatch',
- *   label: '批量页',
- *   icon: ActionIcons.viewAll,
- *   requireSelection: true,
- *   onClick(ctx) {
- *     ctx.router.push({
- *       path: '/{{TableName}}Batch',
- *       query: { ids: ctx.selectedIds.join(',') },
- *     })
- *   },
- * }
- *
- * 可用图标见 src/constants/actionIcons.ts（ActionIcons.add / delete / sync 等）
+ * 详见 doc/11-生成页自定义按钮.md
  */
 const extension: PageExtension = {
   toolbarButtons: [],
+  rowButtons: [],
 }
 
 export default extension

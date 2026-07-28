@@ -114,6 +114,8 @@ const authOptions = [
   'Acknowledge',
   'Clear',
   'Raise',
+  'BatchCustom',
+  'RowCustom',
 ]
 const authList = ref<string[]>([])
 const customAuth = ref('')

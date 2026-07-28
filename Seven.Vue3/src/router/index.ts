@@ -12,7 +12,7 @@ const staticRoutes: RouteRecordRaw[] = [
     component: () => import('../layout/MainLayout.vue'),
     redirect: '/home',
     children: [
-      { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '首页' } }
+      { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '首页' } },
     ]
   }
 ]

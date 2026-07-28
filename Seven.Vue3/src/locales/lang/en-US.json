@@ -24,7 +24,9 @@
     "columnSettings": "Column Settings",
     "columnSettingsTip": "Drag column names to reorder table columns",
     "columnName": "Column",
-    "columnVisible": "Visible"
+    "columnVisible": "Visible",
+    "search": "Search",
+    "selectRowForDetail": "Select a master row to view details"
   },
   "layout": {
     "logoTitle": "Seven WMS",

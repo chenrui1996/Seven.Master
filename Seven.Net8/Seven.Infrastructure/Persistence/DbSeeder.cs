@@ -83,7 +83,7 @@ public static class DbSeeder
             new { MenuName = "日志管理", OrderNo = 6, Url = "/Sys_Log", TableName = "Sys_Log", Auth = "Search" },
             new { MenuName = "告警管理", OrderNo = 7, Url = "/Sys_Alarm", TableName = "Sys_Alarm", Auth = "Search,Acknowledge,Clear,Raise" },
             new { MenuName = "代码生成", OrderNo = 8, Url = "/coder", TableName = "Sys_TableInfo", Auth = "Search,Add,Update,Delete" },
-            new { MenuName = "设备管理", OrderNo = 9, Url = "/Device", TableName = "Device", Auth = "Search,Add,Update,Delete,Import,Export" },
+            new { MenuName = "设备管理", OrderNo = 9, Url = "/Device", TableName = "Device", Auth = "Search,Add,Update,Delete,Import,Export,BatchCustom,RowCustom" },
         };
 
         var menus = childMenuDefs

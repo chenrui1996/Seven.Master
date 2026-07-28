@@ -1,3 +1,7 @@
+using System.Globalization;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Seven.Application.Interfaces;
 using Seven.Domain.Common;
@@ -123,15 +127,107 @@ public class AuthService : IAuthService
 /// <summary>分页辅助</summary>
 public static class CrudHelper
 {
-    /// <summary>分页查询</summary>
+    /// <summary>分页查询（支持 Wheres JSON 过滤）</summary>
     public static async Task<PageGridData<T>> PaginateAsync<T>(IQueryable<T> query, PageDataOptions options, CancellationToken ct)
     {
+        query = ApplyWheres(query, options.Wheres);
+
         if (!string.IsNullOrWhiteSpace(options.Sort))
             query = ApplySort(query, options.Sort, options.Order);
 
         var total = await query.CountAsync(ct);
         var rows = await query.Skip((options.Page - 1) * options.Rows).Take(options.Rows).ToListAsync(ct);
         return new PageGridData<T> { Total = total, Rows = rows };
+    }
+
+    /// <summary>
+    /// Wheres 格式：[{ "name":"prop","value":"...","displayType":"equal|like" }]
+    /// name 与实体属性名匹配（忽略大小写）。
+    /// </summary>
+    public static IQueryable<T> ApplyWheres<T>(IQueryable<T> query, string? wheresJson)
+    {
+        if (string.IsNullOrWhiteSpace(wheresJson)) return query;
+        try
+        {
+            using var doc = JsonDocument.Parse(wheresJson);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return query;
+
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                if (!item.TryGetProperty("name", out var nameEl)) continue;
+                var name = nameEl.GetString();
+                if (string.IsNullOrWhiteSpace(name)) continue;
+
+                var prop = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (prop == null) continue;
+
+                if (!item.TryGetProperty("value", out var valueEl)) continue;
+                var valueStr = valueEl.ValueKind switch
+                {
+                    JsonValueKind.String => valueEl.GetString(),
+                    JsonValueKind.Number => valueEl.GetRawText(),
+                    JsonValueKind.True => "true",
+                    JsonValueKind.False => "false",
+                    _ => valueEl.ToString(),
+                };
+                if (string.IsNullOrWhiteSpace(valueStr)) continue;
+
+                var displayType = item.TryGetProperty("displayType", out var dtEl)
+                    ? dtEl.GetString()
+                    : "equal";
+                query = ApplyFilter(query, prop, valueStr!, displayType);
+            }
+        }
+        catch
+        {
+            /* ignore invalid filter json */
+        }
+
+        return query;
+    }
+
+    static IQueryable<T> ApplyFilter<T>(IQueryable<T> query, PropertyInfo prop, string valueStr, string? displayType)
+    {
+        var param = Expression.Parameter(typeof(T), "x");
+        var member = Expression.Property(param, prop);
+        var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+        object? typed;
+        try
+        {
+            typed = ConvertFilterValue(valueStr, targetType);
+        }
+        catch
+        {
+            return query;
+        }
+
+        Expression body;
+        if (string.Equals(displayType, "like", StringComparison.OrdinalIgnoreCase) && targetType == typeof(string))
+        {
+            var constVal = Expression.Constant((string?)typed, typeof(string));
+            var notNull = Expression.NotEqual(member, Expression.Constant(null, typeof(string)));
+            var contains = Expression.Call(member, nameof(string.Contains), Type.EmptyTypes, constVal);
+            body = Expression.AndAlso(notNull, contains);
+        }
+        else
+        {
+            var constVal = Expression.Constant(typed, prop.PropertyType);
+            body = Expression.Equal(member, constVal);
+        }
+
+        var lambda = Expression.Lambda<Func<T, bool>>(body, param);
+        return query.Where(lambda);
+    }
+
+    static object? ConvertFilterValue(string valueStr, Type targetType)
+    {
+        if (targetType == typeof(string)) return valueStr;
+        if (targetType == typeof(bool)) return bool.Parse(valueStr);
+        if (targetType == typeof(DateTime)) return DateTime.Parse(valueStr, CultureInfo.InvariantCulture);
+        if (targetType.IsEnum) return Enum.Parse(targetType, valueStr, true);
+        return Convert.ChangeType(valueStr, targetType, CultureInfo.InvariantCulture);
     }
 
     static IQueryable<T> ApplySort<T>(IQueryable<T> query, string sort, string? order)

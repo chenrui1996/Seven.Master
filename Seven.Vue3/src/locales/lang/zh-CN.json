@@ -24,7 +24,9 @@
     "columnSettings": "自定义排序",
     "columnSettingsTip": "拖动列名可调整表格列显示顺序",
     "columnName": "列名",
-    "columnVisible": "是否显示"
+    "columnVisible": "是否显示",
+    "search": "查询",
+    "selectRowForDetail": "请选择上方一行以查看明细"
   },
   "layout": {
     "logoTitle": "Seven WMS",

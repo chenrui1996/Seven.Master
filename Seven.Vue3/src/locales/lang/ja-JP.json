@@ -24,7 +24,9 @@
     "columnSettings": "列の並び替え",
     "columnSettingsTip": "列名をドラッグして表示順を変更できます",
     "columnName": "列名",
-    "columnVisible": "表示"
+    "columnVisible": "表示",
+    "search": "検索",
+    "selectRowForDetail": "明細を表示するには上の行を選択してください"
   },
   "layout": {
     "logoTitle": "Seven WMS",
