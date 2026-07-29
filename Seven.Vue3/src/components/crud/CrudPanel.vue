@@ -1,0 +1,1030 @@
+<template>
+  <div class="crud-panel" :class="{ 'crud-panel--nested': depth > 0 }">
+    <el-card v-if="showCard">
+      <template #header>
+        <div class="toolbar">
+          <span>{{ panelTitle }}</span>
+          <div class="toolbar-actions">
+            <template v-if="depth === 0 && extension">
+              <el-button
+                v-for="btn in toolbarButtons"
+                :key="btn.key"
+                :type="btn.type === 'default' ? undefined : (btn.type || undefined)"
+                :icon="btn.icon"
+                :disabled="!!btn.requireSelection && selectedIds.length === 0"
+                @click="onExtButton(btn)"
+              >{{ btn.label }}</el-button>
+            </template>
+            <el-button
+              v-if="userStore.hasPermission(`${tableName}.Delete`)"
+              type="danger"
+              plain
+              :icon="ActionIcons.batchDelete"
+              :disabled="selectedIds.length === 0"
+              @click="batchRemove"
+            >{{ t('common.batchDelete') }}</el-button>
+            <template v-if="depth === 0">
+              <el-button
+                v-if="userStore.hasPermission(`${tableName}.Import`)"
+                :icon="ActionIcons.import"
+                @click="triggerImport"
+              >{{ t('common.import') }}</el-button>
+              <el-button
+                v-if="userStore.hasPermission(`${tableName}.Export`)"
+                :icon="ActionIcons.export"
+                @click="doExport"
+              >{{ t('common.export') }}</el-button>
+              <el-button
+                v-if="userStore.hasPermission(`${tableName}.Import`)"
+                link
+                type="primary"
+                @click="downloadTemplate"
+              >{{ t('common.downloadTemplate') }}</el-button>
+            </template>
+            <el-button
+              v-if="userStore.hasPermission(`${tableName}.Add`)"
+              type="primary"
+              :icon="ActionIcons.add"
+              @click="openForm()"
+            >{{ t('common.add') }}</el-button>
+            <el-button :icon="ActionIcons.columnSettings" @click="openColumnSettings" />
+          </div>
+        </div>
+      </template>
+
+      <el-form
+        v-if="resolvedSearchFields.length"
+        :model="searchModel"
+        inline
+        class="search-bar"
+        @submit.prevent="onSearch"
+      >
+        <el-form-item v-for="f in resolvedSearchFields" :key="f.prop" :label="searchFieldLabel(f)">
+          <el-select
+            v-if="f.kind === 'enum' || f.kind === 'bool'"
+            v-model="searchModel[f.prop]"
+            clearable
+            style="width:160px"
+          >
+            <el-option
+              v-for="o in searchFieldOptions(f)"
+              :key="String(o.value)"
+              :label="o.label"
+              :value="o.value"
+            />
+          </el-select>
+          <el-date-picker
+            v-else-if="f.kind === 'date'"
+            v-model="searchModel[f.prop]"
+            type="datetime"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            clearable
+            style="width:200px"
+          />
+          <el-input-number
+            v-else-if="f.kind === 'number'"
+            v-model="searchModel[f.prop]"
+            controls-position="right"
+            style="width:160px"
+          />
+          <el-input
+            v-else
+            v-model="searchModel[f.prop]"
+            clearable
+            style="width:160px"
+            @keyup.enter="onSearch"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">{{ t('common.search') }}</el-button>
+          <el-button @click="onResetSearch">{{ t('common.reset') }}</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-table
+        :data="tableData"
+        v-loading="loading"
+        border
+        highlight-current-row
+        @sort-change="onSortChange"
+        @selection-change="onSelectionChange"
+        @current-change="onCurrentChange"
+      >
+        <el-table-column type="selection" width="48" />
+        <el-table-column
+          v-for="col in visibleColumns"
+          :key="col.prop"
+          :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
+          :label="columnLabel(col.prop)"
+          :sortable="col.sortable ? 'custom' : false"
+          :align="col.kind === 'number' ? 'right' : undefined"
+        >
+          <template v-if="col.kind === 'enum'" #default="{ row }">
+            {{ enumLabel(enumOptionsMap[col.prop], row[col.prop]) }}
+          </template>
+          <template v-else-if="col.kind === 'bool'" #default="{ row }">
+            {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
+          </template>
+          <template v-else-if="col.kind === 'date'" #default="{ row }">
+            {{ formatDate(row[col.prop]) }}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          v-if="entryDetailTables.length"
+          :label="t('common.detailTables')"
+          :min-width="detailTablesColumnWidth"
+          fixed="right"
+        >
+          <template #default="{ row }">
+            <div class="row-actions">
+              <el-button
+                v-for="dt in entryDetailTables"
+                :key="'detail-' + dt.key"
+                link
+                type="primary"
+                @click="onDetailEntry(dt, row)"
+              >{{ dt.buttonLabel || dt.title }}</el-button>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column :label="t(`${i18nKey}.actions`)" :min-width="actionsColumnWidth" fixed="right">
+          <template #default="{ row }">
+            <div class="row-actions">
+              <el-button
+                v-if="userStore.hasPermission(`${tableName}.Update`)"
+                link
+                type="primary"
+                :icon="ActionIcons.edit"
+                @click="openForm(row)"
+              >{{ t(`${i18nKey}.edit`) }}</el-button>
+              <template v-if="depth === 0">
+                <el-button
+                  v-for="btn in rowButtonsFor(row)"
+                  :key="btn.key"
+                  link
+                  :type="btn.type === 'default' ? 'primary' : (btn.type || 'primary')"
+                  :icon="btn.icon"
+                  :disabled="!!btn.disabled?.(row)"
+                  @click="onRowExtButton(btn, row)"
+                >{{ btn.label }}</el-button>
+              </template>
+              <el-button
+                v-if="userStore.hasPermission(`${tableName}.Delete`)"
+                link
+                type="danger"
+                :icon="ActionIcons.delete"
+                @click="remove(row)"
+              >{{ t('common.delete') }}</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        v-model:current-page="page"
+        :page-size="pageSize"
+        :total="total"
+        @change="loadData"
+        style="margin-top:16px"
+      />
+    </el-card>
+
+    <!-- below：apiRoute → 嵌套 CrudPanel；仅 load → 只读表 -->
+    <template v-if="canRenderDetails">
+      <template v-for="dt in belowDetailTables" :key="'below-' + dt.key">
+        <CrudPanel
+          v-if="dt.apiRoute && activeMasterRow"
+          :key="`${dt.key}-${masterIdOf(dt, activeMasterRow)}`"
+          v-bind="nestedPanelProps(dt, activeMasterRow)"
+        />
+        <el-card v-else class="detail-card" shadow="never">
+          <template #header>
+            <div class="detail-header">
+              <span class="detail-title">{{ dt.title }}</span>
+              <span v-if="!activeMasterRow" class="detail-hint">{{ t('common.selectRowForDetail') }}</span>
+            </div>
+          </template>
+          <el-table
+            v-if="activeMasterRow && !dt.apiRoute"
+            :data="detailState(dt.key).rows"
+            v-loading="detailState(dt.key).loading"
+            border
+            max-height="320"
+          >
+            <el-table-column
+              v-for="col in dt.columns"
+              :key="col.prop"
+              :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
+              :label="detailColLabel(col)"
+              :width="col.width"
+            >
+              <template v-if="col.kind === 'enum'" #default="{ row }">
+                {{ enumLabel(enumOptionsMap[col.prop], row[col.prop]) }}
+              </template>
+              <template v-else-if="col.kind === 'bool'" #default="{ row }">
+                {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
+              </template>
+              <template v-else-if="col.kind === 'date'" #default="{ row }">
+                {{ formatDate(row[col.prop]) }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </template>
+    </template>
+
+    <el-dialog
+      v-model="dialogVisible"
+      :title="Number(form[keyField] ?? 0) > 0 ? t(`${i18nKey}.edit`) : t(`${i18nKey}.add`)"
+      width="520px"
+      destroy-on-close
+    >
+      <el-form :model="form" label-width="100px">
+        <el-form-item v-for="f in formFields" :key="f.prop" :label="t(`${i18nKey}.${f.prop}`)">
+          <el-select
+            v-if="f.kind === 'enum' || f.kind === 'bool'"
+            v-model="form[f.prop]"
+            style="width:100%"
+            clearable
+          >
+            <el-option
+              v-for="o in formFieldOptions(f)"
+              :key="String(o.value)"
+              :label="o.label"
+              :value="o.value"
+            />
+          </el-select>
+          <el-date-picker
+            v-else-if="f.kind === 'date'"
+            v-model="form[f.prop]"
+            type="datetime"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            style="width:100%"
+            clearable
+          />
+          <el-input-number
+            v-else-if="f.kind === 'number'"
+            v-model="form[f.prop]"
+            :precision="f.isDecimal ? 2 : 0"
+            controls-position="right"
+            style="width:100%"
+          />
+          <el-input v-else v-model="form[f.prop]" clearable />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer-actions">
+          <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" :icon="ActionIcons.save" @click="save">{{ t('common.confirm') }}</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="detailDialogVisible"
+      :title="detailDialogCfg?.title || ''"
+      width="900px"
+      destroy-on-close
+    >
+      <CrudPanel
+        v-if="detailDialogCfg?.apiRoute && detailDialogMaster"
+        :key="`dlg-${detailDialogCfg.key}-${masterIdOf(detailDialogCfg, detailDialogMaster)}`"
+        v-bind="nestedPanelProps(detailDialogCfg, detailDialogMaster)"
+        :show-card="true"
+      />
+      <el-table
+        v-else
+        :data="detailDialogRows"
+        v-loading="detailDialogLoading"
+        border
+        max-height="420"
+      >
+        <el-table-column
+          v-for="col in (detailDialogCfg?.columns ?? [])"
+          :key="col.prop"
+          :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
+          :label="detailColLabel(col)"
+          :width="col.width"
+        >
+          <template v-if="col.kind === 'enum'" #default="{ row }">
+            {{ enumLabel(enumOptionsMap[col.prop], row[col.prop]) }}
+          </template>
+          <template v-else-if="col.kind === 'bool'" #default="{ row }">
+            {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
+          </template>
+          <template v-else-if="col.kind === 'date'" #default="{ row }">
+            {{ formatDate(row[col.prop]) }}
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+    <TableColumnSettings
+      v-model="settingsVisible"
+      :columns="settingsColumns"
+      :prefs="columnPrefs"
+      @save="saveColumnPrefs"
+      @reset="resetColumnPrefs"
+    />
+    <input
+      v-if="depth === 0"
+      ref="importInput"
+      type="file"
+      accept=".xlsx,.xls"
+      style="display:none"
+      @change="onImportFile"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import http, { downloadFile, downloadGet, getPageData, uploadFile } from '../../api/http'
+import type {
+  CrudHookResult,
+  DetailColumnConfig,
+  DetailTableConfig,
+  FormFieldDef,
+  PageActionContext,
+  PageExtension,
+  RowActionContext,
+  RowButton,
+  SearchFieldConfig,
+  ToolbarButton,
+} from '../../extension/types'
+import { useUserStore } from '../../stores/user'
+import { useTabsStore } from '../../stores'
+import { ActionIcons } from '../../constants/actionIcons'
+import TableColumnSettings from '../TableColumnSettings.vue'
+import { useTableColumns, type ColumnDef } from '../../composables/useTableColumns'
+
+defineOptions({ name: 'CrudPanel' })
+
+const props = withDefaults(
+  defineProps<{
+    apiRoute: string
+    i18nKey: string
+    tableName: string
+    /** 主键字段 camelCase */
+    keyField: string
+    columns: ColumnDef[]
+    formFields: FormFieldDef[]
+    formDefaults?: Record<string, unknown>
+    enumOptionsMap?: Record<string, { value: number | string; label: string }[]>
+    searchFields?: SearchFieldConfig[]
+    /** 固定过滤条件，合并进 wheres（equal）；新增时预填 */
+    fixedFilter?: Record<string, unknown>
+    detailTables?: DetailTableConfig[]
+    /** toolbarButtons / rowButtons / hooks；overlay 由外壳渲染 */
+    extension?: PageExtension
+    depth?: number
+    maxDepth?: number
+    title?: string
+    showCard?: boolean
+    pageSize?: number
+  }>(),
+  {
+    formDefaults: () => ({}),
+    enumOptionsMap: () => ({}),
+    searchFields: () => [],
+    detailTables: () => [],
+    depth: 0,
+    maxDepth: 3,
+    showCard: true,
+    pageSize: 30,
+  },
+)
+
+const { t } = useI18n()
+const router = useRouter()
+const tabsStore = useTabsStore()
+const userStore = useUserStore()
+
+const loading = ref(false)
+const tableData = ref<Record<string, unknown>[]>([])
+const total = ref(0)
+const page = ref(1)
+const sort = ref('')
+const order = ref('')
+const dialogVisible = ref(false)
+const selectedRows = ref<Record<string, unknown>[]>([])
+const importInput = ref<HTMLInputElement | null>(null)
+const activeMasterRow = ref<Record<string, unknown> | null>(null)
+const detailDialogVisible = ref(false)
+const detailDialogCfg = ref<DetailTableConfig | null>(null)
+const detailDialogMaster = ref<Record<string, unknown> | null>(null)
+const detailDialogRows = ref<Record<string, unknown>[]>([])
+const detailDialogLoading = ref(false)
+const detailDataMap = reactive<Record<string, { loading: boolean; rows: Record<string, unknown>[] }>>({})
+
+const {
+  columnPrefs,
+  visibleColumns,
+  settingsVisible,
+  openColumnSettings,
+  saveColumnPrefs,
+  resetColumnPrefs,
+} = useTableColumns(`crud-columns:${props.tableName}:d${props.depth}`, props.columns)
+
+const settingsColumns = computed(() =>
+  props.columns.map((c) => ({ prop: c.prop, label: columnLabel(c.prop) })),
+)
+
+const resolvedSearchFields = computed(() => props.searchFields ?? [])
+const searchModel = reactive<Record<string, unknown>>({})
+const boolSearchOptions = computed(() => [
+  { value: true, label: t('common.enabled') },
+  { value: false, label: t('common.disabled') },
+])
+
+const panelTitle = computed(() => props.title || t(`${props.i18nKey}.listTitle`))
+
+const canRenderDetails = computed(() => props.depth < props.maxDepth)
+
+const permittedDetails = computed(() =>
+  (props.detailTables ?? []).filter(
+    (d) => !d.permission || userStore.hasPermission(d.permission),
+  ),
+)
+
+const belowDetailTables = computed(() =>
+  canRenderDetails.value
+    ? permittedDetails.value.filter((d) => d.mode === 'below')
+    : [],
+)
+
+const entryDetailTables = computed(() =>
+  canRenderDetails.value
+    ? permittedDetails.value.filter((d) => d.mode === 'dialog' || d.mode === 'page')
+    : [],
+)
+
+const selectedIds = computed(() =>
+  selectedRows.value
+    .map((r) => Number(r[props.keyField] ?? 0))
+    .filter((id) => id > 0),
+)
+
+const toolbarButtons = computed(() =>
+  (props.extension?.toolbarButtons ?? []).filter(
+    (btn) => !btn.permission || userStore.hasPermission(btn.permission),
+  ),
+)
+
+const rowButtons = computed(() =>
+  (props.extension?.rowButtons ?? []).filter(
+    (btn) => !btn.permission || userStore.hasPermission(btn.permission),
+  ),
+)
+
+const actionsColumnWidth = computed(() => {
+  const base = 2
+  const extra = props.depth === 0 ? rowButtons.value.length : 0
+  return Math.max(180, (base + extra) * 88)
+})
+
+const detailTablesColumnWidth = computed(() =>
+  Math.max(120, entryDetailTables.value.length * 100),
+)
+
+function buildEmptyForm(): Record<string, unknown> {
+  const base: Record<string, unknown> = { [props.keyField]: 0 }
+  if (props.formDefaults && Object.keys(props.formDefaults).length) {
+    Object.assign(base, props.formDefaults)
+    base[props.keyField] = 0
+  } else {
+    for (const f of props.formFields) {
+      if (f.defaultValue !== undefined) base[f.prop] = f.defaultValue
+      else if (f.kind === 'number') base[f.prop] = 0
+      else if (f.kind === 'bool') base[f.prop] = false
+      else base[f.prop] = ''
+    }
+  }
+  if (props.fixedFilter) Object.assign(base, props.fixedFilter)
+  return base
+}
+
+const form = reactive<Record<string, unknown>>(buildEmptyForm())
+
+function formatDate(v: unknown) {
+  if (v == null || v === '') return ''
+  return String(v).replace('T', ' ').slice(0, 19)
+}
+
+function enumLabel(
+  options: { value: number | string; label: string }[] | null | undefined,
+  v: unknown,
+) {
+  const hit = (options ?? []).find((o) => o.value === v || o.value === Number(v))
+  return hit?.label ?? (v == null ? '' : String(v))
+}
+
+function columnLabel(prop: string) {
+  return t(`${props.i18nKey}.${prop}`)
+}
+
+function searchFieldLabel(f: SearchFieldConfig) {
+  if (f.label) return f.label
+  if (f.labelKey) return t(f.labelKey)
+  return t(`${props.i18nKey}.${f.prop}`)
+}
+
+function detailColLabel(col: DetailColumnConfig) {
+  if (col.label) return col.label
+  if (col.labelKey) return t(col.labelKey)
+  return col.prop
+}
+
+function searchFieldOptions(f: SearchFieldConfig) {
+  if (f.options?.length) return f.options
+  if (f.kind === 'bool') return boolSearchOptions.value
+  return props.enumOptionsMap[f.prop] ?? []
+}
+
+function formFieldOptions(f: FormFieldDef) {
+  if (f.options?.length) return f.options
+  if (f.kind === 'bool') return boolSearchOptions.value
+  return props.enumOptionsMap[f.prop] ?? []
+}
+
+function detailState(key: string) {
+  if (!detailDataMap[key]) detailDataMap[key] = { loading: false, rows: [] }
+  return detailDataMap[key]
+}
+
+function buildWheresJson() {
+  const list: { name: string; value: string; displayType: string }[] = []
+  if (props.fixedFilter) {
+    for (const [name, value] of Object.entries(props.fixedFilter)) {
+      if (value === undefined || value === null || value === '') continue
+      list.push({ name, value: String(value), displayType: 'equal' })
+    }
+  }
+  for (const f of resolvedSearchFields.value) {
+    const raw = searchModel[f.prop]
+    if (raw === undefined || raw === null || raw === '') continue
+    const operator = f.operator ?? (f.kind === 'string' || !f.kind ? 'like' : 'equal')
+    list.push({ name: f.prop, value: String(raw), displayType: operator })
+  }
+  return list.length ? JSON.stringify(list) : undefined
+}
+
+async function runHook(result: CrudHookResult): Promise<boolean> {
+  return (await result) !== false
+}
+
+function onSelectionChange(rows: Record<string, unknown>[]) {
+  selectedRows.value = rows
+  if (belowDetailTables.value.length) {
+    activeMasterRow.value = rows.length ? rows[rows.length - 1] : null
+    void loadBelowDetails()
+  }
+}
+
+function onCurrentChange(row: Record<string, unknown> | undefined) {
+  if (!belowDetailTables.value.length) return
+  if (row) {
+    activeMasterRow.value = row
+    void loadBelowDetails()
+  }
+}
+
+function rowButtonsFor(row: Record<string, unknown>) {
+  return rowButtons.value.filter((btn) => !btn.visible || btn.visible(row))
+}
+
+function buildActionContext(): PageActionContext {
+  return {
+    selectedRows: selectedRows.value,
+    selectedIds: selectedIds.value,
+    reload: loadData,
+    http,
+    router,
+    t: (key: string) => t(key),
+  }
+}
+
+function buildRowActionContext(row: Record<string, unknown>): RowActionContext {
+  const rowId = Number(row[props.keyField] ?? 0)
+  return {
+    ...buildActionContext(),
+    row,
+    rowId,
+    selectedRows: [row],
+    selectedIds: rowId > 0 ? [rowId] : [],
+  }
+}
+
+async function onExtButton(btn: ToolbarButton) {
+  if (btn.requireSelection && selectedIds.value.length === 0) {
+    ElMessage.warning(t('common.selectRequired'))
+    return
+  }
+  await btn.onClick(buildActionContext())
+}
+
+async function onRowExtButton(btn: RowButton, row: Record<string, unknown>) {
+  await btn.onClick(buildRowActionContext(row))
+}
+
+function guessKeyField(dt: DetailTableConfig): string {
+  if (dt.keyField) return dt.keyField
+  if (!dt.apiRoute) return 'id'
+  const camel = dt.apiRoute.charAt(0).toLowerCase() + dt.apiRoute.slice(1)
+  return camel.endsWith('Id') ? camel : `${camel}Id`
+}
+
+function mapDetailColumns(dt: DetailTableConfig): ColumnDef[] {
+  return dt.columns.map((c) => ({
+    prop: c.prop,
+    kind: (c.kind === 'number' || c.kind === 'enum' || c.kind === 'bool' || c.kind === 'date'
+      ? c.kind
+      : 'string') as ColumnDef['kind'],
+    sortable: !!c.sortable,
+  }))
+}
+
+function buildNestedFormDefaults(dt: DetailTableConfig): Record<string, unknown> {
+  const key = guessKeyField(dt)
+  const o: Record<string, unknown> = { [key]: 0 }
+  for (const f of dt.formFields ?? []) {
+    if (f.defaultValue !== undefined) o[f.prop] = f.defaultValue
+    else if (f.kind === 'number') o[f.prop] = 0
+    else if (f.kind === 'bool') o[f.prop] = false
+    else o[f.prop] = ''
+  }
+  return o
+}
+
+function buildNestedEnumMap(
+  dt: DetailTableConfig,
+): Record<string, { value: number | string; label: string }[]> {
+  const map: Record<string, { value: number | string; label: string }[]> = {
+    ...props.enumOptionsMap,
+  }
+  for (const f of [...(dt.formFields ?? []), ...(dt.searchFields ?? [])]) {
+    if (f.options?.length) map[f.prop] = f.options
+  }
+  return map
+}
+
+function masterIdOf(dt: DetailTableConfig, master: Record<string, unknown>) {
+  const masterKey = dt.masterKey || props.keyField
+  return master[masterKey]
+}
+
+function nestedFixedFilter(dt: DetailTableConfig, master: Record<string, unknown>) {
+  if (!dt.foreignKey) return {}
+  const id = masterIdOf(dt, master)
+  return { [dt.foreignKey]: id }
+}
+
+function nestedPanelProps(dt: DetailTableConfig, master: Record<string, unknown>) {
+  const route = dt.apiRoute!
+  const nextDepth = props.depth + 1
+  const children = nextDepth < props.maxDepth ? (dt.children ?? []) : []
+  return {
+    apiRoute: route,
+    i18nKey: `generated.${route}`,
+    tableName: route,
+    keyField: guessKeyField(dt),
+    columns: mapDetailColumns(dt),
+    formFields: dt.formFields ?? [],
+    formDefaults: buildNestedFormDefaults(dt),
+    enumOptionsMap: buildNestedEnumMap(dt),
+    searchFields: dt.searchFields ?? [],
+    fixedFilter: nestedFixedFilter(dt, master),
+    detailTables: children,
+    depth: nextDepth,
+    maxDepth: props.maxDepth,
+    title: dt.title,
+    showCard: true,
+    pageSize: dt.pageSize ?? 30,
+  }
+}
+
+async function loadDetailRows(cfg: DetailTableConfig, master: Record<string, unknown>) {
+  if (cfg.load) return await cfg.load(master, buildActionContext())
+  if (!cfg.apiRoute || !cfg.foreignKey) return []
+  const masterId = masterIdOf(cfg, master)
+  if (masterId == null || masterId === '') return []
+  const wheres = JSON.stringify([
+    { name: cfg.foreignKey, value: String(masterId), displayType: 'equal' },
+  ])
+  const res = await getPageData(`/api/${cfg.apiRoute}/getPageData`, {
+    page: 1,
+    rows: cfg.pageSize ?? 100,
+    wheres,
+  })
+  if (res.status && res.data) {
+    return (res.data as { rows: Record<string, unknown>[] }).rows ?? []
+  }
+  return []
+}
+
+async function loadBelowDetails() {
+  const master = activeMasterRow.value
+  for (const dt of belowDetailTables.value) {
+    if (dt.apiRoute) continue
+    const state = detailState(dt.key)
+    if (!master) {
+      state.rows = []
+      continue
+    }
+    state.loading = true
+    try {
+      state.rows = await loadDetailRows(dt, master)
+    } finally {
+      state.loading = false
+    }
+  }
+}
+
+function onDetailEntry(cfg: DetailTableConfig, row: Record<string, unknown>) {
+  if (cfg.mode === 'page') {
+    openDetailPage(cfg, row)
+    return
+  }
+  void openDetailDialog(cfg, row)
+}
+
+function openDetailPage(cfg: DetailTableConfig, row: Record<string, unknown>) {
+  if (!cfg.apiRoute || !cfg.foreignKey) {
+    ElMessage.warning(t('common.operationFailed'))
+    return
+  }
+  const id = masterIdOf(cfg, row)
+  if (id == null || id === '') {
+    ElMessage.warning(t('common.operationFailed'))
+    return
+  }
+  const path = `/${cfg.apiRoute}?${cfg.foreignKey}=${encodeURIComponent(String(id))}`
+  tabsStore.addTab(cfg.title, path)
+  void router.push(path)
+}
+
+async function openDetailDialog(cfg: DetailTableConfig, row: Record<string, unknown>) {
+  detailDialogCfg.value = cfg
+  detailDialogMaster.value = row
+  detailDialogVisible.value = true
+  detailDialogRows.value = []
+  if (cfg.apiRoute) return
+  detailDialogLoading.value = true
+  try {
+    detailDialogRows.value = await loadDetailRows(cfg, row)
+  } finally {
+    detailDialogLoading.value = false
+  }
+}
+
+async function loadData() {
+  loading.value = true
+  selectedRows.value = []
+  activeMasterRow.value = null
+  for (const dt of belowDetailTables.value) {
+    if (!dt.apiRoute) detailState(dt.key).rows = []
+  }
+  try {
+    const res = await getPageData(`/api/${props.apiRoute}/getPageData`, {
+      page: page.value,
+      rows: props.pageSize,
+      sort: sort.value || undefined,
+      order: order.value || undefined,
+      wheres: buildWheresJson(),
+    })
+    if (res.status && res.data) {
+      const data = res.data as { total: number; rows: Record<string, unknown>[] }
+      total.value = data.total
+      tableData.value = data.rows
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+function onSearch() {
+  page.value = 1
+  void loadData()
+}
+
+function onResetSearch() {
+  for (const f of resolvedSearchFields.value) searchModel[f.prop] = undefined
+  page.value = 1
+  void loadData()
+}
+
+function onSortChange(payload: { prop: string; order: string | null }) {
+  sort.value = payload.prop || ''
+  order.value =
+    payload.order === 'ascending' ? 'asc' : payload.order === 'descending' ? 'desc' : ''
+  void loadData()
+}
+
+async function openForm(row?: Record<string, unknown>) {
+  const mode = row ? 'edit' : 'add'
+  Object.assign(form, buildEmptyForm(), row ?? {})
+  if (!row) {
+    form[props.keyField] = 0
+    if (props.fixedFilter) Object.assign(form, props.fixedFilter)
+  }
+  const ok = await runHook(
+    props.extension?.hooks?.beforeOpenForm?.({ mode, row, form }),
+  )
+  if (!ok) return
+  dialogVisible.value = true
+}
+
+async function save() {
+  const key = Number(form[props.keyField] ?? 0)
+  const mode = key > 0 ? 'edit' : 'add'
+  const ok = await runHook(props.extension?.hooks?.beforeSave?.({ mode, form }))
+  if (!ok) return
+  const url =
+    mode === 'edit'
+      ? `/api/${props.apiRoute}/update`
+      : `/api/${props.apiRoute}/add`
+  const payload = { ...form, [props.keyField]: key }
+  if (props.fixedFilter) Object.assign(payload, props.fixedFilter)
+  const res = await http.post(url, payload)
+  if (res.status) {
+    ElMessage.success(t('common.success'))
+    dialogVisible.value = false
+    await props.extension?.hooks?.afterSave?.({ mode, form })
+    await loadData()
+  } else {
+    ElMessage.error(res.message || t('common.operationFailed'))
+  }
+}
+
+async function remove(row: Record<string, unknown>) {
+  const id = Number(row[props.keyField] ?? 0)
+  if (!id) {
+    ElMessage.error(t('common.operationFailed'))
+    return
+  }
+  const hookOk = await runHook(
+    props.extension?.hooks?.beforeDelete?.({ ids: [id], rows: [row] }),
+  )
+  if (!hookOk) return
+  try {
+    await ElMessageBox.confirm(t('common.deleteConfirm'), t('common.delete'), {
+      type: 'warning',
+    })
+  } catch {
+    return
+  }
+  const res = await http.post(`/api/${props.apiRoute}/del`, [id])
+  if (res.status) {
+    ElMessage.success(t('common.success'))
+    await props.extension?.hooks?.afterDelete?.({ ids: [id] })
+    await loadData()
+  } else {
+    ElMessage.error(res.message || t('common.operationFailed'))
+  }
+}
+
+async function batchRemove() {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning(t('common.selectRequired'))
+    return
+  }
+  const ids = [...selectedIds.value]
+  const rows = [...selectedRows.value]
+  const hookOk = await runHook(
+    props.extension?.hooks?.beforeDelete?.({ ids, rows }),
+  )
+  if (!hookOk) return
+  try {
+    await ElMessageBox.confirm(
+      t('common.batchDeleteConfirm'),
+      t('common.batchDelete'),
+      { type: 'warning' },
+    )
+  } catch {
+    return
+  }
+  const res = await http.post(`/api/${props.apiRoute}/del`, ids)
+  if (res.status) {
+    ElMessage.success(t('common.success'))
+    await props.extension?.hooks?.afterDelete?.({ ids })
+    await loadData()
+  } else {
+    ElMessage.error(res.message || t('common.operationFailed'))
+  }
+}
+
+function triggerImport() {
+  importInput.value?.click()
+}
+
+async function onImportFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  try {
+    const res = await uploadFile(`/api/${props.apiRoute}/import`, file)
+    if (res.status) {
+      ElMessage.success(res.message || t('common.importSuccess'))
+      await loadData()
+    } else {
+      ElMessage.error(res.message || t('common.operationFailed'))
+    }
+  } catch {
+    ElMessage.error(t('common.operationFailed'))
+  }
+}
+
+async function doExport() {
+  try {
+    await downloadFile(
+      `/api/${props.apiRoute}/export`,
+      {
+        page: 1,
+        rows: 10000,
+        sort: sort.value || undefined,
+        order: order.value || undefined,
+        wheres: buildWheresJson(),
+      },
+      `${props.tableName}.xlsx`,
+    )
+  } catch {
+    ElMessage.error(t('common.operationFailed'))
+  }
+}
+
+async function downloadTemplate() {
+  try {
+    await downloadGet(
+      `/api/${props.apiRoute}/exportTemplate`,
+      `${props.tableName}_template.xlsx`,
+    )
+  } catch {
+    ElMessage.error(t('common.operationFailed'))
+  }
+}
+
+watch(
+  () => props.fixedFilter,
+  () => {
+    page.value = 1
+    void loadData()
+  },
+  { deep: true },
+)
+
+onMounted(loadData)
+</script>
+
+<style scoped>
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+}
+.search-bar {
+  margin-bottom: 12px;
+}
+.detail-card {
+  margin-top: 12px;
+}
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.detail-title {
+  font-weight: 600;
+  padding-left: 8px;
+  border-left: 3px solid var(--el-color-primary);
+}
+.detail-hint {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+.crud-panel--nested {
+  margin-top: 12px;
+}
+.dialog-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+</style>

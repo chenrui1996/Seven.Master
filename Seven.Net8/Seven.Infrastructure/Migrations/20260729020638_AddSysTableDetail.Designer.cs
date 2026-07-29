@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Seven.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using Seven.Infrastructure.Persistence;
 namespace Seven.Infrastructure.Migrations
 {
     [DbContext(typeof(SevenDbContext))]
-    partial class SevenDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260729020638_AddSysTableDetail")]
+    partial class AddSysTableDetail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,61 +201,6 @@ namespace Seven.Infrastructure.Migrations
                     b.HasKey("DeviceId");
 
                     b.ToTable("Device", (string)null);
-                });
-
-            modelBuilder.Entity("Seven.Domain.Entities.Board.SubDevice", b =>
-                {
-                    b.Property<int>("SubDeviceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("SubDeviceId"));
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("CreateId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Creator")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("DeviceId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Modifier")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("ModifyDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("ModifyId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Remark")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubDeviceCode")
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<string>("SubDeviceName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("varchar(128)");
-
-                    b.HasKey("SubDeviceId");
-
-                    b.HasIndex("DeviceId");
-
-                    b.ToTable("SubDevice", (string)null);
                 });
 
             modelBuilder.Entity("Seven.Domain.Entities.Core.Sys_TableColumn", b =>
@@ -1514,15 +1462,6 @@ namespace Seven.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Sys_UserDepartment", (string)null);
-                });
-
-            modelBuilder.Entity("Seven.Domain.Entities.Board.SubDevice", b =>
-                {
-                    b.HasOne("Seven.Domain.Entities.Board.Device", null)
-                        .WithMany()
-                        .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Seven.Domain.Entities.Core.Sys_TableColumn", b =>

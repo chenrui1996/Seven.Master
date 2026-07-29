@@ -26,3 +26,16 @@ public class CreateVuePageRequest
     public Domain.Entities.Core.Sys_TableInfo TableInfo { get; set; } = new();
     public string? VuePath { get; set; }
 }
+
+/// <summary>保存主子表关系请求</summary>
+public class SaveTableDetailsRequest
+{
+    public string ParentTable { get; set; } = string.Empty;
+    public List<Domain.Entities.Core.Sys_TableDetail> Details { get; set; } = [];
+}
+
+/// <summary>扫描外键请求</summary>
+public class ScanForeignKeysRequest
+{
+    public string ParentTable { get; set; } = string.Empty;
+}

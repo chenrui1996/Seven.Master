@@ -78,8 +78,14 @@ public class SevenDbContext : DbContext
     /// <summary>代码生成列</summary>
     public DbSet<Sys_TableColumn> Sys_TableColumns => Set<Sys_TableColumn>();
 
+    /// <summary>代码生成主子表关系</summary>
+    public DbSet<Sys_TableDetail> Sys_TableDetails => Set<Sys_TableDetail>();
+
     /// <summary>设备</summary>
     public DbSet<Device> Devices => Set<Device>();
+
+    /// <summary>子设备</summary>
+    public DbSet<SubDevice> SubDevices => Set<SubDevice>();
 
     /// <summary>新闻</summary>
     public DbSet<App_News> App_News => Set<App_News>();

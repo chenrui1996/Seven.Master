@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Seven.Application.Interfaces;
 using Seven.Domain.Entities.Alarm;
+using Seven.Domain.Entities.Board;
+using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.System;
 using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.Security;
@@ -30,6 +32,7 @@ public static class DbSeeder
             await db.Database.EnsureCreatedAsync();
 
         await SeedAlarmCodesAsync(db, alarmOptions, logger);
+        await SeedDeviceDetailDemoAsync(db, logger);
 
         if (await db.Sys_Users.AnyAsync())
             return;
@@ -84,6 +87,7 @@ public static class DbSeeder
             new { MenuName = "告警管理", OrderNo = 7, Url = "/Sys_Alarm", TableName = "Sys_Alarm", Auth = "Search,Acknowledge,Clear,Raise" },
             new { MenuName = "代码生成", OrderNo = 8, Url = "/coder", TableName = "Sys_TableInfo", Auth = "Search,Add,Update,Delete" },
             new { MenuName = "设备管理", OrderNo = 9, Url = "/Device", TableName = "Device", Auth = "Search,Add,Update,Delete,Import,Export,BatchCustom,RowCustom" },
+            new { MenuName = "子设备", OrderNo = 10, Url = "/SubDevice", TableName = "SubDevice", Auth = "Search,Add,Update,Delete,Import,Export" },
         };
 
         var menus = childMenuDefs
@@ -153,5 +157,106 @@ public static class DbSeeder
             await db.SaveChangesAsync();
             logger.LogInformation("已同步 {Count} 条报警码配置", added);
         }
+    }
+
+    /// <summary>
+    /// Device ↔ SubDevice 主子表 Demo（幂等）：关系配置、菜单、示例数据
+    /// </summary>
+    static async Task SeedDeviceDetailDemoAsync(SevenDbContext db, ILogger logger)
+    {
+        // 1) Sys_TableDetail：主表 Device → 子表 SubDevice（Below）
+        var detailExists = await db.Sys_TableDetails.AnyAsync(d =>
+            d.ParentTable.ToLower() == "device"
+            && d.ChildTable.ToLower() == "subdevice"
+            && d.ForeignKey.ToLower() == "deviceid");
+        if (!detailExists)
+        {
+            db.Sys_TableDetails.Add(new Sys_TableDetail
+            {
+                ParentTable = "Device",
+                ChildTable = "SubDevice",
+                ForeignKey = "DeviceId",
+                MasterKey = "DeviceId",
+                Enable = true,
+                DisplayMode = "Below",
+                OrderNo = 10,
+                CnName = "子设备",
+                CreateDate = DateTime.Now,
+                Creator = "system",
+            });
+            await db.SaveChangesAsync();
+            logger.LogInformation("已写入 Device→SubDevice 主子表配置");
+        }
+
+        // 2) 子设备菜单（已有库也能补）
+        var subMenu = await db.Sys_Menus.FirstOrDefaultAsync(m => m.TableName == "SubDevice" || m.Url == "/SubDevice");
+        if (subMenu == null)
+        {
+            var parent = await db.Sys_Menus.FirstOrDefaultAsync(m => m.ParentId == 0 && m.MenuName == "系统管理")
+                ?? await db.Sys_Menus.FirstOrDefaultAsync(m => m.ParentId == 0);
+            if (parent != null)
+            {
+                subMenu = new Sys_Menu
+                {
+                    ParentId = parent.Menu_Id,
+                    MenuName = "子设备",
+                    Url = "/SubDevice",
+                    TableName = "SubDevice",
+                    Auth = "Search,Add,Update,Delete,Import,Export",
+                    OrderNo = 10,
+                    Enable = 1,
+                    CreateDate = DateTime.Now,
+                };
+                db.Sys_Menus.Add(subMenu);
+                await db.SaveChangesAsync();
+
+                var adminRole = await db.Sys_Roles.OrderBy(r => r.Role_Id).FirstOrDefaultAsync();
+                if (adminRole != null)
+                {
+                    db.Sys_RoleAuths.Add(new Sys_RoleAuth
+                    {
+                        Role_Id = adminRole.Role_Id,
+                        Menu_Id = subMenu.Menu_Id,
+                        AuthValue = subMenu.Auth,
+                    });
+                    await db.SaveChangesAsync();
+                }
+                logger.LogInformation("已补充子设备菜单 /SubDevice");
+            }
+        }
+
+        // 3) 示例子设备（若已有主设备且尚无子设备）
+        if (await db.SubDevices.AnyAsync(x => !x.IsDeleted))
+            return;
+
+        var devices = await db.Devices.AsNoTracking().Where(d => !d.IsDeleted).Take(3).ToListAsync();
+        if (devices.Count == 0)
+            return;
+
+        foreach (var d in devices)
+        {
+            db.SubDevices.Add(new SubDevice
+            {
+                DeviceId = d.DeviceId,
+                SubDeviceName = $"{d.DeviceName}-单元A",
+                SubDeviceCode = $"SUB-{d.DeviceId}-A",
+                Status = d.Status,
+                Remark = "主子表 Demo 示例",
+                CreateDate = DateTime.Now,
+                Creator = "system",
+            });
+            db.SubDevices.Add(new SubDevice
+            {
+                DeviceId = d.DeviceId,
+                SubDeviceName = $"{d.DeviceName}-单元B",
+                SubDeviceCode = $"SUB-{d.DeviceId}-B",
+                Status = 0,
+                Remark = "主子表 Demo 示例",
+                CreateDate = DateTime.Now,
+                Creator = "system",
+            });
+        }
+        await db.SaveChangesAsync();
+        logger.LogInformation("已写入 SubDevice 示例数据 {Count} 条", devices.Count * 2);
     }
 }

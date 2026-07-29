@@ -335,15 +335,43 @@ public class BuilderService : IBuilderService
     }
 
     /// <inheritdoc />
-    public Task<WebResponseContent> CreateVuePageAsync(CreateVuePageRequest request, CancellationToken cancellationToken = default)
+    public async Task<WebResponseContent> CreateVuePageAsync(CreateVuePageRequest request, CancellationToken cancellationToken = default)
     {
         var info = request.TableInfo;
         if (string.IsNullOrWhiteSpace(info.TableName))
-            return Task.FromResult(WebResponseContent.Error("表名不能为空"));
+            return WebResponseContent.Error("表名不能为空");
+
+        // 优先用库中最新列配置（请求体可能缺 SearchType 等）
+        var dbInfo = await _db.Sys_TableInfos.AsNoTracking()
+            .Include(t => t.TableColumns)
+            .FirstOrDefaultAsync(t =>
+                t.TableName != null && t.TableName.ToLower() == info.TableName.ToLower(), cancellationToken);
+        if (dbInfo != null)
+        {
+            info.Table_Id = dbInfo.Table_Id;
+            info.ColumnCNName ??= dbInfo.ColumnCNName;
+            info.Namespace ??= dbInfo.Namespace;
+            info.FolderName ??= dbInfo.FolderName;
+            if (info.TableColumns == null || info.TableColumns.Count == 0)
+                info.TableColumns = dbInfo.TableColumns.ToList();
+            else
+            {
+                // 合并 Search* 等元数据
+                var byName = dbInfo.TableColumns.ToDictionary(c => c.ColumnName, StringComparer.OrdinalIgnoreCase);
+                foreach (var col in info.TableColumns)
+                {
+                    if (!byName.TryGetValue(col.ColumnName, out var dbCol)) continue;
+                    col.SearchRowNo ??= dbCol.SearchRowNo;
+                    col.SearchColNo ??= dbCol.SearchColNo;
+                    if (string.IsNullOrWhiteSpace(col.SearchType)) col.SearchType = dbCol.SearchType;
+                    col.IsKey = dbCol.IsKey || col.IsKey;
+                }
+            }
+        }
 
         var template = FileHelper.ReadTemplate("VuePage.html");
         if (string.IsNullOrEmpty(template))
-            return Task.FromResult(WebResponseContent.Error("Vue 模板不存在"));
+            return WebResponseContent.Error("Vue 模板不存在");
 
         var allColumns = info.TableColumns?
             .Where(c => c.IsColumnData != 0 && c.IsDisplay != 0)
@@ -351,7 +379,7 @@ public class BuilderService : IBuilderService
             .ToList() ?? [];
 
         var keyCol = info.TableColumns?.FirstOrDefault(c => c.IsKey)?.ColumnName
-            ?? $"{info.TableName}Id";
+            ?? await ResolveKeyPropertyNameAsync(info.TableName, cancellationToken);
         var keyFieldCamel = ToCamelCase(keyCol);
         var entityType = ResolveEntityClrType(info);
 
@@ -362,7 +390,6 @@ public class BuilderService : IBuilderService
         if (displayColumns.Count == 0)
             displayColumns = allColumns.Select(c => BuildColumnUi(c, entityType)).ToList();
 
-        // 表单：非主键、非审计；主键不参与新增表单
         var formColumns = allColumns
             .Where(c => !c.IsKey && c.Editable && !IsAuditField(c.ColumnName))
             .Select(c => BuildColumnUi(c, entityType))
@@ -370,9 +397,9 @@ public class BuilderService : IBuilderService
 
         var i18nKey = $"generated.{SanitizeI18nKey(info.TableName)}";
         var columnDefs = BuildColumnDefsScript(displayColumns);
-        var formItems = string.Join("\n        ", formColumns.Select(ui => BuildFormItemMarkup(ui, i18nKey)));
+        var formFieldsScript = BuildFormFieldsScript(formColumns);
+        var searchFieldsScript = BuildSearchFieldsScript(info.TableColumns?.ToList() ?? [], entityType, i18nKey);
 
-        // 表单状态含主键（新增为 0），不含审计字段
         var formStateColumns = new List<ColumnUiMeta>();
         var keyUi = BuildColumnUi(
             info.TableColumns?.FirstOrDefault(c => c.IsKey)
@@ -381,8 +408,11 @@ public class BuilderService : IBuilderService
         formStateColumns.Add(keyUi);
         formStateColumns.AddRange(formColumns);
 
-        var formFields = string.Join(", ", formStateColumns.Select(ui => $"{ui.Prop}: {ui.DefaultLiteral}"));
+        var formDefaults = string.Join(", ", formStateColumns.Select(ui => $"{ui.Prop}: {ui.DefaultLiteral}"));
         var enumOptions = BuildEnumOptionsScript(formColumns.Concat(displayColumns).DistinctBy(x => x.Prop).ToList());
+
+        var detailScript = await BuildGeneratedDetailTablesScriptAsync(info.TableName, depth: 1, maxDepth: 3, cancellationToken);
+        var queryFilterKeys = await BuildQueryFilterKeysScriptAsync(info.TableName, cancellationToken);
 
         var folder = ProjectPath.ResolveVueFolder(info.FolderName, info.Namespace);
         var folderNorm = folder.Replace('\\', '/');
@@ -402,8 +432,11 @@ public class BuilderService : IBuilderService
             ["I18nKey"] = i18nKey,
             ["ApiRoute"] = info.TableName,
             ["ColumnDefs"] = columnDefs,
-            ["FormItems"] = formItems,
-            ["FormFields"] = formFields,
+            ["FormFields"] = formFieldsScript,
+            ["FormDefaults"] = formDefaults,
+            ["SearchFields"] = searchFieldsScript,
+            ["DetailTables"] = detailScript,
+            ["QueryFilterKeys"] = queryFilterKeys,
             ["HttpImport"] = httpImport,
             ["ExtensionImport"] = extensionImport,
             ["ExtensionTypesImport"] = extensionTypesImport,
@@ -413,6 +446,9 @@ public class BuilderService : IBuilderService
             ["ComposablesImport"] = composablesImport,
             ["KeyFieldCamel"] = keyFieldCamel,
             ["EnumOptions"] = string.IsNullOrWhiteSpace(enumOptions) ? "" : enumOptions + Environment.NewLine,
+            // 兼容旧模板占位
+            ["FormItems"] = "",
+            ["FormFieldsLegacy"] = formDefaults,
         };
 
         var vuePath = string.IsNullOrEmpty(request.VuePath)
@@ -420,9 +456,7 @@ public class BuilderService : IBuilderService
             : request.VuePath;
 
         var content = ApplyVuePageTokens(template, tokens);
-        // 再走一遍 FileHelper，保证 /*__ENUM_OPTIONS__*/ 等脚本占位必被处理
         content = FileHelper.ReplaceTokens(content, tokens);
-        // 显式覆盖 import 路径：避免旧进程/漏配 token 时写出 {{ActionIconsImport}} 等坏文件
         content = ForceReplaceImportTokens(
             content,
             httpImport,
@@ -434,8 +468,8 @@ public class BuilderService : IBuilderService
             composablesImport);
 
         if (ContainsUnreplacedCodegenToken(content))
-            return Task.FromResult(WebResponseContent.Error(
-                "Vue 生成失败：模板占位符未替换完整。请重新编译并重启 WebApi 后再生成。"));
+            return WebResponseContent.Error(
+                "Vue 生成失败：模板占位符未替换完整。请重新编译并重启 WebApi 后再生成。");
 
         FileHelper.WriteFile(vuePath, content);
 
@@ -444,8 +478,17 @@ public class BuilderService : IBuilderService
 
         MergeGeneratedLocales(info, allColumns, displayColumns.Concat(formColumns));
 
-        return Task.FromResult(WebResponseContent.Ok(
-            $"已生成 {vuePath}，并写入多语言词条 {i18nKey}。{extensionNote}"));
+        var pageModeChildren = await _db.Sys_TableDetails.AsNoTracking()
+            .Where(d => d.ParentTable.ToLower() == info.TableName.ToLower() && d.Enable
+                        && d.DisplayMode.ToLower() == "page")
+            .Select(d => d.ChildTable)
+            .ToListAsync(cancellationToken);
+        var pageHint = pageModeChildren.Count > 0
+            ? $" Page 模式子表请确保已生成标准页：{string.Join(", ", pageModeChildren)}。"
+            : "";
+
+        return WebResponseContent.Ok(
+            $"已生成 {vuePath}，并写入多语言词条 {i18nKey}。{extensionNote}{pageHint}");
     }
 
     /// <summary>首次创建扩展文件；已存在则跳过（永不覆盖业务扩展）</summary>
@@ -512,7 +555,8 @@ export default extension
         var result = template;
         foreach (var key in new[]
                  {
-                     "TableColumns", "ColumnDefs", "FormItems", "FormFields", "EnumOptions",
+                     "TableColumns", "ColumnDefs", "FormItems", "FormFields", "FormDefaults",
+                     "SearchFields", "DetailTables", "QueryFilterKeys", "EnumOptions",
                      "HttpImport", "ExtensionImport", "ExtensionTypesImport", "UserStoreImport",
                      "ActionIconsImport", "ComponentsImport", "ComposablesImport",
                      "I18nKey", "KeyFieldCamel", "ApiRoute", "TableName", "Title",
@@ -542,11 +586,13 @@ export default extension
         // {{EnumOptions}} 绝不能残留：在 <script> 中会被解析为对变量 EnumOptions 的引用
         string[] forbidden =
         [
-            "{{TableColumns}}", "{{ColumnDefs}}", "{{FormItems}}", "{{FormFields}}", "{{EnumOptions}}",
+            "{{TableColumns}}", "{{ColumnDefs}}", "{{FormItems}}", "{{FormFields}}", "{{FormDefaults}}",
+            "{{SearchFields}}", "{{DetailTables}}", "{{QueryFilterKeys}}", "{{EnumOptions}}",
             "{{HttpImport}}", "{{ExtensionImport}}", "{{ExtensionTypesImport}}", "{{UserStoreImport}}",
             "{{ActionIconsImport}}", "{{ComponentsImport}}", "{{ComposablesImport}}",
             "{{I18nKey}}", "{{KeyFieldCamel}}", "{{ApiRoute}}", "{{TableName}}",
-            "__TableColumns__", "__ColumnDefs__", "__FormItems__", "__FormFields__", "__EnumOptions__",
+            "__TableColumns__", "__ColumnDefs__", "__FormItems__", "__FormFields__", "__FormDefaults__",
+            "__SearchFields__", "__DetailTables__", "__QueryFilterKeys__", "__EnumOptions__",
             "__HttpImport__", "__ExtensionImport__", "__ExtensionTypesImport__", "__UserStoreImport__",
             "__ActionIconsImport__", "__ComponentsImport__", "__ComposablesImport__",
             "__I18nKey__", "__KeyFieldCamel__", "__ApiRoute__", "__TableName__",
@@ -737,6 +783,155 @@ export default extension
         sb.Append(']');
         return sb.ToString();
     }
+
+    static string BuildFormFieldsScript(List<ColumnUiMeta> columns)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("[");
+        foreach (var ui in columns)
+        {
+            var kind = ui.Kind switch
+            {
+                ColumnUiKind.Enum or ColumnUiKind.Select => "enum",
+                ColumnUiKind.Bool => "bool",
+                ColumnUiKind.Date => "date",
+                ColumnUiKind.Number or ColumnUiKind.Key => "number",
+                _ => "string",
+            };
+            var decimalPart = ui.IsDecimal ? ", isDecimal: true" : "";
+            sb.AppendLine($"  {{ prop: '{ui.Prop}', kind: '{kind}'{decimalPart} }},");
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    string BuildSearchFieldsScript(List<Sys_TableColumn> columns, Type? entityType, string i18nKey)
+    {
+        var searchCols = columns
+            .Where(c => !c.IsKey && !IsAuditField(c.ColumnName)
+                        && (c.SearchRowNo is > 0 || !string.IsNullOrWhiteSpace(c.SearchType)))
+            .OrderBy(c => c.SearchRowNo ?? 999)
+            .ThenBy(c => c.SearchColNo ?? 999)
+            .ToList();
+        if (searchCols.Count == 0) return "[]";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("[");
+        foreach (var col in searchCols)
+        {
+            var ui = BuildColumnUi(col, entityType);
+            var kind = ui.Kind switch
+            {
+                ColumnUiKind.Enum or ColumnUiKind.Select => "enum",
+                ColumnUiKind.Bool => "bool",
+                ColumnUiKind.Date => "date",
+                ColumnUiKind.Number or ColumnUiKind.Key => "number",
+                _ => "string",
+            };
+            var searchType = (col.SearchType ?? "").ToLowerInvariant();
+            var op = searchType is "like" or "equal"
+                ? searchType
+                : (kind == "string" ? "like" : "equal");
+            sb.AppendLine($"  {{ prop: '{ui.Prop}', kind: '{kind}', operator: '{op}', labelKey: '{i18nKey}.{ui.Prop}' }},");
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    async Task<string> BuildQueryFilterKeysScriptAsync(string tableName, CancellationToken cancellationToken)
+    {
+        // 作为子表被引用时，接受父表传来的外键 query
+        var fks = await _db.Sys_TableDetails.AsNoTracking()
+            .Where(d => d.ChildTable.ToLower() == tableName.ToLower() && d.Enable)
+            .Select(d => d.ForeignKey)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        if (fks.Count == 0) return "[] as string[]";
+        var parts = fks.Select(fk => $"'{ToCamelCase(fk)}'");
+        return $"[ {string.Join(", ", parts)} ]";
+    }
+
+    async Task<string> BuildGeneratedDetailTablesScriptAsync(
+        string parentTable, int depth, int maxDepth, CancellationToken cancellationToken)
+    {
+        if (depth > maxDepth) return "[]";
+
+        var details = await _db.Sys_TableDetails.AsNoTracking()
+            .Where(d => d.ParentTable.ToLower() == parentTable.ToLower() && d.Enable)
+            .OrderBy(d => d.OrderNo)
+            .ToListAsync(cancellationToken);
+        if (details.Count == 0) return "[]";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("[");
+        foreach (var d in details)
+        {
+            var mode = NormalizeDisplayMode(d.DisplayMode).ToLowerInvariant();
+            var childInfo = await _db.Sys_TableInfos.AsNoTracking()
+                .Include(t => t.TableColumns)
+                .FirstOrDefaultAsync(t =>
+                    t.TableName != null && t.TableName.ToLower() == d.ChildTable.ToLower(), cancellationToken);
+            var childEntity = childInfo != null ? ResolveEntityClrType(childInfo) : null;
+            var childCols = childInfo?.TableColumns?
+                .Where(c => c.IsColumnData != 0 && c.IsDisplay != 0 && !IsAuditField(c.ColumnName))
+                .OrderByDescending(c => c.OrderNo)
+                .ToList() ?? [];
+            var childKey = childCols.FirstOrDefault(c => c.IsKey)?.ColumnName
+                ?? await ResolveKeyPropertyNameAsync(d.ChildTable, cancellationToken);
+            var childKeyCamel = ToCamelCase(childKey);
+            var displayUis = childCols.Where(c => !c.IsKey).Select(c => BuildColumnUi(c, childEntity)).ToList();
+            if (displayUis.Count == 0)
+                displayUis = childCols.Select(c => BuildColumnUi(c, childEntity)).ToList();
+            var formUis = childCols
+                .Where(c => !c.IsKey && c.Editable && !IsAuditField(c.ColumnName))
+                .Select(c => BuildColumnUi(c, childEntity))
+                .ToList();
+            var i18nChild = $"generated.{SanitizeI18nKey(d.ChildTable)}";
+            var title = string.IsNullOrWhiteSpace(d.CnName)
+                ? (childInfo?.ColumnCNName ?? d.ChildTable)
+                : d.CnName!;
+            var fkCamel = ToCamelCase(d.ForeignKey);
+            var masterKeyCamel = string.IsNullOrWhiteSpace(d.MasterKey)
+                ? null
+                : ToCamelCase(d.MasterKey);
+
+            sb.AppendLine("  {");
+            sb.AppendLine($"    key: '{EscapeTs(d.ChildTable)}',");
+            sb.AppendLine($"    title: '{EscapeTs(title)}',");
+            sb.AppendLine($"    mode: '{mode}',");
+            sb.AppendLine($"    apiRoute: '{EscapeTs(d.ChildTable)}',");
+            sb.AppendLine($"    keyField: '{childKeyCamel}',");
+            sb.AppendLine($"    foreignKey: '{fkCamel}',");
+            if (masterKeyCamel != null)
+                sb.AppendLine($"    masterKey: '{masterKeyCamel}',");
+            sb.AppendLine($"    columns: {InlineArray(BuildColumnDefsScript(displayUis))},");
+            sb.AppendLine($"    formFields: {InlineArray(BuildFormFieldsScript(formUis))},");
+            sb.AppendLine($"    searchFields: {InlineArray(BuildSearchFieldsScript(childInfo?.TableColumns?.ToList() ?? [], childEntity, i18nChild))},");
+
+            if (depth < maxDepth)
+            {
+                var children = await BuildGeneratedDetailTablesScriptAsync(d.ChildTable, depth + 1, maxDepth, cancellationToken);
+                sb.AppendLine($"    children: {InlineArray(children)},");
+            }
+            else
+            {
+                sb.AppendLine("    children: [],");
+            }
+
+            sb.AppendLine("  },");
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    static string InlineArray(string multiline)
+    {
+        // 保持可读：子级缩进即可，直接返回
+        return multiline.Trim();
+    }
+
+    static string EscapeTs(string value) =>
+        value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("'", "\\'", StringComparison.Ordinal);
 
     static string BuildTableColumnMarkup(ColumnUiMeta ui, string i18nKey)
     {
@@ -954,6 +1149,11 @@ export default extension
         ["DeviceId"] = "设备Id",
         ["DeviceName"] = "设备名称",
         ["DeviceCode"] = "设备编码",
+        ["SubDevice"] = "子设备",
+        ["SubDeviceId"] = "子设备Id",
+        ["SubDeviceName"] = "子设备名称",
+        ["SubDeviceCode"] = "子设备编码",
+        ["Remark"] = "备注",
         ["Status"] = "状态",
         ["Location"] = "位置",
         ["CreateId"] = "创建人Id",
@@ -1000,6 +1200,7 @@ export default extension
         ["Role"] = "角色",
         ["Menu"] = "菜单",
         ["Device"] = "设备",
+        ["SubDevice"] = "子设备",
         ["Order"] = "排序",
         ["No"] = "号",
         ["True"] = "真实",
@@ -1062,6 +1263,239 @@ export default extension
         await _db.SaveChangesAsync(cancellationToken);
         return WebResponseContent.Ok("删除成功");
     }
+
+    /// <inheritdoc />
+    public async Task<WebResponseContent> GetTableDetailsAsync(string parentTable, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(parentTable))
+            return WebResponseContent.Error("主表名不能为空");
+
+        var list = await _db.Sys_TableDetails.AsNoTracking()
+            .Where(d => d.ParentTable.ToLower() == parentTable.ToLower())
+            .OrderBy(d => d.OrderNo)
+            .ThenBy(d => d.DetailId)
+            .ToListAsync(cancellationToken);
+        return WebResponseContent.Ok(data: list);
+    }
+
+    /// <inheritdoc />
+    public async Task<WebResponseContent> SaveTableDetailsAsync(SaveTableDetailsRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.ParentTable))
+            return WebResponseContent.Error("主表名不能为空");
+
+        var parent = request.ParentTable.Trim();
+        var existing = await _db.Sys_TableDetails
+            .Where(d => d.ParentTable.ToLower() == parent.ToLower())
+            .ToListAsync(cancellationToken);
+
+        var incoming = request.Details ?? [];
+        var keepIds = incoming.Where(d => d.DetailId > 0).Select(d => d.DetailId).ToHashSet();
+
+        foreach (var old in existing.Where(e => !keepIds.Contains(e.DetailId)))
+            _db.Sys_TableDetails.Remove(old);
+
+        foreach (var item in incoming)
+        {
+            if (string.IsNullOrWhiteSpace(item.ChildTable) || string.IsNullOrWhiteSpace(item.ForeignKey))
+                continue;
+
+            var mode = NormalizeDisplayMode(item.DisplayMode);
+            if (item.DetailId > 0)
+            {
+                var row = existing.FirstOrDefault(e => e.DetailId == item.DetailId);
+                if (row == null) continue;
+                row.ChildTable = item.ChildTable.Trim();
+                row.ForeignKey = item.ForeignKey.Trim();
+                row.MasterKey = string.IsNullOrWhiteSpace(item.MasterKey) ? null : item.MasterKey.Trim();
+                row.Enable = item.Enable;
+                row.DisplayMode = mode;
+                row.OrderNo = item.OrderNo;
+                row.CnName = item.CnName;
+                row.ModifyDate = DateTime.Now;
+            }
+            else
+            {
+                _db.Sys_TableDetails.Add(new Sys_TableDetail
+                {
+                    ParentTable = parent,
+                    ChildTable = item.ChildTable.Trim(),
+                    ForeignKey = item.ForeignKey.Trim(),
+                    MasterKey = string.IsNullOrWhiteSpace(item.MasterKey) ? null : item.MasterKey.Trim(),
+                    Enable = item.Enable,
+                    DisplayMode = mode,
+                    OrderNo = item.OrderNo,
+                    CnName = item.CnName,
+                    CreateDate = DateTime.Now,
+                });
+            }
+        }
+
+        await _db.SaveChangesAsync(cancellationToken);
+        return await GetTableDetailsAsync(parent, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<WebResponseContent> ScanForeignKeysAsync(ScanForeignKeysRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.ParentTable))
+            return WebResponseContent.Error("主表名不能为空");
+
+        var parent = request.ParentTable.Trim();
+        var parentPk = await ResolvePrimaryKeyColumnAsync(parent, cancellationToken);
+        var candidates = await DiscoverChildForeignKeysAsync(parent, parentPk, cancellationToken);
+
+        var existing = await _db.Sys_TableDetails
+            .Where(d => d.ParentTable.ToLower() == parent.ToLower())
+            .ToListAsync(cancellationToken);
+
+        var added = 0;
+        var order = existing.Count == 0 ? 10 : existing.Max(e => e.OrderNo) + 10;
+        foreach (var c in candidates)
+        {
+            var hit = existing.FirstOrDefault(e =>
+                e.ChildTable.Equals(c.ChildTable, StringComparison.OrdinalIgnoreCase)
+                && e.ForeignKey.Equals(c.ForeignKey, StringComparison.OrdinalIgnoreCase));
+            if (hit != null)
+                continue; // 已存在不覆盖 Enable/DisplayMode
+
+            _db.Sys_TableDetails.Add(new Sys_TableDetail
+            {
+                ParentTable = parent,
+                ChildTable = c.ChildTable,
+                ForeignKey = c.ForeignKey,
+                MasterKey = parentPk,
+                Enable = false,
+                DisplayMode = "Below",
+                OrderNo = order,
+                CnName = c.CnName,
+                CreateDate = DateTime.Now,
+            });
+            order += 10;
+            added++;
+        }
+
+        await _db.SaveChangesAsync(cancellationToken);
+        var list = await _db.Sys_TableDetails.AsNoTracking()
+            .Where(d => d.ParentTable.ToLower() == parent.ToLower())
+            .OrderBy(d => d.OrderNo)
+            .ToListAsync(cancellationToken);
+        return WebResponseContent.Ok($"扫描完成，新增 {added} 条候选", list);
+    }
+
+    static string NormalizeDisplayMode(string? mode)
+    {
+        var m = (mode ?? "Below").Trim();
+        if (m.Equals("Dialog", StringComparison.OrdinalIgnoreCase)) return "Dialog";
+        if (m.Equals("Page", StringComparison.OrdinalIgnoreCase)) return "Page";
+        return "Below";
+    }
+
+    async Task<string> ResolvePrimaryKeyColumnAsync(string tableName, CancellationToken cancellationToken)
+    {
+        var info = await _db.Sys_TableInfos.AsNoTracking()
+            .Include(t => t.TableColumns)
+            .FirstOrDefaultAsync(t =>
+                t.TableName != null && t.TableName.ToLower() == tableName.ToLower(), cancellationToken);
+        var key = info?.TableColumns?.FirstOrDefault(c => c.IsKey)?.ColumnName;
+        if (!string.IsNullOrWhiteSpace(key)) return key!;
+        return await ResolveKeyPropertyNameAsync(tableName, cancellationToken);
+    }
+
+    sealed class FkCandidate
+    {
+        public string ChildTable { get; set; } = "";
+        public string ForeignKey { get; set; } = "";
+        public string? CnName { get; set; }
+    }
+
+    async Task<List<FkCandidate>> DiscoverChildForeignKeysAsync(string parentTable, string parentPk, CancellationToken cancellationToken)
+    {
+        var result = new List<FkCandidate>();
+        var provider = _db.Database.ProviderName ?? "";
+
+        if (provider.Contains("MySql", StringComparison.OrdinalIgnoreCase))
+        {
+            var physical = ResolvePhysicalTableNameByRequest(parentTable);
+            await _db.Database.OpenConnectionAsync(cancellationToken);
+            try
+            {
+                var conn = _db.Database.GetDbConnection();
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"""
+                    SELECT TABLE_NAME, COLUMN_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE TABLE_SCHEMA = DATABASE()
+                      AND REFERENCED_TABLE_NAME = '{EscapeSqlLiteral(physical)}'
+                      AND REFERENCED_COLUMN_NAME IS NOT NULL
+                    """;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    var child = reader.GetString(0);
+                    var fk = reader.GetString(1);
+                    result.Add(new FkCandidate { ChildTable = child, ForeignKey = fk, CnName = child });
+                }
+            }
+            finally
+            {
+                await _db.Database.CloseConnectionAsync();
+            }
+        }
+
+        // EF 模型：他表 FK → 本表 PK
+        var parentEntity = _db.Model.GetEntityTypes()
+            .FirstOrDefault(e =>
+                e.GetTableName()?.Equals(parentTable, StringComparison.OrdinalIgnoreCase) == true
+                || e.ClrType.Name.Equals(parentTable, StringComparison.OrdinalIgnoreCase));
+        if (parentEntity != null)
+        {
+            foreach (var entity in _db.Model.GetEntityTypes())
+            {
+                if (entity == parentEntity) continue;
+                foreach (var fk in entity.GetForeignKeys())
+                {
+                    if (fk.PrincipalEntityType != parentEntity) continue;
+                    var childTable = entity.GetTableName() ?? entity.ClrType.Name;
+                    var fkCol = fk.Properties.FirstOrDefault()?.GetColumnName() ?? fk.Properties.FirstOrDefault()?.Name;
+                    if (string.IsNullOrWhiteSpace(fkCol)) continue;
+                    if (result.Any(r =>
+                            r.ChildTable.Equals(childTable, StringComparison.OrdinalIgnoreCase)
+                            && r.ForeignKey.Equals(fkCol, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+                    result.Add(new FkCandidate { ChildTable = childTable, ForeignKey = fkCol!, CnName = childTable });
+                }
+            }
+        }
+
+        // 启发式：其它已配置表中存在指向本表主键的同名列（如 DeviceId）
+        if (result.Count == 0 && !string.IsNullOrWhiteSpace(parentPk))
+        {
+            var otherTables = await _db.Sys_TableInfos.AsNoTracking()
+                .Include(t => t.TableColumns)
+                .Where(t => t.TableName != null && t.TableName.ToLower() != parentTable.ToLower())
+                .ToListAsync(cancellationToken);
+            foreach (var t in otherTables)
+            {
+                var col = t.TableColumns?.FirstOrDefault(c =>
+                    c.ColumnName.Equals(parentPk, StringComparison.OrdinalIgnoreCase) && !c.IsKey);
+                if (col == null) continue;
+                result.Add(new FkCandidate
+                {
+                    ChildTable = t.TableName!,
+                    ForeignKey = col.ColumnName,
+                    CnName = t.ColumnCNName ?? t.TableName,
+                });
+            }
+        }
+
+        return result
+            .GroupBy(r => $"{r.ChildTable}|{r.ForeignKey}", StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    static string EscapeSqlLiteral(string value) => value.Replace("'", "''", StringComparison.Ordinal);
 
     async Task<int> InitTableAsync(LoadTableRequest req, CancellationToken cancellationToken)
     {

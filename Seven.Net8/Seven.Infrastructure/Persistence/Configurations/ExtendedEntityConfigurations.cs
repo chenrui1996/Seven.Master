@@ -133,6 +133,24 @@ public class SysTableColumnConfiguration : IEntityTypeConfiguration<Sys_TableCol
     }
 }
 
+/// <summary>代码生成主子表关系</summary>
+public class SysTableDetailConfiguration : IEntityTypeConfiguration<Sys_TableDetail>
+{
+    /// <inheritdoc />
+    public void Configure(EntityTypeBuilder<Sys_TableDetail> builder)
+    {
+        builder.ToTable("Sys_TableDetail");
+        builder.HasKey(x => x.DetailId);
+        builder.Property(x => x.ParentTable).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.ChildTable).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.ForeignKey).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.MasterKey).HasMaxLength(100);
+        builder.Property(x => x.DisplayMode).HasMaxLength(20).IsRequired();
+        builder.Property(x => x.CnName).HasMaxLength(100);
+        builder.HasIndex(x => new { x.ParentTable, x.ChildTable, x.ForeignKey }).IsUnique();
+    }
+}
+
 /// <summary>设备配置</summary>
 public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 {
@@ -141,6 +159,25 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
     {
         builder.ToTable("Device");
         builder.HasKey(x => x.DeviceId);
+    }
+}
+
+/// <summary>子设备配置（Device 一对多 Demo）</summary>
+public class SubDeviceConfiguration : IEntityTypeConfiguration<SubDevice>
+{
+    /// <inheritdoc />
+    public void Configure(EntityTypeBuilder<SubDevice> builder)
+    {
+        builder.ToTable("SubDevice");
+        builder.HasKey(x => x.SubDeviceId);
+        builder.Property(x => x.SubDeviceName).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.SubDeviceCode).HasMaxLength(64);
+        builder.Property(x => x.Remark).HasMaxLength(256);
+        builder.HasIndex(x => x.DeviceId);
+        builder.HasOne<Device>()
+            .WithMany()
+            .HasForeignKey(x => x.DeviceId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

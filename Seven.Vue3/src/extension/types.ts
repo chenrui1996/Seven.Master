@@ -61,37 +61,57 @@ export interface SearchFieldConfig {
   options?: { value: number | string; label: string }[]
 }
 
-/** 主子表列 */
+/** 表单字段（弹窗新增/编辑；含子表嵌套 CRUD） */
+export interface FormFieldDef {
+  prop: string
+  kind?: 'string' | 'number' | 'enum' | 'date' | 'bool'
+  options?: { value: number | string; label: string }[]
+  /** number 时是否按小数展示（precision） */
+  isDecimal?: boolean
+  defaultValue?: unknown
+}
+
+/** 主子表列（亦可复用 ColumnDef 形状：prop + kind） */
 export interface DetailColumnConfig {
   prop: string
   label?: string
   labelKey?: string
   kind?: 'string' | 'number' | 'enum' | 'date' | 'bool'
   width?: number | string
+  sortable?: boolean
 }
 
 /**
  * 主子表（一对多）
  * - below：选中主表行后在下方展示
- * - dialog：行内按钮（默认文案为 title）弹窗展示
+ * - dialog：独立「子表」列按钮弹窗展示
+ * - page：新标签打开子表标准页 + query 外键过滤
  */
 export interface DetailTableConfig {
   key: string
-  /** 子表标题 / 弹窗标题 / 行内按钮默认文案 */
+  /** 子表标题 / 弹窗标题 / 行内按钮默认文案 / 新标签标题 */
   title: string
-  mode: 'below' | 'dialog'
-  /** 行内按钮文案（仅 dialog），默认 title */
+  mode: 'below' | 'dialog' | 'page'
+  /** 行内按钮文案（dialog / page），默认 title */
   buttonLabel?: string
   permission?: string
   /** 子表 API 路由名，走 getPageData；与 load 二选一 */
   apiRoute?: string
+  /** 子表主键（camelCase）；缺省猜 `${apiRoute}Id` */
+  keyField?: string
   /** 子表外键（camelCase），配合 apiRoute 过滤 */
   foreignKey?: string
   /** 主表主键字段，默认页面主键 */
   masterKey?: string
   pageSize?: number
   columns: DetailColumnConfig[]
-  /** 自定义加载（优先于 apiRoute），适合 Demo / 聚合接口 */
+  /** 子表查询区（嵌套 CRUD） */
+  searchFields?: SearchFieldConfig[]
+  /** 子表表单字段（嵌套 CRUD） */
+  formFields?: FormFieldDef[]
+  /** 更深一层子表（depth 受 maxDepth 限制） */
+  children?: DetailTableConfig[]
+  /** 自定义加载（优先于 apiRoute），适合 Demo / 聚合接口；仅只读 */
   load?: (
     masterRow: Record<string, unknown>,
     ctx: PageActionContext,
@@ -131,11 +151,11 @@ export interface PageExtension {
   toolbarButtons?: ToolbarButton[]
   /** 操作列自定义按钮（显示在编辑之后、删除之前） */
   rowButtons?: RowButton[]
-  /** 挂到生成页的叠加层组件（如业务弹窗） */
+  /** 挂到生成页的叠加层组件（如业务弹窗）；由外壳渲染，CrudPanel 不挂载 */
   overlay?: Component
   /** 可查询字段；未配置则不显示搜索区 */
   searchFields?: SearchFieldConfig[]
-  /** 主子表一对多 */
+  /** 主子表一对多（与生成配置由父级 merge 后传入 CrudPanel） */
   detailTables?: DetailTableConfig[]
   /** 拦截默认增删改 */
   hooks?: CrudHooks

@@ -63,6 +63,39 @@ public class Sys_TableInfo : BaseEntity
 }
 
 /// <summary>
+/// 代码生成器-主子表关系（一对多）
+/// </summary>
+public class Sys_TableDetail : BaseEntity
+{
+    /// <summary>明细 Id</summary>
+    public int DetailId { get; set; }
+
+    /// <summary>主表名</summary>
+    public string ParentTable { get; set; } = string.Empty;
+
+    /// <summary>子表名</summary>
+    public string ChildTable { get; set; } = string.Empty;
+
+    /// <summary>子表外键列名</summary>
+    public string ForeignKey { get; set; } = string.Empty;
+
+    /// <summary>主表主键列名（空则自动取主键）</summary>
+    public string? MasterKey { get; set; }
+
+    /// <summary>是否启用</summary>
+    public bool Enable { get; set; }
+
+    /// <summary>显示方式：Below / Dialog / Page</summary>
+    public string DisplayMode { get; set; } = "Below";
+
+    /// <summary>排序</summary>
+    public int OrderNo { get; set; }
+
+    /// <summary>按钮/面板标题</summary>
+    public string? CnName { get; set; }
+}
+
+/// <summary>
 /// 代码生成器-列信息
 /// </summary>
 public class Sys_TableColumn : BaseEntity

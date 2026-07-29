@@ -7,11 +7,31 @@ import { openDeviceCustomDialog } from './deviceCustomShared'
 /**
  * Device 业务扩展（重新生成 Vue 不会覆盖本文件）
  *
- * - 自定义弹窗：BatchCustom / RowCustom
- * - 查询区：searchFields
- * - 主子表：below + dialog
- * - hooks：拦截默认增删改
+ * - 自定义弹窗：BatchCustom / RowCustom（见 doc/11）
+ * - 查询 / hooks / 主子表（见 doc/12）
+ * - 主子表 Demo：
+ *   - below：SubDevice 真实 CRUD（apiRoute）
+ *   - dialog：同一子表弹窗入口
+ *   - page：新标签打开 SubDevice 标准页（?deviceId=）
  */
+
+const subDeviceColumns = [
+  { prop: 'subDeviceName', label: '子设备名称' },
+  { prop: 'subDeviceCode', label: '编码', width: 120 },
+  { prop: 'status', label: '状态', kind: 'enum' as const, width: 90 },
+  { prop: 'remark', label: '备注' },
+]
+
+const subDeviceFormFields = [
+  { prop: 'subDeviceName', kind: 'string' as const },
+  { prop: 'subDeviceCode', kind: 'string' as const },
+  { prop: 'status', kind: 'enum' as const },
+  { prop: 'remark', kind: 'string' as const },
+]
+
+const subDeviceSearchFields = [
+  { prop: 'subDeviceName', kind: 'string' as const, operator: 'like' as const, label: '子设备名称' },
+]
 
 const extension: PageExtension = {
   overlay: DeviceCustomDialog,
@@ -34,42 +54,40 @@ const extension: PageExtension = {
 
   detailTables: [
     {
-      key: 'runtimeLogs',
-      title: '运行记录',
+      key: 'SubDevice',
+      title: '子设备',
       mode: 'below',
-      columns: [
-        { prop: 'time', label: '时间', kind: 'string', width: 180 },
-        { prop: 'action', label: '动作', kind: 'string' },
-        { prop: 'operator', label: '操作人', kind: 'string', width: 120 },
-      ],
-      async load(master) {
-        const id = Number(master.deviceId ?? 0)
-        // Demo：无真实子表 API，按主表行模拟明细
-        return [
-          { time: '2026-07-28 09:00:00', action: '设备上线', operator: '系统', deviceId: id },
-          { time: '2026-07-28 10:30:00', action: `心跳正常（${master.deviceCode || id}）`, operator: '系统', deviceId: id },
-          { time: '2026-07-28 14:00:00', action: '状态同步', operator: '管理员', deviceId: id },
-        ]
-      },
+      apiRoute: 'SubDevice',
+      keyField: 'subDeviceId',
+      foreignKey: 'deviceId',
+      masterKey: 'deviceId',
+      columns: subDeviceColumns,
+      formFields: subDeviceFormFields,
+      searchFields: subDeviceSearchFields,
     },
     {
-      key: 'spareParts',
-      title: '备件清单',
+      key: 'SubDeviceDialog',
+      title: '子设备',
       mode: 'dialog',
-      buttonLabel: '备件清单',
-      columns: [
-        { prop: 'code', label: '物料编码', width: 140 },
-        { prop: 'name', label: '物料名称' },
-        { prop: 'qty', label: '数量', kind: 'number', width: 90 },
-        { prop: 'unit', label: '单位', width: 80 },
-      ],
-      async load(master) {
-        const name = String(master.deviceName ?? '设备')
-        return [
-          { code: 'SP-001', name: `${name}-轴承`, qty: 2, unit: '个' },
-          { code: 'SP-002', name: `${name}-皮带`, qty: 1, unit: '条' },
-        ]
-      },
+      buttonLabel: '子设备',
+      apiRoute: 'SubDevice',
+      keyField: 'subDeviceId',
+      foreignKey: 'deviceId',
+      masterKey: 'deviceId',
+      columns: subDeviceColumns,
+      formFields: subDeviceFormFields,
+      searchFields: subDeviceSearchFields,
+    },
+    {
+      key: 'SubDevicePage',
+      title: '子设备',
+      mode: 'page',
+      buttonLabel: '子设备页',
+      apiRoute: 'SubDevice',
+      keyField: 'subDeviceId',
+      foreignKey: 'deviceId',
+      masterKey: 'deviceId',
+      columns: subDeviceColumns,
     },
   ],
 

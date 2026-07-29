@@ -124,6 +124,9 @@ public interface IBuilderService
     Task<WebResponseContent> CreateServicesAsync(CreateServicesRequest request, CancellationToken cancellationToken = default);
     Task<WebResponseContent> CreateVuePageAsync(CreateVuePageRequest request, CancellationToken cancellationToken = default);
     Task<WebResponseContent> DelTreeAsync(int tableId, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetTableDetailsAsync(string parentTable, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> SaveTableDetailsAsync(SaveTableDetailsRequest request, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> ScanForeignKeysAsync(ScanForeignKeysRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

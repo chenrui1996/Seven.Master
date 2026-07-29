@@ -540,6 +540,27 @@ public class BuilderController : ControllerBase
         [FromQuery] int tableId,
         CancellationToken cancellationToken
     ) => _service.DelTreeAsync(tableId, cancellationToken);
+
+    /// <summary>获取主子表关系</summary>
+    [HttpGet("GetTableDetails")]
+    public Task<WebResponseContent> GetTableDetails(
+        [FromQuery] string parentTable,
+        CancellationToken cancellationToken
+    ) => _service.GetTableDetailsAsync(parentTable, cancellationToken);
+
+    /// <summary>保存主子表关系</summary>
+    [HttpPost("SaveTableDetails")]
+    public Task<WebResponseContent> SaveTableDetails(
+        [FromBody] SaveTableDetailsRequest request,
+        CancellationToken cancellationToken
+    ) => _service.SaveTableDetailsAsync(request, cancellationToken);
+
+    /// <summary>扫描外键候选并写入 Sys_TableDetail</summary>
+    [HttpPost("ScanForeignKeys")]
+    public Task<WebResponseContent> ScanForeignKeys(
+        [FromBody] ScanForeignKeysRequest request,
+        CancellationToken cancellationToken
+    ) => _service.ScanForeignKeysAsync(request, cancellationToken);
 }
 
 /// <summary>告警管理 API</summary>
