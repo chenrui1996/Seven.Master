@@ -1,6 +1,6 @@
 # Seven.Master
 
-从 Legrand.Master 迁移的企业级后台系统（.NET 8 + Vue 3）。
+企业级后台系统（.NET 8 + Vue 3）。
 
 ## 快速启动
 
