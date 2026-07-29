@@ -22,7 +22,7 @@ const router = createRouter({
   routes: staticRoutes
 })
 
-/** 动态路由组件映射（含各业务子目录，如 views/Board/Device.vue） */
+/** 动态路由组件映射（含各业务子目录，如 views/Business/Device.vue） */
 const viewModules = import.meta.glob('../views/**/*.vue')
 
 /** 按菜单 Url / TableName 解析页面组件，支持 system 以外文件夹 */
@@ -31,7 +31,7 @@ function resolveViewComponent(menu: MenuItem, routePath: string) {
   if (!fileName) return undefined
 
   const candidates = [
-    // Url 即相对路径：/Board/Device → views/Board/Device.vue
+    // Url 即相对路径：/Business/Device → views/Business/Device.vue
     `../views/${routePath}.vue`,
     // 兼容历史：一律放在 system
     `../views/system/${fileName}.vue`,
@@ -42,7 +42,7 @@ function resolveViewComponent(menu: MenuItem, routePath: string) {
     if (viewModules[key]) return viewModules[key]
   }
 
-  // 回退：任意子目录下同名 vue（忽略大小写），如 Board/Device.vue
+  // 回退：任意子目录下同名 vue（忽略大小写），如 Business/Device.vue
   const needle = `/${fileName}.vue`.toLowerCase()
   const matched = Object.keys(viewModules).find((k) => k.toLowerCase().endsWith(needle))
   return matched ? viewModules[matched] : undefined

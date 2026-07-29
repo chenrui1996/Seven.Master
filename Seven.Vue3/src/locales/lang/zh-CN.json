@@ -30,18 +30,18 @@
     "detailTables": "子表"
   },
   "layout": {
-    "logoTitle": "Seven WMS",
-    "logoSub": "Warehouse Control",
+    "logoTitle": "Seven Master",
+    "logoSub": "敏捷开发框架",
     "systemRunning": "系统运行中",
-    "wcsOnline": "WCS 在线",
+    "systemOnline": "服务在线",
     "homeTab": "首页"
   },
   "login": {
-    "title": "Seven WMS / WCS",
-    "tagline": "工业级仓储管理与设备调度平台",
-    "featureWms": "WMS 入库 / 出库 / 库存可视化",
-    "featureWcs": "WCS 任务调度与路径控制",
-    "featureDevice": "设备联机监控与告警联动",
+    "title": "Seven Master",
+    "tagline": "敏捷开发框架 · 快速交付业务系统",
+    "featureCore": "代码生成与标准 CRUD",
+    "featureAuth": "菜单权限与角色授权",
+    "featureRealtime": "实时告警与扩展集成",
     "footer": "Production Ready · .NET 8 + Vue 3",
     "panelTitle": "系统登录",
     "panelSubtitle": "请输入您的操作员账号",
@@ -55,8 +55,8 @@
     "requestFailed": "登录请求失败"
   },
   "home": {
-    "title": "WMS / WCS 控制台",
-    "subtitle": "仓储作业与设备调度运行概览",
+    "title": "Master 控制台",
+    "subtitle": "业务运行与系统状态概览",
     "systemOk": "系统正常",
     "kpiInventory": "库存总量",
     "kpiInventoryMeta": "当前可发数量汇总",

@@ -27,7 +27,7 @@ public static class ProjectPath
     public static string VueLocalesPath => Path.Combine(VueSrcPath, "locales", "lang");
     public static string TemplatePath => Path.Combine(GetSolutionRoot(), "Seven.Net8", "Seven.WebApi", "Template");
 
-    /// <summary>视图文件夹默认取命名空间最底层（如 Seven.Domain.Entities.Board → Board）</summary>
+    /// <summary>视图文件夹默认取命名空间最底层（如 Seven.Domain.Entities.Business → Business）</summary>
     public static string ResolveVueFolder(string? folderName, string? nameSpace)
     {
         if (!string.IsNullOrWhiteSpace(folderName))
@@ -43,7 +43,7 @@ public static class ProjectPath
         "Seven.Domain.Entities.System",
         "Seven.Domain.Entities.Core",
         "Seven.Domain.Entities.Alarm",
-        "Seven.Domain.Entities.Board",
+        "Seven.Domain.Entities.Business",
     ];
 }
 

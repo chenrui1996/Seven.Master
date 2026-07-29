@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="sidebarWidth" class="aside">
       <div class="logo-block">
-        <img src="../assets/icons/logo-wms.svg" alt="Seven WMS" class="logo-icon" />
+        <img src="../assets/icons/logo-wms.svg" alt="Seven Master" class="logo-icon" />
         <div class="logo-text">
           <span class="logo-title">{{ t('layout.logoTitle') }}</span>
           <span class="logo-sub">{{ t('layout.logoSub') }}</span>
@@ -64,7 +64,7 @@
         <div class="header-right">
           <div class="header-meta">
             <span class="meta-item"><el-icon><Clock /></el-icon>{{ currentTime }}</span>
-            <span class="meta-item"><el-icon><Connection /></el-icon>{{ t('layout.wcsOnline') }}</span>
+            <span class="meta-item"><el-icon><Connection /></el-icon>{{ t('layout.systemOnline') }}</span>
           </div>
           <AlarmBell />
           <LocaleSwitch />

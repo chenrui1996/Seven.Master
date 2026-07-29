@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Seven.Domain.Entities.Alarm;
-using Seven.Domain.Entities.Board;
+using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.Flow;
 using Seven.Domain.Entities.Form;

@@ -134,7 +134,7 @@ public interface IBuilderService
 /// </summary>
 public interface IDeviceService
 {
-    Task<PageGridData<Domain.Entities.Board.Device>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default);
+    Task<PageGridData<Domain.Entities.Business.Device>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default);
     Task<WebResponseContent> GetChartDataAsync(CancellationToken cancellationToken = default);
 }
 

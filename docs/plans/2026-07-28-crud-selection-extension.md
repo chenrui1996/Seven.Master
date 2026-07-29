@@ -47,7 +47,7 @@
 
 **Step 2:** 若文件不存在，写入空扩展模板（含类型与示例注释）
 
-**Step 3:** tokens 增加 `ExtensionImport`（如 `../../../extension/Board/Device`）
+**Step 3:** tokens 增加 `ExtensionImport`（如 `../../../extension/Business/Device`）
 
 **Step 4:** 已存在则跳过，日志/返回消息中提示「已保留扩展文件」
 
@@ -67,8 +67,8 @@
 ### Task 5: 落地 Device 示例
 
 **Files:**
-- Create: `Seven.Vue3/src/extension/Board/Device.ts`
-- Modify: `Seven.Vue3/src/views/Board/Device.vue`
+- Create: `Seven.Vue3/src/extension/Business/Device.ts`
+- Modify: `Seven.Vue3/src/views/Business/Device.vue`
 
 **Step 1:** Device 扩展文件（空 `toolbarButtons` + 注释示例：如何 post / router.push）
 
@@ -82,7 +82,7 @@
 
 **Step 1:** 确认 WebApi 重启后「生成 Vue」会创建扩展文件且不覆盖已有
 
-**Step 2:** 确认生成页 import 路径在 `views/Board` 与 `views/system` 下均正确
+**Step 2:** 确认生成页 import 路径在 `views/Business` 与 `views/system` 下均正确
 
 ---
 

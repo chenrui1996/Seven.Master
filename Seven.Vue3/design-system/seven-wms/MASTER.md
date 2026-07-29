@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** Seven WMS
+**Project:** Seven Master
 **Generated:** 2026-07-10 13:43:49
 **Category:** Analytics Dashboard
 

@@ -16,9 +16,9 @@
         <h1>{{ t('login.title') }}</h1>
         <p class="brand-tagline">{{ t('login.tagline') }}</p>
         <ul class="feature-list">
-          <li><el-icon><Box /></el-icon>{{ t('login.featureWms') }}</li>
-          <li><el-icon><Operation /></el-icon>{{ t('login.featureWcs') }}</li>
-          <li><el-icon><Monitor /></el-icon>{{ t('login.featureDevice') }}</li>
+          <li><el-icon><Box /></el-icon>{{ t('login.featureCore') }}</li>
+          <li><el-icon><Operation /></el-icon>{{ t('login.featureAuth') }}</li>
+          <li><el-icon><Monitor /></el-icon>{{ t('login.featureRealtime') }}</li>
         </ul>
         <div class="brand-footer">
           <span class="seven-status-dot" />

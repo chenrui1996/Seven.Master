@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Seven.Application.Interfaces;
 using Seven.Domain.Entities.Alarm;
-using Seven.Domain.Entities.Board;
+using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.System;
 using Seven.Infrastructure.Configuration;
@@ -46,6 +46,7 @@ public static class DbSeeder
         }
 
         await SeedAlarmCodesAsync(db, alarmOptions, logger);
+        await MigrateBoardToBusinessMetadataAsync(db, logger);
         await SeedDeviceDetailDemoAsync(db, logger);
 
         if (await db.Sys_Users.AnyAsync())
@@ -171,6 +172,30 @@ public static class DbSeeder
             await db.SaveChangesAsync();
             logger.LogInformation("已同步 {Count} 条报警码配置", added);
         }
+    }
+
+    /// <summary>
+    /// 将历史 Board 文件夹/命名空间元数据迁移为 Business（幂等）
+    /// </summary>
+    static async Task MigrateBoardToBusinessMetadataAsync(SevenDbContext db, ILogger logger)
+    {
+        var tables = await db.Sys_TableInfos
+            .Where(t => t.FolderName == "Board"
+                || (t.Namespace != null && t.Namespace.Contains("Entities.Board")))
+            .ToListAsync();
+        if (tables.Count == 0)
+            return;
+
+        foreach (var t in tables)
+        {
+            if (t.FolderName == "Board")
+                t.FolderName = "Business";
+            if (!string.IsNullOrEmpty(t.Namespace) && t.Namespace.Contains("Entities.Board"))
+                t.Namespace = t.Namespace.Replace("Entities.Board", "Entities.Business");
+        }
+
+        await db.SaveChangesAsync();
+        logger.LogInformation("已将 {Count} 条代码生成元数据从 Board 迁移为 Business", tables.Count);
     }
 
     /// <summary>

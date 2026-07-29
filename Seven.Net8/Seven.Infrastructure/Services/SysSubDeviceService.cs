@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Seven.Application.Interfaces;
 using Seven.Domain.Common;
-using Seven.Domain.Entities.Board;
+using Seven.Domain.Entities.Business;
 using Seven.Infrastructure.Excel;
 using Seven.Infrastructure.Persistence;
 

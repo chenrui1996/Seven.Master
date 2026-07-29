@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seven.Builder", "Seven.Buil
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seven.WebApi", "Seven.WebApi\Seven.WebApi.csproj", "{5D162AC2-567C-47AB-B936-6CD4BA42440A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seven.Board", "Seven.Board\Seven.Board.csproj", "{6EEB867E-5694-456F-879F-7196FD534A16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seven.Business", "Seven.Business\Seven.Business.csproj", "{6EEB867E-5694-456F-879F-7196FD534A16}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seven.Tests", "Seven.Tests\Seven.Tests.csproj", "{E412B703-DE30-47D9-BFA2-EA589AAA95F3}"
 EndProject

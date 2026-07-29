@@ -25,7 +25,7 @@ npm run preview
 - 浅色 / 深色 / 跟随系统主题（`ThemeToggle`）
 - **多语言切换**（vue-i18n，`LocaleSwitch`）
 - **告警模块**（SignalR 实时推送，`AlarmBell`）
-- 工业风 WMS/WCS UI（`src/styles/theme.css`）
+- Master 敏捷开发框架 UI（`src/styles/theme.css`）
 
 ## 国际化
 

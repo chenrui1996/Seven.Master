@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Seven.Application.Interfaces;
 using Seven.Domain.Common;
-using Seven.Domain.Entities.Board;
+using Seven.Domain.Entities.Business;
 
 namespace Seven.WebApi.Controllers.Generated;
 

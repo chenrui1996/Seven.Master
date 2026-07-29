@@ -22,7 +22,7 @@
     <ProjectReference Include="..\Seven.Application\Seven.Application.csproj" />
     <ProjectReference Include="..\Seven.Infrastructure\Seven.Infrastructure.csproj" />
     <ProjectReference Include="..\Seven.Builder\Seven.Builder.csproj" />
-    <ProjectReference Include="..\Seven.Board\Seven.Board.csproj" />
+    <ProjectReference Include="..\Seven.Business\Seven.Business.csproj" />
   </ItemGroup>
 
   <ItemGroup>

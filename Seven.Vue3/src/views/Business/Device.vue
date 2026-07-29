@@ -1,14 +1,14 @@
 <!--
   代码由框架生成，重新生成会覆盖本文件。
-  业务逻辑请写在：../../extension/Board/SubDevice.ts
+  业务逻辑请写在：../../extension/Business/Device.ts
 -->
 <template>
   <div class="crud-page seven-page">
     <CrudPanel
-      api-route="SubDevice"
-      i18n-key="generated.SubDevice"
-      table-name="SubDevice"
-      key-field="subDeviceId"
+      api-route="Device"
+      i18n-key="generated.Device"
+      table-name="Device"
+      key-field="deviceId"
       :columns="allColumns"
       :form-fields="formFields"
       :form-defaults="formDefaults"
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import pageExtension from '../../extension/Board/SubDevice'
+import pageExtension from '../../extension/Business/Device'
 import type { DetailTableConfig, FormFieldDef, SearchFieldConfig } from '../../extension/types'
 import CrudPanel from '../../components/crud/CrudPanel.vue'
 import { mergeDetailTables, mergeSearchFields } from '../../components/crud/mergeExtension'
@@ -36,40 +36,33 @@ import type { ColumnDef } from '../../composables/useTableColumns'
 const route = useRoute()
 
 const allColumns: ColumnDef[] = [
-  { prop: 'subDeviceId', kind: 'number', sortable: false },
   { prop: 'deviceId', kind: 'number', sortable: false },
-  { prop: 'subDeviceName', kind: 'string', sortable: false },
-  { prop: 'subDeviceCode', kind: 'string', sortable: false },
+  { prop: 'deviceName', kind: 'string', sortable: false },
+  { prop: 'deviceCode', kind: 'string', sortable: false },
   { prop: 'status', kind: 'enum', sortable: false },
-  { prop: 'remark', kind: 'string', sortable: false },
+  { prop: 'location', kind: 'string', sortable: false },
 ]
 
 const formFields: FormFieldDef[] = [
-  { prop: 'deviceId', kind: 'number' },
-  { prop: 'subDeviceName', kind: 'string' },
-  { prop: 'subDeviceCode', kind: 'string' },
+  { prop: 'deviceName', kind: 'string' },
+  { prop: 'deviceCode', kind: 'string' },
   { prop: 'status', kind: 'enum' },
-  { prop: 'remark', kind: 'string' },
+  { prop: 'location', kind: 'string' },
 ]
 
 const formDefaults: Record<string, unknown> = {
-  subDeviceId: 0,
   deviceId: 0,
-  subDeviceName: '',
-  subDeviceCode: '',
+  deviceName: '',
+  deviceCode: '',
   status: 0,
-  remark: '',
+  location: '',
 }
 
-const generatedSearchFields: SearchFieldConfig[] = [
-  { prop: 'subDeviceName', kind: 'string', operator: 'like', labelKey: 'generated.SubDevice.subDeviceName' },
-  { prop: 'subDeviceCode', kind: 'string', operator: 'like', labelKey: 'generated.SubDevice.subDeviceCode' },
-]
+const generatedSearchFields: SearchFieldConfig[] = []
 
 const generatedDetailTables: DetailTableConfig[] = []
 
-/** Page 模式：主表跳转时携带 ?deviceId= */
-const queryFilterKeys: string[] = ['deviceId']
+const queryFilterKeys: string[] = []
 
 const statusOptions = [
   { value: 0, label: '离线' },

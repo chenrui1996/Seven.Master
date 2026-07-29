@@ -30,18 +30,18 @@
     "detailTables": "明細"
   },
   "layout": {
-    "logoTitle": "Seven WMS",
-    "logoSub": "Warehouse Control",
+    "logoTitle": "Seven Master",
+    "logoSub": "アジャイル開発フレームワーク",
     "systemRunning": "システム稼働中",
-    "wcsOnline": "WCS オンライン",
+    "systemOnline": "サービスオンライン",
     "homeTab": "ホーム"
   },
   "login": {
-    "title": "Seven WMS / WCS",
-    "tagline": "産業用 WMS・倉庫制御プラットフォーム",
-    "featureWms": "WMS 入庫 / 出庫 / 在庫可視化",
-    "featureWcs": "WCS タスクスケジューリング",
-    "featureDevice": "設備監視とアラーム連動",
+    "title": "Seven Master",
+    "tagline": "アジャイル開発フレームワーク · 迅速な業務提供",
+    "featureCore": "コード生成と標準 CRUD",
+    "featureAuth": "メニュー権限とロール認可",
+    "featureRealtime": "リアルタイム警報と拡張",
     "footer": "Production Ready · .NET 8 + Vue 3",
     "panelTitle": "ログイン",
     "panelSubtitle": "オペレーターアカウントを入力",
@@ -55,8 +55,8 @@
     "requestFailed": "ログイン要求失敗"
   },
   "home": {
-    "title": "WMS / WCS ダッシュボード",
-    "subtitle": "倉庫作業と設備制御の概要",
+    "title": "Master ダッシュボード",
+    "subtitle": "業務稼働とシステム概要",
     "systemOk": "システム正常",
     "kpiInventory": "在庫数量",
     "kpiInventoryMeta": "出荷可能数量の合計",

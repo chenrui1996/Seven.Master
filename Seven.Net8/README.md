@@ -11,7 +11,7 @@
 | Seven.Infrastructure | Legrand.Core + Legrand.System | 基础设施实现 |
 | Seven.Builder | Legrand.Builder | 代码生成器 |
 | Seven.WebApi | Legrand.WebApi | API 入口（启动项目） |
-| Seven.Board | Legrand.Board | 设备/大屏 |
+| Seven.Business | Legrand.Board | 业务模块（原 Board） |
 | Seven.Tests | — | 单元与集成测试 |
 
 ## 打开方式

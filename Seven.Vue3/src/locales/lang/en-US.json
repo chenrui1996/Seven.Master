@@ -30,18 +30,18 @@
     "detailTables": "Details"
   },
   "layout": {
-    "logoTitle": "Seven WMS",
-    "logoSub": "Warehouse Control",
+    "logoTitle": "Seven Master",
+    "logoSub": "Agile Dev Framework",
     "systemRunning": "System Running",
-    "wcsOnline": "WCS Online",
+    "systemOnline": "Service Online",
     "homeTab": "Home"
   },
   "login": {
-    "title": "Seven WMS / WCS",
-    "tagline": "Industrial WMS & warehouse control platform",
-    "featureWms": "WMS inbound / outbound / inventory visibility",
-    "featureWcs": "WCS task scheduling & routing",
-    "featureDevice": "Device monitoring & alarm linkage",
+    "title": "Seven Master",
+    "tagline": "Agile development framework for rapid delivery",
+    "featureCore": "Code generation & standard CRUD",
+    "featureAuth": "Menus, roles & permissions",
+    "featureRealtime": "Realtime alerts & extensions",
     "footer": "Production Ready · .NET 8 + Vue 3",
     "panelTitle": "Sign In",
     "panelSubtitle": "Enter your operator credentials",
@@ -55,8 +55,8 @@
     "requestFailed": "Sign in request failed"
   },
   "home": {
-    "title": "WMS / WCS Dashboard",
-    "subtitle": "Warehouse operations & equipment control overview",
+    "title": "Master Dashboard",
+    "subtitle": "Business operations & system overview",
     "systemOk": "System Normal",
     "kpiInventory": "Inventory Qty",
     "kpiInventoryMeta": "Available quantity total",

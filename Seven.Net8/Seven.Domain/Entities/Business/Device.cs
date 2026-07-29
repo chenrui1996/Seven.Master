@@ -2,10 +2,10 @@ using Seven.Domain.Attributes;
 using Seven.Domain.Common;
 using Seven.Domain.Enums;
 
-namespace Seven.Domain.Entities.Board;
+namespace Seven.Domain.Entities.Business;
 
 /// <summary>
-/// 设备信息（大屏模块）
+/// 设备信息（业务模块 Demo）
 /// </summary>
 public class Device : BaseEntity
 {

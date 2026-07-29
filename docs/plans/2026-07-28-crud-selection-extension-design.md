@@ -26,7 +26,7 @@
 
 ### 扩展文件
 
-- 路径：`Seven.Vue3/src/extension/{Folder}/{TableName}.ts`（例：`extension/Board/Device.ts`）
+- 路径：`Seven.Vue3/src/extension/{Folder}/{TableName}.ts`（例：`extension/Business/Device.ts`）
 - 首次生成：若文件不存在则创建空模板；若已存在则跳过
 - 再次生成 Vue：只覆盖 `.vue`，扩展文件永不覆盖
 - 生成页注释标明业务写在扩展文件
@@ -76,8 +76,8 @@ export default { toolbarButtons: [] } satisfies PageExtension
 | `Template/VuePage.html` | selection、工具栏、扩展 import、批量删除 |
 | `BuilderService.cs` | 首次写扩展文件；永不覆盖已有扩展 |
 | `src/extension/types.ts` | 类型定义 |
-| `src/extension/Board/Device.ts` | Device 示例扩展（空或示例按钮） |
-| `views/Board/Device.vue` | 与模板对齐 |
+| `src/extension/Business/Device.ts` | Device 示例扩展（空或示例按钮） |
+| `views/Business/Device.vue` | 与模板对齐 |
 | 语言包 `common` | `batchDelete` 等 |
 
 ## 成功标准

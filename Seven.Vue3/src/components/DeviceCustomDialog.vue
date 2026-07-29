@@ -1,6 +1,6 @@
 <!--
   Device 扩展按钮打开的自定义处理弹窗（手写 Demo）
-  由 extension/Board/Device.ts 的 overlay 挂到生成页上
+  由 extension/Business/Device.ts 的 overlay 挂到生成页上
 -->
 <template>
   <el-dialog
@@ -63,7 +63,7 @@ import { ActionIcons } from '../constants/actionIcons'
 import {
   closeDeviceCustomDialog,
   deviceCustomState,
-} from '../extension/Board/deviceCustomShared'
+} from '../extension/Business/deviceCustomShared'
 
 const { t } = useI18n()
 const saving = ref(false)

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Seven.Domain.Entities.Alarm;
-using Seven.Domain.Entities.Board;
+using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.Flow;
 using Seven.Domain.Entities.Form;
