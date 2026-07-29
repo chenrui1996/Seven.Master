@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Seven.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using Seven.Infrastructure.Persistence;
 namespace Seven.Infrastructure.Migrations
 {
     [DbContext(typeof(SevenDbContext))]
-    partial class SevenDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260729023211_LimitDeviceStringLengths")]
+    partial class LimitDeviceStringLengths
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

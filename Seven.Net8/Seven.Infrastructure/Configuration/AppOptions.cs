@@ -13,6 +13,12 @@ public class DatabaseOptions
 
     /// <summary>连接字符串</summary>
     public string ConnectionString { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 启动时是否自动执行 EF 迁移（MigrateAsync）。
+    /// 生产环境应保持 false，由发布流水线显式迁移。
+    /// </summary>
+    public bool MigrateOnStartup { get; set; }
 }
 
 /// <summary>

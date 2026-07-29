@@ -42,11 +42,3 @@ export function getMenuIcon(name?: string): Component {
   if (!name) return defaultIcon
   return menuIconMap[name] ?? defaultIcon
 }
-
-/** 系统模块快捷入口（i18n 键） */
-export const moduleShortcutKeys = [
-  { titleKey: 'home.moduleWms', descKey: 'home.moduleWmsDesc', iconKey: 'wms', icon: Box, color: '#f97316' },
-  { titleKey: 'home.moduleWcs', descKey: 'home.moduleWcsDesc', iconKey: 'wcs', icon: Operation, color: '#0ea5e9' },
-  { titleKey: 'home.moduleDevice', descKey: 'home.moduleDeviceDesc', iconKey: 'device', icon: Monitor, color: '#16a34a' },
-  { titleKey: 'home.moduleAlert', descKey: 'home.moduleAlertDesc', iconKey: 'alert', icon: Warning, color: '#dc2626' },
-]

@@ -1,10 +1,10 @@
 import type { MenuItem } from '../stores'
 
-/** 将扁平菜单列表构建为树形结构（OrderNo 越大越靠前，与 Legrand 一致） */
+/** 将扁平菜单列表构建为树形结构（OrderNo 越小越靠前） */
 export function buildMenuTree(flat: MenuItem[], parentId = 0): MenuItem[] {
   return flat
     .filter((m) => (m.parentId ?? 0) === parentId)
-    .sort((a, b) => (b.orderNo ?? 0) - (a.orderNo ?? 0))
+    .sort((a, b) => (a.orderNo ?? 0) - (b.orderNo ?? 0) || (a.menu_Id ?? 0) - (b.menu_Id ?? 0))
     .map((m) => {
       const children = buildMenuTree(flat, m.menu_Id)
       return children.length ? { ...m, children } : { ...m }

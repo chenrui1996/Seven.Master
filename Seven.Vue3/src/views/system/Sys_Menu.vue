@@ -6,15 +6,15 @@
           <div class="toolbar">
             <span>{{ t('sysMenu.treeTitle') }}</span>
             <div class="seven-btn-group">
-              <el-button v-permission="'Sys_Menu.Add'" size="small" type="primary" :icon="ActionIcons.add" @click="addRoot">
-                {{ t('sysMenu.addRoot') }}
-              </el-button>
-              <el-button v-permission="'Sys_Menu.Add'" size="small" :icon="ActionIcons.addChild" @click="addChild">
-                {{ t('sysMenu.addChild') }}
-              </el-button>
-              <el-button v-permission="'Sys_Menu.Add'" size="small" :icon="ActionIcons.addSibling" @click="addBrother">
-                {{ t('sysMenu.addBrother') }}
-              </el-button>
+              <el-tooltip :content="t('sysMenu.addRoot')" placement="top">
+                <el-button v-permission="'Sys_Menu.Add'" size="small" type="primary" :icon="ActionIcons.add" @click="addRoot" />
+              </el-tooltip>
+              <el-tooltip :content="t('sysMenu.addChild')" placement="top">
+                <el-button v-permission="'Sys_Menu.Add'" size="small" :icon="ActionIcons.addChild" @click="addChild" />
+              </el-tooltip>
+              <el-tooltip :content="t('sysMenu.addBrother')" placement="top">
+                <el-button v-permission="'Sys_Menu.Add'" size="small" :icon="ActionIcons.addSibling" @click="addBrother" />
+              </el-tooltip>
             </div>
           </div>
         </template>
@@ -63,7 +63,8 @@
             <el-input v-model="form.icon" />
           </el-form-item>
           <el-form-item :label="t('sysMenu.colOrder')">
-            <el-input-number v-model="form.orderNo" :min="0" />
+            <el-input-number v-model="form.orderNo" :min="0" controls-position="right" />
+            <span class="order-hint">{{ t('sysMenu.orderHint') }}</span>
           </el-form-item>
           <el-form-item :label="t('sysMenu.colStatus')">
             <el-switch v-model="form.enable" :active-value="1" :inactive-value="0" />
@@ -94,12 +95,14 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import http from '../../api/http'
+import http, { getMenu } from '../../api/http'
 import { buildMenuTree } from '../../utils/menuTree'
 import { ActionIcons } from '../../constants/actionIcons'
 import type { MenuItem } from '../../stores'
+import { useMenuStore } from '../../stores'
 
 const { t } = useI18n()
+const menuStore = useMenuStore()
 const menuFlat = ref<MenuItem[]>([])
 const menuTree = ref<MenuItem[]>([])
 const authOptions = [
@@ -197,6 +200,19 @@ async function loadTree() {
   menuTree.value = buildMenuTree(flat)
 }
 
+/** 同步左侧导航菜单顺序（不重建动态路由） */
+async function refreshSidebarMenus() {
+  try {
+    const res = await getMenu()
+    if (res.status && res.data) {
+      const flat = (res.data as unknown as Record<string, unknown>[]).map(normalizeMenuRow)
+      menuStore.setMenus(buildMenuTree(flat))
+    }
+  } catch {
+    /* 忽略：侧栏刷新失败不影响管理页 */
+  }
+}
+
 async function loadTreeItem(menuId: number) {
   const res = await http.post(`/api/Sys_Menu/getTreeItem?menuId=${menuId}`)
   if (!res.status || !res.data) {
@@ -261,6 +277,7 @@ async function save() {
     form.menu_Id = Number(saved.menu_Id ?? saved.Menu_Id ?? form.menu_Id)
   }
   await loadTree()
+  await refreshSidebarMenus()
 }
 
 async function remove() {
@@ -281,6 +298,7 @@ async function remove() {
   ElMessage.success(res.message || t('common.success'))
   resetForm()
   await loadTree()
+  await refreshSidebarMenus()
 }
 
 onMounted(loadTree)
@@ -304,5 +322,10 @@ onMounted(loadTree)
   font-size: 12px;
   color: var(--el-text-color-secondary);
   line-height: 1.5;
+}
+.order-hint {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 </style>

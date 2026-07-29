@@ -12,24 +12,32 @@
       <el-col :xs="24" :lg="14">
         <div class="seven-panel">
           <div class="seven-panel__header">
-            <h3 class="seven-panel__title">{{ t('home.modulesTitle') }}</h3>
+            <h3 class="seven-panel__title">{{ t('home.inventoryTitle') }}</h3>
+            <span class="panel-meta">{{ t('home.inventoryMeta') }}</span>
           </div>
-          <div class="seven-panel__body module-grid">
-            <div
-              v-for="mod in moduleShortcuts"
-              :key="mod.titleKey"
-              class="module-card cursor-pointer"
-              @click="onModuleClick(t(mod.titleKey))"
-            >
-              <div class="module-icon" :style="{ background: mod.color + '18', color: mod.color }">
-                <el-icon :size="24"><component :is="mod.icon" /></el-icon>
+          <div class="seven-panel__body">
+            <div class="inv-summary">
+              <div v-for="item in inventorySummary" :key="item.label" class="inv-stat">
+                <div class="inv-stat__value">{{ item.value }}</div>
+                <div class="inv-stat__label">{{ item.label }}</div>
               </div>
-              <div class="module-info">
-                <div class="module-title">{{ t(mod.titleKey) }}</div>
-                <div class="module-desc">{{ t(mod.descKey) }}</div>
-              </div>
-              <el-icon class="module-arrow"><ArrowRight /></el-icon>
             </div>
+            <el-table :data="inventoryRows" size="small" border stripe max-height="220">
+              <el-table-column prop="zone" :label="t('home.invColZone')" min-width="100" />
+              <el-table-column prop="sku" :label="t('home.invColSku')" min-width="120" />
+              <el-table-column prop="qty" :label="t('home.invColQty')" width="90" align="right" />
+              <el-table-column prop="uom" :label="t('home.invColUom')" width="70" />
+            </el-table>
+          </div>
+        </div>
+
+        <div class="seven-panel" style="margin-top: 16px">
+          <div class="seven-panel__header">
+            <h3 class="seven-panel__title">{{ t('home.occupancyTitle') }}</h3>
+            <span class="panel-meta">{{ occupancyPercent }}%</span>
+          </div>
+          <div class="seven-panel__body">
+            <div ref="occupancyChartRef" class="occupancy-chart" />
           </div>
         </div>
       </el-col>
@@ -37,40 +45,40 @@
       <el-col :xs="24" :lg="10">
         <div class="seven-panel">
           <div class="seven-panel__header">
-            <h3 class="seven-panel__title">{{ t('home.runtimeTitle') }}</h3>
+            <h3 class="seven-panel__title">{{ t('home.alarmTitle') }}</h3>
+            <el-button link type="primary" @click="router.push('/Sys_Alarm')">{{ t('home.viewAll') }}</el-button>
           </div>
-          <div class="seven-panel__body">
-            <dl class="info-list">
-              <div class="info-row">
-                <dt>{{ t('home.operator') }}</dt>
-                <dd>{{ userStore.userTrueName || userStore.userName }}</dd>
+          <div class="seven-panel__body alarm-list" v-loading="alarmLoading">
+            <div v-if="!alarmRows.length" class="empty-hint">{{ t('home.alarmEmpty') }}</div>
+            <div v-for="row in alarmRows" :key="row.alarmId" class="alarm-row">
+              <div class="alarm-row__main">
+                <el-tag :type="levelTag(row.level)" size="small" effect="plain">L{{ row.level }}</el-tag>
+                <span class="alarm-code">{{ row.code }}</span>
+                <span class="alarm-msg" :title="row.message">{{ row.message }}</span>
               </div>
-              <div class="info-row">
-                <dt>{{ t('home.permissions') }}</dt>
-                <dd>{{ t('home.permissionsUnit', { count: userStore.permissions.length }) }}</dd>
+              <div class="alarm-row__meta">
+                <span>{{ row.deviceName || '-' }}</span>
+                <span>{{ formatTime(row.createDate) }}</span>
               </div>
-              <div class="info-row">
-                <dt>{{ t('home.version') }}</dt>
-                <dd>{{ t('home.versionValue') }}</dd>
-              </div>
-              <div class="info-row">
-                <dt>{{ t('home.techStack') }}</dt>
-                <dd>{{ t('home.techStackValue') }}</dd>
-              </div>
-            </dl>
-            <el-divider />
-            <p class="system-desc">{{ t('home.systemDesc') }}</p>
+            </div>
           </div>
         </div>
 
         <div class="seven-panel" style="margin-top: 16px">
           <div class="seven-panel__header">
             <h3 class="seven-panel__title">{{ t('home.deviceTitle') }}</h3>
+            <el-button link type="primary" @click="router.push('/Device')">{{ t('home.viewAll') }}</el-button>
           </div>
-          <div class="seven-panel__body device-list">
-            <div v-for="dev in devices" :key="dev.name" class="device-row">
-              <span class="device-name">{{ dev.name }}</span>
-              <el-tag :type="dev.status" size="small" effect="plain">{{ t(dev.labelKey) }}</el-tag>
+          <div class="seven-panel__body device-list" v-loading="deviceLoading">
+            <div v-if="!deviceRows.length" class="empty-hint">{{ t('home.deviceEmpty') }}</div>
+            <div v-for="dev in deviceRows" :key="dev.deviceId" class="device-row">
+              <div class="device-info">
+                <span class="device-name">{{ dev.deviceName }}</span>
+                <span class="device-code">{{ dev.deviceCode || '-' }}</span>
+              </div>
+              <el-tag :type="deviceStatusType(dev.status)" size="small" effect="plain">
+                {{ deviceStatusLabel(dev.status) }}
+              </el-tag>
             </div>
           </div>
         </div>
@@ -80,26 +88,101 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
-import { ArrowRight } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '../stores/user'
+import * as echarts from 'echarts/core'
+import { PieChart } from 'echarts/charts'
+import { LegendComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+import type { ECharts } from 'echarts/core'
+import { getPageData } from '../api/http'
 import { useAlarmStore } from '../stores/alarm'
-import { moduleShortcutKeys } from '../utils/menuIcons'
 
-const { t } = useI18n()
+echarts.use([PieChart, LegendComponent, TooltipComponent, CanvasRenderer])
+
+const { t, locale } = useI18n()
 const router = useRouter()
-const userStore = useUserStore()
 const alarmStore = useAlarmStore()
 
-const moduleShortcuts = moduleShortcutKeys
+const occupancyChartRef = ref<HTMLElement | null>(null)
+let occupancyChart: ECharts | null = null
+
+const alarmLoading = ref(false)
+const deviceLoading = ref(false)
+
+interface AlarmRow {
+  alarmId: number
+  code: string
+  message: string
+  level: number
+  deviceName?: string
+  createDate?: string
+}
+
+interface DeviceRow {
+  deviceId: number
+  deviceName: string
+  deviceCode?: string
+  status: number
+  location?: string
+}
+
+const alarmRows = ref<AlarmRow[]>([])
+const deviceRows = ref<DeviceRow[]>([])
+
+/** 库存 Demo 数据（尚无独立库存 API） */
+const inventoryRows = [
+  { zone: 'A-01', sku: 'MAT-1001', qty: 320, uom: '箱' },
+  { zone: 'A-02', sku: 'MAT-2048', qty: 86, uom: '托' },
+  { zone: 'B-03', sku: 'MAT-3102', qty: 1540, uom: '件' },
+  { zone: 'C-01', sku: 'MAT-4410', qty: 42, uom: '托' },
+]
+
+const occupancyZones = [
+  { key: 'zoneA', used: 720, total: 1000 },
+  { key: 'zoneB', used: 410, total: 800 },
+  { key: 'zoneC', used: 190, total: 600 },
+  { key: 'zoneD', used: 55, total: 400 },
+]
+
+const occupancyPercent = computed(() => {
+  const used = occupancyZones.reduce((s, z) => s + z.used, 0)
+  const total = occupancyZones.reduce((s, z) => s + z.total, 0)
+  return total ? Math.round((used / total) * 100) : 0
+})
+
+const inventorySummary = computed(() => {
+  const skuCount = new Set(inventoryRows.map((r) => r.sku)).size
+  const qtySum = inventoryRows.reduce((s, r) => s + r.qty, 0)
+  return [
+    { label: t('home.invSkuCount'), value: String(skuCount) },
+    { label: t('home.invQtyTotal'), value: qtySum.toLocaleString() },
+    { label: t('home.invZoneCount'), value: String(new Set(inventoryRows.map((r) => r.zone)).size) },
+  ]
+})
+
+const onlineDeviceCount = computed(() => deviceRows.value.filter((d) => d.status === 1).length)
 
 const kpiCards = computed(() => [
-  { label: t('home.kpiPendingTasks'), value: '128', meta: t('home.kpiPendingMeta'), variant: 'seven-kpi-card--warning' },
-  { label: t('home.kpiOnlineDevices'), value: '24', meta: t('home.kpiOnlineMeta'), variant: 'seven-kpi-card--success' },
-  { label: t('home.kpiThroughput'), value: '3,842', meta: t('home.kpiThroughputMeta'), variant: 'seven-kpi-card--info' },
+  {
+    label: t('home.kpiInventory'),
+    value: inventorySummary.value[1]?.value ?? '0',
+    meta: t('home.kpiInventoryMeta'),
+    variant: 'seven-kpi-card--info',
+  },
+  {
+    label: t('home.kpiOccupancy'),
+    value: `${occupancyPercent.value}%`,
+    meta: t('home.kpiOccupancyMeta'),
+    variant: 'seven-kpi-card--warning',
+  },
+  {
+    label: t('home.kpiOnlineDevices'),
+    value: String(onlineDeviceCount.value),
+    meta: t('home.kpiOnlineMeta'),
+    variant: 'seven-kpi-card--success',
+  },
   {
     label: t('home.kpiAlerts'),
     value: String(alarmStore.activeCount),
@@ -108,23 +191,122 @@ const kpiCards = computed(() => [
   },
 ])
 
-const devices = [
-  { name: 'Stacker-01', status: 'success' as const, labelKey: 'home.deviceRunning' },
-  { name: 'AGV-Group-A', status: 'success' as const, labelKey: 'home.deviceRunning' },
-  { name: 'Conveyor-L3', status: 'warning' as const, labelKey: 'home.deviceStandby' },
-  { name: 'PLC-Master', status: 'success' as const, labelKey: 'home.deviceOnline' },
-]
-
-function onModuleClick(name: string) {
-  if (name === t('home.moduleAlert')) {
-    router.push('/Sys_Alarm')
-    return
-  }
-  ElMessage.info(t('home.moduleDeveloping', { name }))
+function levelTag(level: number) {
+  if (level >= 4) return 'danger'
+  if (level >= 3) return 'warning'
+  if (level >= 2) return 'info'
+  return 'success'
 }
 
-onMounted(() => {
-  alarmStore.fetchActiveCount()
+function deviceStatusType(status: number) {
+  if (status === 1) return 'success'
+  if (status === 2) return 'danger'
+  if (status === 3) return 'warning'
+  return 'info'
+}
+
+function deviceStatusLabel(status: number) {
+  const map: Record<number, string> = {
+    0: t('home.deviceOffline'),
+    1: t('home.deviceOnline'),
+    2: t('home.deviceFault'),
+    3: t('home.deviceMaintenance'),
+  }
+  return map[status] ?? String(status)
+}
+
+function formatTime(v?: string) {
+  if (!v) return '-'
+  return String(v).replace('T', ' ').slice(0, 19)
+}
+
+function renderOccupancyChart() {
+  if (!occupancyChartRef.value) return
+  if (!occupancyChart) {
+    occupancyChart = echarts.init(occupancyChartRef.value)
+  }
+  const used = occupancyZones.reduce((s, z) => s + z.used, 0)
+  const free = occupancyZones.reduce((s, z) => s + (z.total - z.used), 0)
+  occupancyChart.setOption({
+    color: ['#f97316', '#94a3b8'],
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { bottom: 0, textStyle: { color: '#64748b' } },
+    series: [
+      {
+        type: 'pie',
+        radius: ['42%', '68%'],
+        center: ['50%', '46%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+        label: { formatter: '{b}\n{d}%' },
+        data: [
+          { name: t('home.occupancyUsed'), value: used },
+          { name: t('home.occupancyFree'), value: free },
+        ],
+      },
+    ],
+  })
+}
+
+async function loadAlarms() {
+  alarmLoading.value = true
+  try {
+    const wheres = JSON.stringify([{ name: 'status', value: '0', displayType: 'equal' }])
+    const res = await getPageData('/api/Sys_Alarm/getPageData', { page: 1, rows: 8, wheres })
+    if (res.status && res.data) {
+      const data = res.data as { rows: Record<string, unknown>[] }
+      alarmRows.value = (data.rows ?? []).map((r) => ({
+        alarmId: Number(r.alarm_Id ?? r.alarmId ?? 0),
+        code: String(r.code ?? ''),
+        message: String(r.message ?? ''),
+        level: Number(r.level ?? 0),
+        deviceName: r.deviceName != null ? String(r.deviceName) : undefined,
+        createDate: r.createDate != null ? String(r.createDate) : undefined,
+      }))
+    }
+  } finally {
+    alarmLoading.value = false
+  }
+}
+
+async function loadDevices() {
+  deviceLoading.value = true
+  try {
+    const res = await getPageData('/api/Device/getPageData', { page: 1, rows: 12 })
+    if (res.status && res.data) {
+      const data = res.data as { rows: Record<string, unknown>[] }
+      deviceRows.value = (data.rows ?? []).map((r) => ({
+        deviceId: Number(r.deviceId ?? 0),
+        deviceName: String(r.deviceName ?? ''),
+        deviceCode: r.deviceCode != null ? String(r.deviceCode) : undefined,
+        status: Number(r.status ?? 0),
+        location: r.location != null ? String(r.location) : undefined,
+      }))
+    }
+  } finally {
+    deviceLoading.value = false
+  }
+}
+
+function onResize() {
+  occupancyChart?.resize()
+}
+
+onMounted(async () => {
+  await Promise.all([alarmStore.fetchActiveCount(), loadAlarms(), loadDevices()])
+  await nextTick()
+  renderOccupancyChart()
+  window.addEventListener('resize', onResize)
+})
+
+watch(locale, () => {
+  renderOccupancyChart()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+  occupancyChart?.dispose()
+  occupancyChart = null
 })
 </script>
 
@@ -133,132 +315,134 @@ onMounted(() => {
   max-width: 1400px;
 }
 
-.header-actions :deep(.el-tag) {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--seven-font-mono);
+.panel-meta {
   font-size: 12px;
+  color: var(--seven-text-muted);
+  font-family: var(--seven-font-mono);
 }
 
-.module-grid {
+.inv-summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--seven-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-@media (max-width: 640px) {
-  .module-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.module-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+.inv-stat {
+  padding: 12px 14px;
+  background: var(--seven-bg-subtle);
   border: 1px solid var(--seven-border-light);
   border-radius: var(--seven-radius);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.module-card:hover {
-  border-color: var(--seven-accent);
-  box-shadow: var(--seven-shadow);
-  transform: translateY(-1px);
-}
-
-.module-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.module-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.module-title {
-  font-weight: 600;
-  font-size: 14px;
+.inv-stat__value {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--seven-font-mono);
   color: var(--seven-primary-dark);
+  line-height: 1.2;
 }
 
-.module-desc {
+.inv-stat__label {
+  margin-top: 4px;
   font-size: 12px;
   color: var(--seven-text-muted);
-  margin-top: 2px;
 }
 
-.module-arrow {
-  color: var(--seven-text-muted);
-  transition: color 0.2s ease, transform 0.2s ease;
+.occupancy-chart {
+  width: 100%;
+  height: 280px;
 }
 
-.module-card:hover .module-arrow {
-  color: var(--seven-accent);
-  transform: translateX(2px);
-}
-
-.info-list {
-  margin: 0;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed var(--seven-border-light);
-  font-size: 13px;
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-row dt {
-  color: var(--seven-text-muted);
-}
-
-.info-row dd {
-  margin: 0;
-  font-family: var(--seven-font-mono);
-  font-weight: 500;
-  color: var(--seven-primary-dark);
-}
-
-.system-desc {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--seven-text-muted);
-}
-
+.alarm-list,
 .device-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 120px;
+}
+
+.empty-hint {
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--seven-text-muted);
+  font-size: 13px;
+}
+
+.alarm-row {
+  padding: 10px 12px;
+  background: var(--seven-bg-subtle);
+  border: 1px solid var(--seven-border-light);
+  border-radius: 4px;
+}
+
+.alarm-row__main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.alarm-code {
+  font-family: var(--seven-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+  flex-shrink: 0;
+}
+
+.alarm-msg {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--seven-primary-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alarm-row__meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--seven-text-muted);
+  font-family: var(--seven-font-mono);
 }
 
 .device-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: var(--seven-space-2) var(--seven-space-3);
   background: var(--seven-bg-subtle);
   border-radius: 4px;
   border: 1px solid var(--seven-border-light);
 }
 
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .device-name {
-  font-family: var(--seven-font-mono);
   font-size: 13px;
+  font-weight: 600;
   color: var(--seven-primary-dark);
+}
+
+.device-code {
+  font-family: var(--seven-font-mono);
+  font-size: 12px;
+  color: var(--seven-text-muted);
+}
+
+@media (max-width: 640px) {
+  .inv-summary {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

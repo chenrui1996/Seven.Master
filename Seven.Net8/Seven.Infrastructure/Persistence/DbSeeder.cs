@@ -25,11 +25,25 @@ public static class DbSeeder
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SevenDbContext>>();
         var alarmOptions = scope.ServiceProvider.GetRequiredService<IOptions<AlarmOptions>>().Value;
+        var databaseOptions = scope.ServiceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
 
         if (db.Database.IsRelational())
-            await db.Database.MigrateAsync();
+        {
+            if (databaseOptions.MigrateOnStartup)
+            {
+                logger.LogInformation("Database:MigrateOnStartup=true，正在应用 EF 迁移...");
+                await db.Database.MigrateAsync();
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Database:MigrateOnStartup=false，跳过自动迁移（请在发布流水线执行 dotnet ef database update）");
+            }
+        }
         else
+        {
             await db.Database.EnsureCreatedAsync();
+        }
 
         await SeedAlarmCodesAsync(db, alarmOptions, logger);
         await SeedDeviceDetailDemoAsync(db, logger);

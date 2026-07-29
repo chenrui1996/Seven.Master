@@ -159,6 +159,9 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
     {
         builder.ToTable("Device");
         builder.HasKey(x => x.DeviceId);
+        builder.Property(x => x.DeviceName).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.DeviceCode).HasMaxLength(64);
+        builder.Property(x => x.Location).HasMaxLength(256);
     }
 }
 

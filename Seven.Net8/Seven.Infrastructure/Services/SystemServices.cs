@@ -167,8 +167,8 @@ public class SysRoleService : ISysRoleService
 
         var menus = await _db.Sys_Menus.AsNoTracking()
             .Where(m => m.Enable == 1 && !m.IsDeleted)
-            .OrderByDescending(m => m.OrderNo)
-            .ThenByDescending(m => m.ParentId)
+            .OrderBy(m => m.OrderNo)
+            .ThenBy(m => m.Menu_Id)
             .ToListAsync(cancellationToken);
 
         var grantable = await BuildGrantableAuthMapAsync(currentRoleId, menus, cancellationToken);
@@ -363,8 +363,8 @@ public class SysRoleService : ISysRoleService
 
         return menus
             .Where(m => visibleIds.Contains(m.Menu_Id))
-            .OrderByDescending(m => m.OrderNo)
-            .ThenByDescending(m => m.ParentId)
+            .OrderBy(m => m.OrderNo)
+            .ThenBy(m => m.Menu_Id)
             .Select(m =>
             {
                 grantable.TryGetValue(m.Menu_Id, out var allowed);
@@ -417,8 +417,8 @@ public class SysMenuService : ISysMenuService
 
         var menus = await _db.Sys_Menus.AsNoTracking()
             .Where(m => m.Enable == 1 && !m.IsDeleted)
-            .OrderByDescending(m => m.OrderNo)
-            .ThenByDescending(m => m.ParentId)
+            .OrderBy(m => m.OrderNo)
+            .ThenBy(m => m.Menu_Id)
             .ToListAsync(cancellationToken);
         await _cache.SetAsync("menu:tree", menus, TimeSpan.FromHours(1), cancellationToken);
         return WebResponseContent.Ok(data: menus);
@@ -429,8 +429,8 @@ public class SysMenuService : ISysMenuService
     {
         var menus = await _db.Sys_Menus.AsNoTracking()
             .Where(m => !m.IsDeleted)
-            .OrderByDescending(m => m.OrderNo)
-            .ThenByDescending(m => m.ParentId)
+            .OrderBy(m => m.OrderNo)
+            .ThenBy(m => m.Menu_Id)
             .Select(m => new
             {
                 m.Menu_Id,
@@ -486,7 +486,10 @@ public class SysMenuService : ISysMenuService
             }
         }
 
-        var menus = allMenus.Where(m => resultIds.Contains(m.Menu_Id)).OrderBy(m => m.OrderNo).ToList();
+        var menus = allMenus.Where(m => resultIds.Contains(m.Menu_Id))
+            .OrderBy(m => m.OrderNo)
+            .ThenBy(m => m.Menu_Id)
+            .ToList();
         return WebResponseContent.Ok(data: menus);
     }
 
