@@ -37,7 +37,3 @@ Seven.Master/
 
 - **后端**: .NET 8 + EF Core 8 + JWT + Redis + RabbitMQ + Quartz + MinIO + Serilog（均可按 Features 裁剪）
 - **前端**: Vue 3 + Vite + TypeScript + Pinia + Element Plus + vue-i18n
-
-## 参考
-
-文档结构参考 [Vol.Pro 开发文档](http://doc.volcore.xyz/)，实现遵循仓库根目录 [系统架构设计.md](../../系统架构设计.md)。
