@@ -19,18 +19,25 @@ public static class MessageQueueServiceCollectionExtensions
         services.Configure<MessageQueueOptions>(configuration.GetSection(MessageQueueOptions.SectionName));
         services.AddScoped<IMessageQueueService, MessageQueueService>();
 
+        var features = configuration.GetSection(FeatureOptions.SectionName).Get<FeatureOptions>() ?? new FeatureOptions();
         var options = configuration.GetSection(MessageQueueOptions.SectionName).Get<MessageQueueOptions>()
             ?? new MessageQueueOptions();
         var provider = Enum.TryParse<MessageQueueProvider>(options.Provider, true, out var p)
             ? p
             : MessageQueueProvider.None;
 
+        // Features.MessageQueue 总开关；关闭时强制 NoOp
+        if (!features.MessageQueue)
+            provider = MessageQueueProvider.None;
+
         if (provider == MessageQueueProvider.RabbitMQ)
         {
             services.AddMassTransit(x =>
             {
                 if (options.EnableConsumers)
-                    x.AddConsumer<AlarmRaiseConsumer>();
+                {
+                    x.AddConsumer<AlarmRaiseConsumer>(typeof(AlarmRaiseConsumerDefinition));
+                }
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
@@ -40,6 +47,9 @@ public static class MessageQueueServiceCollectionExtensions
                         h.Username(mq.Username);
                         h.Password(mq.Password);
                     });
+                    // 全局重试；各 Consumer 可在 ConsumerDefinition 中覆盖。
+                    // 重试耗尽后 MassTransit/RabbitMQ 默认将消息移至对应 *_error 死信队列。
+                    cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                     cfg.ConfigureEndpoints(context);
                 });
             });

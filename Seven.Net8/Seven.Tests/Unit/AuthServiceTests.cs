@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Seven.Application.Interfaces;
+using Seven.Domain.Common;
 using Seven.Domain.Entities.System;
 using Seven.Infrastructure.Caching;
 using Seven.Infrastructure.Configuration;
+using Seven.Infrastructure.Mail;
 using Seven.Infrastructure.Persistence;
 using Seven.Infrastructure.Security;
 using Seven.Infrastructure.Services;
@@ -49,7 +51,19 @@ public class AuthServiceTests
         });
         db.SaveChanges();
 
-        return (db, new AuthService(db, hasher, tokenService));
+        var captcha = new CaptchaService(cache);
+        var security = Options.Create(new SecurityOptions { CaptchaEnabled = false });
+        var features = Options.Create(new FeatureOptions());
+        var currentUser = new CurrentUserService(new Microsoft.AspNetCore.Http.HttpContextAccessor());
+        var email = new NoOpEmailService();
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<AuthService>.Instance;
+        return (db, new AuthService(db, hasher, tokenService, currentUser, captcha, security, features, email, logger));
+    }
+
+    sealed class NoOpEmailService : IEmailService
+    {
+        public Task<WebResponseContent> SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default) =>
+            Task.FromResult(WebResponseContent.Ok());
     }
 
     [Fact]

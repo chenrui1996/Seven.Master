@@ -1,21 +1,29 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Pomelo.EntityFrameworkCore.MySql;
 using Seven.Application.Interfaces;
-using Seven.Infrastructure.Services;
 using Seven.Domain.Enums;
 using Seven.Infrastructure.Caching;
 using Seven.Infrastructure.Configuration;
-using Seven.Infrastructure.Persistence;
-using Seven.Infrastructure.Security;
+using Seven.Infrastructure.Mail;
 using Seven.Infrastructure.Messaging;
+using Seven.Infrastructure.Messaging.Outbox;
+using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Quartz;
+using Seven.Infrastructure.Security;
+using Seven.Infrastructure.Services;
 using Seven.Infrastructure.Storage;
 
 namespace Seven.Infrastructure;
@@ -34,26 +42,82 @@ public static class DependencyInjection
         services.Configure<MinioOptions>(configuration.GetSection(MinioOptions.SectionName));
         services.Configure<CorsOptions>(configuration.GetSection(CorsOptions.SectionName));
         services.Configure<AlarmOptions>(configuration.GetSection(AlarmOptions.SectionName));
+        services.Configure<MailOptions>(configuration.GetSection(MailOptions.SectionName));
+        services.Configure<TenantOptions>(configuration.GetSection(TenantOptions.SectionName));
+        services.Configure<SecurityOptions>(configuration.GetSection(SecurityOptions.SectionName));
+        services.Configure<FeatureOptions>(configuration.GetSection(FeatureOptions.SectionName));
 
-        AddDatabase(services, configuration);
+        var features = configuration.GetSection(FeatureOptions.SectionName).Get<FeatureOptions>() ?? new FeatureOptions();
+
+        services.AddHttpContextAccessor();
+        services.AddHttpClient("quartz");
+        services.AddScoped<AuditSaveChangesInterceptor>();
+        services.AddScoped<IOutboxStore, EfOutboxStore>();
+        services.AddScoped<ITenantContextInitializer, TenantContextInitializer>();
+
+        AddDatabase(services, configuration, features);
         AddCache(services, configuration);
         AddAuthentication(services, configuration);
         services.AddSevenMessageQueue(configuration);
+        if (features.Quartz)
+            services.AddSevenQuartz();
+        else
+            services.AddSevenQuartzStub();
+        if (features.Outbox && features.MessageQueue)
+            services.AddHostedService<OutboxProcessor>();
         AddApplicationServices(services);
 
-        services.AddHttpContextAccessor();
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<ICaptchaService, CaptchaService>();
+        services.AddScoped<IDataScopeService, DataScopeService>();
+        services.AddScoped<IEmailService, MailKitEmailService>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        var minio = configuration.GetSection(MinioOptions.SectionName).Get<MinioOptions>() ?? new MinioOptions();
+        if (features.MinIO && minio.Enabled)
+            services.AddScoped<IFileStorageService, MinioFileStorageService>();
+        else
+            services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
+        var security = configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new SecurityOptions();
+        // 始终注册限流（供 [EnableRateLimiting]）；Features.RateLimit=false 时额度极大，等同关闭
+        var loginLimit = features.RateLimit ? Math.Max(5, security.LoginPermitLimit) : int.MaxValue;
+        var globalLimit = features.RateLimit ? 300 : int.MaxValue;
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddPolicy("login", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = loginLimit,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                    }));
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = globalLimit,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                    }));
+        });
 
         return services;
     }
 
-    private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
+    private static void AddDatabase(IServiceCollection services, IConfiguration configuration, FeatureOptions features)
     {
         var dbOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
-        services.AddDbContext<SevenDbContext>(options =>
+        var auditEnabled = features.AuditInterceptor;
+
+        services.AddDbContext<SevenDbContext>((sp, options) =>
         {
             var provider = Enum.TryParse<DatabaseProvider>(dbOptions.Provider, true, out var p) ? p : DatabaseProvider.MySql;
             switch (provider)
@@ -68,6 +132,8 @@ public static class DependencyInjection
                     options.UseMySql(dbOptions.ConnectionString, new MySqlServerVersion(new Version(8, 0, 36)));
                     break;
             }
+            if (auditEnabled)
+                options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
         });
     }
 
@@ -137,14 +203,10 @@ public static class DependencyInjection
         services.AddScoped<ISysDepartmentService, SysDepartmentService>();
         services.AddScoped<ISysDictionaryService, SysDictionaryService>();
         services.AddScoped<ISysLogService, SysLogService>();
-        services.AddScoped<IWorkFlowService, WorkFlowService>();
         services.AddScoped<IAlarmService, AlarmService>();
         RegisterUnregisteredSysServices(services);
     }
 
-    /// <summary>
-    /// 约定注册代码生成的 Sys*Service（若同名接口尚未手动注册）
-    /// </summary>
     private static void RegisterUnregisteredSysServices(IServiceCollection services)
     {
         var infraAssembly = typeof(SysUserService).Assembly;
@@ -161,5 +223,36 @@ public static class DependencyInjection
             if (services.Any(d => d.ServiceType == iface)) continue;
             services.AddScoped(iface, impl);
         }
+    }
+}
+
+/// <summary>将租户 Claim 应用到 DbContext</summary>
+public interface ITenantContextInitializer
+{
+    void Apply(SevenDbContext db);
+}
+
+public class TenantContextInitializer : ITenantContextInitializer
+{
+    private readonly IHttpContextAccessor _http;
+    private readonly IOptions<TenantOptions> _options;
+    private readonly IOptions<FeatureOptions> _features;
+
+    public TenantContextInitializer(
+        IHttpContextAccessor http,
+        IOptions<TenantOptions> options,
+        IOptions<FeatureOptions> features)
+    {
+        _http = http;
+        _options = options;
+        _features = features;
+    }
+
+    public void Apply(SevenDbContext db)
+    {
+        if (!_features.Value.Tenant || !_options.Value.Enabled) return;
+        db.TenantFilterEnabled = true;
+        var claim = _http.HttpContext?.User?.FindFirst("TenantId")?.Value;
+        db.CurrentTenantId = int.TryParse(claim, out var tid) ? tid : 0;
     }
 }

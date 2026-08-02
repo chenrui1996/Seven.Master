@@ -17,6 +17,9 @@ namespace Seven.Infrastructure.Persistence;
 /// </summary>
 public static class DbSeeder
 {
+    /// <summary>默认租户 Id（种子数据与演示账号归属）</summary>
+    public const int DefaultTenantId = 1;
+
     /// <summary>执行种子数据初始化</summary>
     public static async Task SeedAsync(IServiceProvider services)
     {
@@ -48,6 +51,8 @@ public static class DbSeeder
         await SeedAlarmCodesAsync(db, alarmOptions, logger);
         await MigrateBoardToBusinessMetadataAsync(db, logger);
         await SeedDeviceDetailDemoAsync(db, logger);
+        await SeedExtraMenusAndJobsAsync(db, logger);
+        await SeedDefaultTenantAsync(db, logger);
 
         if (await db.Sys_Users.AnyAsync())
             return;
@@ -59,6 +64,7 @@ public static class DbSeeder
             RoleName = "超级管理员",
             ParentId = 0,
             Enable = 1,
+            TenantId = DefaultTenantId,
             CreateDate = DateTime.Now,
         };
         db.Sys_Roles.Add(adminRole);
@@ -72,6 +78,7 @@ public static class DbSeeder
             Role_Id = adminRole.Role_Id,
             RoleName = adminRole.RoleName,
             Enable = 1,
+            TenantId = DefaultTenantId,
             CreateDate = DateTime.Now,
         };
         db.Sys_Users.Add(adminUser);
@@ -86,6 +93,7 @@ public static class DbSeeder
             TableName = null,
             Auth = null,
             Enable = 1,
+            TenantId = DefaultTenantId,
             CreateDate = DateTime.Now,
         };
         db.Sys_Menus.Add(systemMenu);
@@ -103,6 +111,9 @@ public static class DbSeeder
             new { MenuName = "代码生成", OrderNo = 8, Url = "/coder", TableName = "Sys_TableInfo", Auth = "Search,Add,Update,Delete" },
             new { MenuName = "设备管理", OrderNo = 9, Url = "/Device", TableName = "Device", Auth = "Search,Add,Update,Delete,Import,Export,BatchCustom,RowCustom" },
             new { MenuName = "子设备", OrderNo = 10, Url = "/SubDevice", TableName = "SubDevice", Auth = "Search,Add,Update,Delete,Import,Export" },
+            new { MenuName = "工作流定义", OrderNo = 11, Url = "/Sys_WorkFlow", TableName = "Sys_WorkFlow", Auth = "Search,Add,Update,Delete" },
+            new { MenuName = "我的审批", OrderNo = 12, Url = "/Sys_WorkFlowTable", TableName = "Sys_WorkFlowTable", Auth = "Search,Audit" },
+            new { MenuName = "定时任务", OrderNo = 13, Url = "/Sys_QuartzOptions", TableName = "Sys_QuartzOptions", Auth = "Search,Add,Update,Delete" },
         };
 
         var menus = childMenuDefs
@@ -115,6 +126,7 @@ public static class DbSeeder
                 Auth = m.Auth,
                 OrderNo = m.OrderNo,
                 Enable = 1,
+                TenantId = DefaultTenantId,
                 CreateDate = DateTime.Now,
             })
             .ToList();
@@ -129,12 +141,31 @@ public static class DbSeeder
                     Role_Id = adminRole.Role_Id,
                     Menu_Id = menu.Menu_Id,
                     AuthValue = menu.Auth,
+                    TenantId = DefaultTenantId,
                 }
             );
         }
 
         await db.SaveChangesAsync();
         logger.LogInformation("Seven 种子数据初始化完成。默认账号 admin / 123456");
+    }
+
+    /// <summary>写入默认租户（幂等）</summary>
+    static async Task SeedDefaultTenantAsync(SevenDbContext db, ILogger logger)
+    {
+        if (await db.Sys_Tenants.AnyAsync())
+            return;
+
+        db.Sys_Tenants.Add(new Sys_Tenant
+        {
+            TenantId = DefaultTenantId,
+            Code = "default",
+            Name = "默认租户",
+            Enable = 1,
+            CreateDate = DateTime.Now,
+        });
+        await db.SaveChangesAsync();
+        logger.LogInformation("已写入默认租户 {Code} (TenantId={Id})", "default", DefaultTenantId);
     }
 
     /// <summary>从 appsettings Alarm:Codes 同步报警码到数据库</summary>
@@ -297,5 +328,71 @@ public static class DbSeeder
         }
         await db.SaveChangesAsync();
         logger.LogInformation("已写入 SubDevice 示例数据 {Count} 条", devices.Count * 2);
+    }
+
+    /// <summary>幂等补充工作流/定时任务菜单与示例 Job</summary>
+    static async Task SeedExtraMenusAndJobsAsync(SevenDbContext db, ILogger logger)
+    {
+        var parent = await db.Sys_Menus.FirstOrDefaultAsync(m => m.ParentId == 0 && m.MenuName == "系统管理")
+            ?? await db.Sys_Menus.FirstOrDefaultAsync(m => m.ParentId == 0);
+        if (parent == null) return;
+
+        var extras = new[]
+        {
+            new { MenuName = "工作流定义", Url = "/Sys_WorkFlow", TableName = "Sys_WorkFlow", Auth = "Search,Add,Update,Delete", OrderNo = 11 },
+            new { MenuName = "我的审批", Url = "/Sys_WorkFlowTable", TableName = "Sys_WorkFlowTable", Auth = "Search,Audit", OrderNo = 12 },
+            new { MenuName = "定时任务", Url = "/Sys_QuartzOptions", TableName = "Sys_QuartzOptions", Auth = "Search,Add,Update,Delete", OrderNo = 13 },
+        };
+
+        var adminRole = await db.Sys_Roles.OrderBy(r => r.Role_Id).FirstOrDefaultAsync();
+        var added = 0;
+        foreach (var m in extras)
+        {
+            if (await db.Sys_Menus.AnyAsync(x => x.Url == m.Url || x.TableName == m.TableName))
+                continue;
+            var menu = new Sys_Menu
+            {
+                ParentId = parent.Menu_Id,
+                MenuName = m.MenuName,
+                Url = m.Url,
+                TableName = m.TableName,
+                Auth = m.Auth,
+                OrderNo = m.OrderNo,
+                Enable = 1,
+                CreateDate = DateTime.Now,
+            };
+            db.Sys_Menus.Add(menu);
+            await db.SaveChangesAsync();
+            if (adminRole != null)
+            {
+                db.Sys_RoleAuths.Add(new Sys_RoleAuth
+                {
+                    Role_Id = adminRole.Role_Id,
+                    Menu_Id = menu.Menu_Id,
+                    AuthValue = m.Auth,
+                });
+                await db.SaveChangesAsync();
+            }
+            added++;
+        }
+
+        if (!await db.Sys_QuartzOptions.AnyAsync(x => x.TaskName == "cleanup-refresh"))
+        {
+            db.Sys_QuartzOptions.Add(new Domain.Entities.Quartz.Sys_QuartzOptions
+            {
+                TaskName = "cleanup-refresh",
+                GroupName = "DEFAULT",
+                CronExpression = "0 0/30 * * * ?",
+                ApiUrl = "cleanup-refresh",
+                Enable = 1,
+                CreateDate = DateTime.Now,
+                Creator = "system",
+            });
+            await db.SaveChangesAsync();
+            logger.LogInformation("已写入示例定时任务 cleanup-refresh");
+        }
+
+        if (added > 0)
+            logger.LogInformation("已补充菜单 {Count} 项（工作流/审批/定时任务）", added);
     }
 }

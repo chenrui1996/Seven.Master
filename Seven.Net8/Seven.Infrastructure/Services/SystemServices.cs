@@ -4,6 +4,7 @@ using Seven.Application.Models;
 using Seven.Domain.Common;
 using Seven.Domain.Entities.System;
 using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Security;
 
 namespace Seven.Infrastructure.Services;
 
@@ -13,19 +14,24 @@ public class SysUserService : ISysUserService
     private readonly SevenDbContext _db;
     private readonly IPasswordHasher _hasher;
     private readonly ICacheService _cache;
+    private readonly IDataScopeService _dataScope;
 
     /// <summary>构造函数</summary>
-    public SysUserService(SevenDbContext db, IPasswordHasher hasher, ICacheService cache)
+    public SysUserService(SevenDbContext db, IPasswordHasher hasher, ICacheService cache, IDataScopeService dataScope)
     {
         _db = db;
         _hasher = hasher;
         _cache = cache;
+        _dataScope = dataScope;
     }
 
     /// <inheritdoc />
     public async Task<PageGridData<Sys_User>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
     {
-        var query = _db.Sys_Users.AsNoTracking().OrderByDescending(u => u.User_Id);
+        var query = _db.Sys_Users.AsNoTracking().Where(u => !u.IsDeleted);
+        var allowed = await _dataScope.GetAllowedUserIdsAsync(cancellationToken);
+        query = DataScopeService.FilterUsersByAllowedIds(query, allowed);
+        query = query.OrderByDescending(u => u.User_Id);
         return await CrudHelper.PaginateAsync(query, options, cancellationToken);
     }
 
@@ -141,6 +147,7 @@ public class SysRoleService : ISysRoleService
         var existing = await _db.Sys_Roles.FindAsync([entity.Role_Id], cancellationToken);
         if (existing == null) return WebResponseContent.Error("角色不存在");
         existing.RoleName = entity.RoleName;
+        existing.DataScope = entity.DataScope;
         existing.ParentId = entity.ParentId;
         existing.Enable = entity.Enable;
         existing.OrderNo = entity.OrderNo;
@@ -739,74 +746,23 @@ public class SysDictionaryService : ISysDictionaryService
 public class SysLogService : ISysLogService
 {
     private readonly SevenDbContext _db;
+    private readonly IDataScopeService _dataScope;
 
     /// <summary>构造函数</summary>
-    public SysLogService(SevenDbContext db) => _db = db;
+    public SysLogService(SevenDbContext db, IDataScopeService dataScope)
+    {
+        _db = db;
+        _dataScope = dataScope;
+    }
 
     /// <inheritdoc />
     public async Task<PageGridData<Sys_Log>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
     {
-        var query = _db.Sys_Logs.AsNoTracking().OrderByDescending(l => l.CreateDate);
+        var query = _db.Sys_Logs.AsNoTracking();
+        var allowed = await _dataScope.GetAllowedUserIdsAsync(cancellationToken);
+        query = DataScopeService.FilterLogsByUserIds(query, allowed);
+        query = query.OrderByDescending(l => l.CreateDate);
         return await CrudHelper.PaginateAsync(query, options, cancellationToken);
     }
 }
 
-/// <summary>工作流服务</summary>
-public class WorkFlowService : IWorkFlowService
-{
-    private readonly SevenDbContext _db;
-    private readonly ICurrentUserService _currentUser;
-
-    /// <summary>构造函数</summary>
-    public WorkFlowService(SevenDbContext db, ICurrentUserService currentUser)
-    {
-        _db = db;
-        _currentUser = currentUser;
-    }
-
-    /// <inheritdoc />
-    public async Task<WebResponseContent> SubmitAsync(string tableName, string tableKey, CancellationToken cancellationToken = default)
-    {
-        var flow = await _db.Sys_WorkFlows.FirstOrDefaultAsync(f => f.WorkTable == tableName && f.Enable == 1, cancellationToken);
-        if (flow == null) return WebResponseContent.Error("未配置工作流");
-
-        var instance = new Domain.Entities.Flow.Sys_WorkFlowTable
-        {
-            WorkFlow_Id = flow.WorkFlow_Id,
-            WorkTable = tableName,
-            WorkTableKey = tableKey,
-            AuditStatus = 0,
-            CreateDate = DateTime.Now
-        };
-        _db.Sys_WorkFlowTables.Add(instance);
-        await _db.SaveChangesAsync(cancellationToken);
-        return WebResponseContent.Ok("提交审批成功", instance);
-    }
-
-    /// <inheritdoc />
-    public async Task<WebResponseContent> AuditAsync(int workFlowTableId, int auditStatus, string? remark, CancellationToken cancellationToken = default)
-    {
-        var instance = await _db.Sys_WorkFlowTables.FindAsync([workFlowTableId], cancellationToken);
-        if (instance == null) return WebResponseContent.Error("流程实例不存在");
-
-        instance.AuditStatus = auditStatus;
-        instance.ModifyDate = DateTime.Now;
-        _db.Sys_WorkFlowTableAuditLogs.Add(new Domain.Entities.Flow.Sys_WorkFlowTableAuditLog
-        {
-            WorkFlowTable_Id = workFlowTableId,
-            AuditStatus = auditStatus,
-            Remark = remark,
-            AuditUser = _currentUser.UserName,
-            CreateDate = DateTime.Now
-        });
-        await _db.SaveChangesAsync(cancellationToken);
-        return WebResponseContent.Ok("审批完成");
-    }
-
-    /// <inheritdoc />
-    public async Task<PageGridData<Domain.Entities.Flow.Sys_WorkFlowTable>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
-    {
-        var query = _db.Sys_WorkFlowTables.AsNoTracking().OrderByDescending(w => w.CreateDate);
-        return await CrudHelper.PaginateAsync(query, options, cancellationToken);
-    }
-}

@@ -8,6 +8,7 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Enums;
 using Seven.Infrastructure.Configuration;
+using Seven.Infrastructure.Messaging.Outbox;
 using Seven.Infrastructure.Persistence;
 using Seven.Infrastructure.Security;
 
@@ -20,22 +21,25 @@ public class AlarmService : IAlarmService
 {
     private readonly SevenDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IDataScopeService _dataScope;
     private readonly IAlarmPushService _push;
-    private readonly IMessagePublisher _messagePublisher;
+    private readonly IOutboxStore _outbox;
     private readonly AlarmOptions _options;
 
     /// <summary>构造函数</summary>
     public AlarmService(
         SevenDbContext db,
         ICurrentUserService currentUser,
+        IDataScopeService dataScope,
         IAlarmPushService push,
-        IMessagePublisher messagePublisher,
+        IOutboxStore outbox,
         IOptions<AlarmOptions> options)
     {
         _db = db;
         _currentUser = currentUser;
+        _dataScope = dataScope;
         _push = push;
-        _messagePublisher = messagePublisher;
+        _outbox = outbox;
         _options = options.Value;
     }
 
@@ -70,6 +74,7 @@ public class AlarmService : IAlarmService
         }
 
         query = query.OrderByDescending(a => a.CreateDate);
+        query = await _dataScope.ApplyCreateIdScopeAsync(query, cancellationToken);
         return await CrudHelper.PaginateAsync(query, options, cancellationToken);
     }
 
@@ -111,9 +116,7 @@ public class AlarmService : IAlarmService
         _db.Sys_Alarms.Add(alarm);
         await _db.SaveChangesAsync(cancellationToken);
 
-        await _push.PushNewAlarmAsync(ToDto(alarm));
-
-        await _messagePublisher.PublishAsync(new AlarmRaisedEvent
+        var raisedEvent = new AlarmRaisedEvent
         {
             AlarmId = alarm.Alarm_Id,
             Code = alarm.Code,
@@ -123,7 +126,14 @@ public class AlarmService : IAlarmService
             Source = alarm.Source,
             DeviceName = alarm.DeviceName,
             OccurredAt = alarm.CreateDate ?? DateTime.Now
-        }, cancellationToken);
+        };
+        await _outbox.EnqueueAsync(
+            nameof(AlarmRaisedEvent),
+            JsonSerializer.Serialize(raisedEvent),
+            cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        await _push.PushNewAlarmAsync(ToDto(alarm));
 
         return WebResponseContent.Ok("告警已抛出", data: ToDto(alarm));
     }

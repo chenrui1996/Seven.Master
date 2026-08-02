@@ -13,6 +13,9 @@
         <el-table-column prop="role_Id" :label="t('sysRole.colId')" width="80" />
         <el-table-column prop="roleName" :label="t('sysRole.colName')" />
         <el-table-column prop="orderNo" :label="t('sysRole.colOrder')" width="80" />
+        <el-table-column prop="dataScope" :label="t('sysRole.dataScope')" width="120">
+          <template #default="{ row }">{{ dataScopeLabel(row.dataScope) }}</template>
+        </el-table-column>
         <el-table-column :label="t('sysRole.colStatus')" width="80">
           <template #default="{ row }">
             {{ row.enable === 1 ? t('common.enabled') : t('common.disabled') }}
@@ -52,6 +55,14 @@
         </el-form-item>
         <el-form-item :label="t('sysRole.colOrder')">
           <el-input-number v-model="form.orderNo" :min="0" />
+        </el-form-item>
+        <el-form-item :label="t('sysRole.dataScope')">
+          <el-select v-model="form.dataScope" style="width: 100%">
+            <el-option :value="0" :label="t('sysRole.scopeAll')" />
+            <el-option :value="1" :label="t('sysRole.scopeDept')" />
+            <el-option :value="2" :label="t('sysRole.scopeDeptTree')" />
+            <el-option :value="3" :label="t('sysRole.scopeSelf')" />
+          </el-select>
         </el-form-item>
         <el-form-item :label="t('sysRole.colStatus')">
           <el-switch v-model="form.enable" :active-value="1" :inactive-value="0" />
@@ -148,6 +159,7 @@ interface RoleRow {
   orderNo?: number
   enable?: number
   parentId?: number
+  dataScope?: number
 }
 
 const { t } = useI18n()
@@ -166,9 +178,18 @@ const permissionFlat = ref<PermissionNode[]>([])
 const permRoleId = ref(0)
 const permRoleName = ref('')
 
-const form = reactive<RoleRow>({ role_Id: 0, roleName: '', orderNo: 0, enable: 1, parentId: 0 })
+const form = reactive<RoleRow>({ role_Id: 0, roleName: '', orderNo: 0, enable: 1, parentId: 0, dataScope: 0 })
 
 const permDialogTitle = computed(() => t('sysRole.permissionTitle'))
+
+function dataScopeLabel(scope?: number) {
+  switch (scope) {
+    case 1: return t('sysRole.scopeDept')
+    case 2: return t('sysRole.scopeDeptTree')
+    case 3: return t('sysRole.scopeSelf')
+    default: return t('sysRole.scopeAll')
+  }
+}
 
 function menuLabelWidth(lv?: number) {
   const level = lv ?? 1
@@ -199,7 +220,7 @@ function openForm(row?: RoleRow) {
   if (row) {
     Object.assign(form, { ...row })
   } else {
-    Object.assign(form, { role_Id: 0, roleName: '', orderNo: 0, enable: 1, parentId: 0 })
+    Object.assign(form, { role_Id: 0, roleName: '', orderNo: 0, enable: 1, parentId: 0, dataScope: 0 })
   }
   dialogVisible.value = true
 }

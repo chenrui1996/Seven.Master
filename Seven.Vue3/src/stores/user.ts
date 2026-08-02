@@ -53,6 +53,9 @@ export const useUserStore = defineStore('user', () => {
     permissionsSynced.value = false
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
+    import('../router').then(({ clearDynamicRoutes }) => {
+      clearDynamicRoutes()
+    })
   }
 
   /** 忽略大小写匹配权限码，如 Device.Add */

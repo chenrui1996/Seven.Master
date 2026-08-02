@@ -5,6 +5,8 @@ export type ColumnDef = {
   prop: string
   kind: 'string' | 'number' | 'enum' | 'bool' | 'date' | 'key'
   sortable?: boolean
+  dicNo?: string
+  dataSource?: string
 }
 
 /** 列显示偏好（顺序 + 是否显示） */

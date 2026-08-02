@@ -34,6 +34,7 @@
     "logoSub": "アジャイル開発フレームワーク",
     "systemRunning": "システム稼働中",
     "systemOnline": "サービスオンライン",
+    "onlineUsers": "オンライン {count} 人",
     "homeTab": "ホーム"
   },
   "login": {
@@ -86,7 +87,14 @@
     "deviceOnline": "オンライン",
     "deviceFault": "故障",
     "deviceMaintenance": "メンテナンス",
-    "viewAll": "すべて表示"
+    "viewAll": "すべて表示",
+    "notifyTitle": "システム通知",
+    "notifyTitleLabel": "タイトル",
+    "notifyContentLabel": "内容",
+    "notifySend": "通知を送信",
+    "notifySent": "通知を送信しました",
+    "notifyRequired": "タイトルと内容を入力してください",
+    "devDocs": "開発ドキュメント"
   },
   "sysUser": {
     "title": "ユーザー管理",

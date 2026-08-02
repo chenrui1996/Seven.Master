@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
 import router from '../router'
 
@@ -30,8 +31,18 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 let isRefreshing = false
 let pendingRequests: Array<(token: string) => void> = []
 
+const responseErrorWhitelist = ['/api/Auth/login', '/api/Auth/refresh', '/api/Captcha/create']
+
 http.interceptors.response.use(
-  (response) => response.data as ApiResponse,
+  (response) => {
+    const data = response.data as ApiResponse
+    const url = response.config.url ?? ''
+    const skipToast = responseErrorWhitelist.some((p) => url.includes(p))
+    if (!skipToast && data?.status === false && data.message) {
+      ElMessage.error(data.message)
+    }
+    return data
+  },
   async (error) => {
     const originalRequest = error.config
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -76,8 +87,24 @@ http.interceptors.response.use(
 
 export default http
 
-export const login = (userName: string, password: string) =>
-  http.post('/api/Auth/login', { userName, password })
+export const login = (
+  userName: string,
+  password: string,
+  verificationCode?: string,
+  uuid?: string
+) =>
+  http.post('/api/Auth/login', { userName, password, verificationCode, uuid })
+
+export interface CaptchaPayload {
+  key: string
+  code: string
+  expiresIn: number
+}
+
+export const createCaptcha = () =>
+  http.get<ApiResponse<CaptchaPayload>>('/api/Captcha/create')
+
+export const getFeatures = () => http.get('/api/config/features')
 
 export const getMenu = () => http.get('/api/Sys_Menu/getMenu')
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Seven.Application.Interfaces;
 using Seven.Domain.Common;
 using Seven.Domain.Entities.Business;
+using Seven.Infrastructure.Security;
 
 namespace Seven.WebApi.Controllers.Generated;
 
@@ -16,18 +17,22 @@ public class SubDeviceController : ControllerBase
     public SubDeviceController(ISysSubDeviceService service) => _service = service;
 
     [HttpPost("getPageData")]
+    [Permission("SubDevice.Search")]
     public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken cancellationToken) =>
         WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, cancellationToken));
 
     [HttpPost("add")]
+    [Permission("SubDevice.Add")]
     public Task<WebResponseContent> Add([FromBody] SubDevice entity, CancellationToken cancellationToken) =>
         _service.AddAsync(entity, cancellationToken);
 
     [HttpPost("update")]
+    [Permission("SubDevice.Update")]
     public Task<WebResponseContent> Update([FromBody] SubDevice entity, CancellationToken cancellationToken) =>
         _service.UpdateAsync(entity, cancellationToken);
 
     [HttpPost("del")]
+    [Permission("SubDevice.Delete")]
     public Task<WebResponseContent> Delete([FromBody] int[] ids, CancellationToken cancellationToken) =>
         _service.DeleteAsync(ids, cancellationToken);
 

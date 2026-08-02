@@ -17,10 +17,17 @@ services:
       MessageQueue__RabbitMq__Password: guest
       Jwt__Secret: "SevenMasterJwtSecretKey2026MustBe32Chars!"
       Cors__Origins: "http://localhost:5173"
+      MinIO__Enabled: "true"
+      MinIO__Endpoint: "minio:9000"
+      MinIO__AccessKey: "minioadmin"
+      MinIO__SecretKey: "minioadmin"
+      MinIO__Bucket: "seven"
+      Database__MigrateOnStartup: "true"
     depends_on:
       - mysql
       - redis
       - rabbitmq
+      - minio
 
   mysql:
     image: mysql:8.0

@@ -82,6 +82,11 @@ public class Sys_Role : BaseEntity
     /// <summary>排序号</summary>
     public int? OrderNo { get; set; }
 
+    /// <summary>
+    /// 数据权限范围：0=全部 1=本部门 2=本部门及下级 3=仅本人
+    /// </summary>
+    public int DataScope { get; set; }
+
     /// <summary>角色权限关联</summary>
     public ICollection<Sys_RoleAuth> RoleAuths { get; set; } = [];
 }
@@ -276,4 +281,25 @@ public class Sys_Log : BaseEntity
 
     /// <summary>耗时毫秒</summary>
     public int? ServiceTime { get; set; }
+}
+
+/// <summary>
+/// 租户主数据（不继承 BaseEntity，避免租户全局过滤器作用于租户表本身）
+/// </summary>
+public class Sys_Tenant
+{
+    /// <summary>租户主键</summary>
+    public int TenantId { get; set; }
+
+    /// <summary>租户编码</summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>租户名称</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>是否启用</summary>
+    public byte Enable { get; set; } = 1;
+
+    /// <summary>创建时间</summary>
+    public DateTime? CreateDate { get; set; }
 }

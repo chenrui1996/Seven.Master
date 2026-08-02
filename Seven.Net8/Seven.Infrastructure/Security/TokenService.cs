@@ -25,12 +25,12 @@ public class TokenService : ITokenService
     }
 
     /// <inheritdoc />
-    public (string AccessToken, string RefreshToken) GenerateTokens(int userId, string userName, int roleId)
+    public (string AccessToken, string RefreshToken) GenerateTokens(int userId, string userName, int roleId, int tenantId = 0)
     {
-        var accessToken = CreateAccessToken(userId, userName, roleId);
+        var accessToken = CreateAccessToken(userId, userName, roleId, tenantId);
         var refreshToken = Guid.NewGuid().ToString("N");
         var refreshKey = GetRefreshKey(refreshToken);
-        _cache.SetAsync(refreshKey, new RefreshTokenPayload(userId, userName, roleId),
+        _cache.SetAsync(refreshKey, new RefreshTokenPayload(userId, userName, roleId, tenantId),
             TimeSpan.FromDays(_options.RefreshTokenDays)).GetAwaiter().GetResult();
         return (accessToken, refreshToken);
     }
@@ -41,20 +41,21 @@ public class TokenService : ITokenService
         var payload = await _cache.GetAsync<RefreshTokenPayload>(GetRefreshKey(refreshToken), cancellationToken);
         if (payload == null) return null;
         await _cache.RemoveAsync(GetRefreshKey(refreshToken), cancellationToken);
-        return GenerateTokens(payload.UserId, payload.UserName, payload.RoleId);
+        return GenerateTokens(payload.UserId, payload.UserName, payload.RoleId, payload.TenantId);
     }
 
     /// <inheritdoc />
     public Task RevokeRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default) =>
         _cache.RemoveAsync(GetRefreshKey(refreshToken), cancellationToken);
 
-    private string CreateAccessToken(int userId, string userName, int roleId)
+    private string CreateAccessToken(int userId, string userName, int roleId, int tenantId)
     {
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Name, userName),
-            new Claim("RoleId", roleId.ToString())
+            new Claim("RoleId", roleId.ToString()),
+            new Claim("TenantId", tenantId.ToString())
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -70,7 +71,7 @@ public class TokenService : ITokenService
     private static string GetRefreshKey(string refreshToken) => $"refresh:{refreshToken}";
 
     /// <summary>Refresh Token 缓存载荷</summary>
-    private sealed record RefreshTokenPayload(int UserId, string UserName, int RoleId);
+    private sealed record RefreshTokenPayload(int UserId, string UserName, int RoleId, int TenantId);
 }
 
 /// <summary>

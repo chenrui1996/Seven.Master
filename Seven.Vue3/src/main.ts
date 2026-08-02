@@ -12,6 +12,7 @@ import './styles/theme.css'
 import i18n from './locales'
 import { useThemeStore } from './stores/theme'
 import { useLocaleStore } from './stores/locale'
+import { useFeatureStore } from './stores/features'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -21,6 +22,10 @@ app.use(pinia)
 app.use(i18n)
 useThemeStore(pinia).init()
 useLocaleStore(pinia).init()
+
+const featureStore = useFeatureStore(pinia)
+await featureStore.load()
+
 app.use(router)
 app.use(ElementPlus)
 setupDirectives(app)

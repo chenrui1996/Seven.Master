@@ -64,9 +64,9 @@
         <div class="header-right">
           <div class="header-meta">
             <span class="meta-item"><el-icon><Clock /></el-icon>{{ currentTime }}</span>
-            <span class="meta-item"><el-icon><Connection /></el-icon>{{ t('layout.systemOnline') }}</span>
+            <span class="meta-item"><el-icon><Connection /></el-icon>{{ onlineLabel }}</span>
           </div>
-          <AlarmBell />
+          <AlarmBell v-if="featureStore.alarmEnabled" />
           <LocaleSwitch />
           <ThemeToggle />
           <el-dropdown trigger="click" @command="handleCommand">
@@ -105,9 +105,9 @@
 
       <el-main class="main-content">
         <router-view v-slot="{ Component }">
-          <transition name="fade-slide" mode="out-in">
-            <component :is="Component" v-if="Component" :key="route.path" />
-          </transition>
+          <keep-alive :include="tabsStore.keepAliveIncludes">
+            <component :is="Component" v-if="Component" :key="route.fullPath" />
+          </keep-alive>
         </router-view>
       </el-main>
     </el-container>
@@ -134,6 +134,8 @@ import ThemeToggle from '../components/ThemeToggle.vue'
 import LocaleSwitch from '../components/LocaleSwitch.vue'
 import AlarmBell from '../components/AlarmBell.vue'
 import { useAlarmHub } from '../composables/useAlarmHub'
+import { useMessageHub } from '../composables/useMessageHub'
+import { useFeatureStore } from '../stores/features'
 
 const { t, locale } = useI18n()
 const { menuLabel } = useMenuLabel()
@@ -142,8 +144,17 @@ const router = useRouter()
 const userStore = useUserStore()
 const menuStore = useMenuStore()
 const tabsStore = useTabsStore()
+const featureStore = useFeatureStore()
 
 useAlarmHub()
+const { onlineCount, hubConnected: messageHubConnected } = useMessageHub()
+
+const onlineLabel = computed(() => {
+  if (featureStore.signalREnabled && messageHubConnected.value && onlineCount.value > 0) {
+    return t('layout.onlineUsers', { count: onlineCount.value })
+  }
+  return t('layout.systemOnline')
+})
 
 const sidebarWidth = '240px'
 const currentTime = ref('')
@@ -173,7 +184,10 @@ function onHomeClick() {
 }
 
 function onMenuClick(menu: MenuItem) {
-  if (menu.url) tabsStore.addTab(menu.menuName, menu.url)
+  if (menu.url) {
+    const componentName = menu.tableName || (router.resolve(menu.url).name as string | undefined)
+    tabsStore.addTab(menu.menuName, menu.url, componentName)
+  }
 }
 
 function switchTab(path: string) {
@@ -192,6 +206,7 @@ function closeTab(path: string) {
 function handleLogout() {
   userStore.logout()
   menuStore.routesLoaded = false
+  menuStore.setMenus([])
   router.push('/login')
 }
 

@@ -1,42 +1,55 @@
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Seven.WebApi.Hubs;
 
 /// <summary>
-/// 首页消息 SignalR Hub，用于实时通知
+/// 首页消息 SignalR Hub，用于实时通知与在线统计
 /// </summary>
+[Authorize]
 public class MessageHub : Hub
 {
-    /// <summary>客户端连接</summary>
+    private static int _online;
+
+    public static int OnlineCount => Volatile.Read(ref _online);
+
     public override async Task OnConnectedAsync()
     {
+        Interlocked.Increment(ref _online);
         await Groups.AddToGroupAsync(Context.ConnectionId, "AllUsers");
+        await Clients.Group("AllUsers").SendAsync("OnlineCount", OnlineCount);
         await base.OnConnectedAsync();
     }
 
-    /// <summary>发送广播消息</summary>
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        Interlocked.Decrement(ref _online);
+        await Clients.Group("AllUsers").SendAsync("OnlineCount", OnlineCount);
+        await base.OnDisconnectedAsync(exception);
+    }
+
     public async Task SendMessage(string message) =>
         await Clients.Group("AllUsers").SendAsync("ReceiveMessage", message);
+
+    public Task<int> GetOnlineCount() => Task.FromResult(OnlineCount);
 }
 
-/// <summary>
-/// SignalR 消息推送服务
-/// </summary>
 public interface IMessagePushService
 {
-    /// <summary>推送消息给所有在线用户</summary>
     Task PushAsync(string message);
+    Task PushSystemNotifyAsync(string title, string content);
 }
 
-/// <summary>SignalR 消息推送实现</summary>
 public class MessagePushService : IMessagePushService
 {
     private readonly IHubContext<MessageHub> _hub;
 
-    /// <summary>构造函数</summary>
     public MessagePushService(IHubContext<MessageHub> hub) => _hub = hub;
 
-    /// <inheritdoc />
     public Task PushAsync(string message) =>
         _hub.Clients.Group("AllUsers").SendAsync("ReceiveMessage", message);
+
+    public Task PushSystemNotifyAsync(string title, string content) =>
+        _hub.Clients.Group("AllUsers").SendAsync("SystemNotify", new { title, content, at = DateTime.Now });
 }

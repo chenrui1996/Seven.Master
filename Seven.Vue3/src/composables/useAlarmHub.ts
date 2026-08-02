@@ -3,14 +3,17 @@ import { ElNotification } from 'element-plus'
 import { onUnmounted, watch } from 'vue'
 import { useUserStore } from '../stores/user'
 import { useAlarmStore, type AlarmItem } from '../stores/alarm'
+import { useFeatureStore } from '../stores/features'
 
 /** 建立告警 SignalR 连接（登录后调用） */
 export function useAlarmHub() {
   const userStore = useUserStore()
   const alarmStore = useAlarmStore()
+  const featureStore = useFeatureStore()
   let connection: HubConnection | null = null
 
   async function start() {
+    if (!featureStore.alarmEnabled) return
     if (!userStore.token || connection) return
 
     const baseUrl = import.meta.env.VITE_API_BASE_URL as string

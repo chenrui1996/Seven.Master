@@ -71,6 +71,9 @@ public class MinioOptions
     /// <summary>配置节名称</summary>
     public const string SectionName = "MinIO";
 
+    /// <summary>是否启用 MinIO（false 时使用本地存储）</summary>
+    public bool Enabled { get; set; }
+
     /// <summary>服务端点</summary>
     public string Endpoint { get; set; } = "127.0.0.1:9000";
 
@@ -87,6 +90,38 @@ public class MinioOptions
     public bool UseSsl { get; set; }
 }
 
+/// <summary>邮件 SMTP</summary>
+public class MailOptions
+{
+    public const string SectionName = "Mail";
+    public bool Enabled { get; set; }
+    public string Host { get; set; } = "localhost";
+    public int Port { get; set; } = 25;
+    public bool UseSsl { get; set; }
+    public string UserName { get; set; } = "";
+    public string Password { get; set; } = "";
+    public string From { get; set; } = "noreply@seven.local";
+    public string FromName { get; set; } = "Seven Master";
+}
+
+/// <summary>多租户</summary>
+public class TenantOptions
+{
+    public const string SectionName = "Tenant";
+    /// <summary>是否启用共享库 TenantId 过滤</summary>
+    public bool Enabled { get; set; }
+}
+
+/// <summary>安全相关</summary>
+public class SecurityOptions
+{
+    public const string SectionName = "Security";
+    public bool CaptchaEnabled { get; set; } = true;
+    public int LoginPermitLimit { get; set; } = 20;
+    public int IdempotencySeconds { get; set; } = 5;
+    public string? IpWhitelist { get; set; }
+}
+
 /// <summary>
 /// CORS 配置
 /// </summary>
@@ -97,4 +132,40 @@ public class CorsOptions
 
     /// <summary>允许的前端地址，逗号分隔</summary>
     public string Origins { get; set; } = "http://localhost:5173";
+}
+
+/// <summary>
+/// 功能总开关。关闭后后端不注册对应宿主/中间件，前端隐藏菜单与入口。
+/// 与细节节（MinIO/Mail/Tenant/Security/MessageQueue）为 AND 关系。
+/// </summary>
+public class FeatureOptions
+{
+    public const string SectionName = "Features";
+
+    public bool WorkFlow { get; set; }
+    public bool Quartz { get; set; }
+    public bool SignalR { get; set; } = true;
+    public bool Alarm { get; set; } = true;
+    public bool MessageQueue { get; set; }
+    public bool Outbox { get; set; }
+    public bool Mail { get; set; }
+    public bool MinIO { get; set; }
+    public bool Tenant { get; set; }
+    public bool Captcha { get; set; }
+    public bool RateLimit { get; set; } = true;
+    public bool Idempotency { get; set; } = true;
+    public bool DataScope { get; set; } = true;
+    public bool AuditInterceptor { get; set; } = true;
+    public bool Builder { get; set; } = true;
+
+    /// <summary>按属性名读取开关（忽略大小写）</summary>
+    public bool IsEnabled(string featureName)
+    {
+        if (string.IsNullOrWhiteSpace(featureName)) return true;
+        var prop = typeof(FeatureOptions).GetProperty(
+            featureName,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+        if (prop?.PropertyType != typeof(bool)) return true;
+        return (bool)(prop.GetValue(this) ?? true);
+    }
 }

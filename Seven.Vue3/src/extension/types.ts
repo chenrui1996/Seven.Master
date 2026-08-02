@@ -59,6 +59,9 @@ export interface SearchFieldConfig {
   /** 默认：string→like，其它→equal */
   operator?: 'equal' | 'like'
   options?: { value: number | string; label: string }[]
+  /** 字典编号，与 dataSource 二选一 */
+  dicNo?: string
+  dataSource?: string
 }
 
 /** 表单字段（弹窗新增/编辑；含子表嵌套 CRUD） */
@@ -66,6 +69,8 @@ export interface FormFieldDef {
   prop: string
   kind?: 'string' | 'number' | 'enum' | 'date' | 'bool'
   options?: { value: number | string; label: string }[]
+  dicNo?: string
+  dataSource?: string
   /** number 时是否按小数展示（precision） */
   isDecimal?: boolean
   defaultValue?: unknown
@@ -144,6 +149,11 @@ export interface CrudHooks {
     rows: Record<string, unknown>[]
   }) => CrudHookResult
   afterDelete?: (ctx: { ids: number[] }) => void | Promise<void>
+  /** 提交审批：在扩展里实现，调用 POST /api/Sys_WorkFlow/submit */
+  submitAudit?: (ctx: {
+    row: Record<string, unknown>
+    tableName: string
+  }) => void | Promise<void>
 }
 
 /** 页面扩展（重新生成 Vue 不会覆盖扩展文件） */

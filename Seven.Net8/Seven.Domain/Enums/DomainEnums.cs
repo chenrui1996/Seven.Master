@@ -40,6 +40,39 @@ public enum MessageQueueProvider
 }
 
 /// <summary>
+/// 工作流步骤审批人类型
+/// </summary>
+public enum WorkFlowStepType
+{
+    /// <summary>按角色</summary>
+    Role = 1,
+
+    /// <summary>按用户</summary>
+    User = 2,
+
+    /// <summary>按部门（该部门下用户）</summary>
+    Department = 3
+}
+
+/// <summary>
+/// 数据权限范围
+/// </summary>
+public enum DataScope
+{
+    /// <summary>全部</summary>
+    All = 0,
+
+    /// <summary>本部门</summary>
+    Department = 1,
+
+    /// <summary>本部门及下级</summary>
+    DepartmentAndChildren = 2,
+
+    /// <summary>仅本人</summary>
+    Self = 3
+}
+
+/// <summary>
 /// 审批状态
 /// </summary>
 public enum AuditStatus

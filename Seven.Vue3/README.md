@@ -1,6 +1,6 @@
 # Seven.Vue3
 
-Seven.Master 前端：Vue 3 + Vite + TypeScript + Pinia + Element Plus。
+Seven.Master 前端：Vue 3 + Vite + TypeScript + Pinia + Element Plus + vue-i18n。
 
 ## 开发
 
@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-默认 API 地址见 `.env.development`（`VITE_API_BASE_URL`）。
+API 基址见 `.env.development`（`VITE_API_BASE_URL`）。启动时会请求 `GET /api/config/features` 裁剪菜单与入口。
 
 ## 构建
 
@@ -18,28 +18,48 @@ npm run build
 npm run preview
 ```
 
-## 功能特性
+Docker 镜像：`Dockerfile` + `docker/nginx-default.conf`（见 `deploy/k8s`）。
 
-- 动态路由与 RBAC 菜单（`/api/Sys_Menu/getMenu`）
-- JWT + Refresh Token 自动续期
-- 浅色 / 深色 / 跟随系统主题（`ThemeToggle`）
-- **多语言切换**（vue-i18n，`LocaleSwitch`）
-- **告警模块**（SignalR 实时推送，`AlarmBell`）
-- Master 敏捷开发框架 UI（`src/styles/theme.css`）
+## `src` 目录
 
-## 国际化
+| 目录 | 说明 |
+|------|------|
+| `api/` | HTTP 客户端、登录/菜单/字典/上传 |
+| `components/` | CrudPanel、AlarmBell、主题/语言切换 |
+| `composables/` | SignalR Hub、表格列、菜单标签 |
+| `directives/` | `v-permission` |
+| `extension/` | 生成页业务扩展（不被代码生成覆盖） |
+| `layout/` | 主布局、标签页、KeepAlive |
+| `locales/` | 多语言 JSON |
+| `router/` | 动态路由与守卫 |
+| `stores/` | user / menu / tabs / dict / **features** / theme / locale / alarm |
+| `views/system/` | 系统管理页 |
+| `views/Business/` | 业务生成页 |
+
+## 功能开关
+
+与后端 `Features` 同步：关闭工作流/Quartz/告警/Builder 时对应菜单不出现；验证码、Hub、Home 广播区按需显示。  
+详见 [doc/14-功能开关.md](../doc/14-功能开关.md)。
+
+## 能力一览
+
+- 动态路由 + RBAC + 按钮权限
+- JWT + Refresh 自动续期
+- 浅色 / 深色 / 跟随系统
+- 多语言（zh-CN / en-US / ja-JP）
+- 告警铃铛与系统通知（SignalR，可关）
+- 生成页扩展按钮与 `submitAudit` 钩子
+
+## 国际化脚本
 
 | 命令 | 说明 |
 |------|------|
-| `npm run i18n:missing` | 列出 en-US 相对 zh-CN 缺失的键 |
-| `npm run i18n:translate` | 自动翻译并写入 en-US |
-| `npm run i18n:translate:ja` | 自动翻译并写入 ja-JP |
-
-配置翻译、新增语言、自动翻译 API 详见：[doc/08-国际化指南.md](../doc/08-国际化指南.md)
-
-告警模块详见：[doc/09-告警模块.md](../doc/09-告警模块.md)
+| `npm run i18n:missing` | 列出缺失键 |
+| `npm run i18n:translate` | 写入 en-US |
+| `npm run i18n:translate:ja` | 写入 ja-JP |
 
 ## 文档
 
-- [开发文档索引](../doc/README.md)
+- [文档索引](../doc/README.md)
 - [前端开发指南](../doc/03-前端开发指南.md)
+- [国际化指南](../doc/08-国际化指南.md)

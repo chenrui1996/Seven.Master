@@ -4,6 +4,7 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Business;
 using Seven.Infrastructure.Excel;
 using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Security;
 
 namespace Seven.Infrastructure.Services;
 
@@ -11,12 +12,21 @@ namespace Seven.Infrastructure.Services;
 public class SysSubDeviceService : ISysSubDeviceService
 {
     private readonly SevenDbContext _db;
+    private readonly IDataScopeService _dataScope;
+    private readonly ICurrentUserService _currentUser;
 
-    public SysSubDeviceService(SevenDbContext db) => _db = db;
+    public SysSubDeviceService(SevenDbContext db, IDataScopeService dataScope, ICurrentUserService currentUser)
+    {
+        _db = db;
+        _dataScope = dataScope;
+        _currentUser = currentUser;
+    }
 
     public async Task<PageGridData<SubDevice>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
     {
         var query = _db.Set<SubDevice>().AsNoTracking().Where(x => !x.IsDeleted);
+        var allowed = await _dataScope.GetAllowedUserIdsAsync(cancellationToken);
+        query = DataScopeService.FilterByCreateIds(query, allowed);
         return await CrudHelper.PaginateAsync(query, options, cancellationToken);
     }
 

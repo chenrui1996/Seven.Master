@@ -114,3 +114,17 @@ public class SysLogConfiguration : IEntityTypeConfiguration<Sys_Log>
         builder.HasKey(x => x.Id);
     }
 }
+
+/// <summary>租户配置</summary>
+public class SysTenantConfiguration : IEntityTypeConfiguration<Sys_Tenant>
+{
+    /// <inheritdoc />
+    public void Configure(EntityTypeBuilder<Sys_Tenant> builder)
+    {
+        builder.ToTable("Sys_Tenant");
+        builder.HasKey(x => x.TenantId);
+        builder.Property(x => x.Code).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+        builder.HasIndex(x => x.Code).IsUnique();
+    }
+}

@@ -39,7 +39,7 @@ public interface IPasswordHasher
 public interface ITokenService
 {
     /// <summary>生成 Access + Refresh Token</summary>
-    (string AccessToken, string RefreshToken) GenerateTokens(int userId, string userName, int roleId);
+    (string AccessToken, string RefreshToken) GenerateTokens(int userId, string userName, int roleId, int tenantId = 0);
 
     /// <summary>刷新 Access Token</summary>
     Task<(string AccessToken, string RefreshToken)?> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);

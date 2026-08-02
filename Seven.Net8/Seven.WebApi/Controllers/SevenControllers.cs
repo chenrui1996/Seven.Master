@@ -3,6 +3,8 @@ using Seven.Application.Interfaces;
 using Seven.Application.Models;
 using Seven.Domain.Common;
 using Seven.Domain.Entities.System;
+using Seven.Infrastructure.Security;
+using Seven.WebApi.Hubs;
 
 namespace Seven.WebApi.Controllers;
 
@@ -11,6 +13,7 @@ namespace Seven.WebApi.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
+[ApiExplorerSettings(GroupName = "system")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -20,6 +23,8 @@ public class AuthController : ControllerBase
 
     /// <summary>用户登录</summary>
     [HttpPost("login")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("login")]
     public Task<WebResponseContent> Login(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken
@@ -82,6 +87,7 @@ public class RefreshRequest
 [Route("api/Sys_User")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "system")]
 public class Sys_UserController : ControllerBase
 {
     private readonly ISysUserService _service;
@@ -96,6 +102,7 @@ public class Sys_UserController : ControllerBase
 
     /// <summary>分页查询用户</summary>
     [HttpPost("getPageData")]
+    [Permission("Sys_User.Search")]
     public async Task<WebResponseContent> GetPageData(
         [FromBody] PageDataOptions options,
         CancellationToken cancellationToken
@@ -103,11 +110,13 @@ public class Sys_UserController : ControllerBase
 
     /// <summary>获取用户详情</summary>
     [HttpGet("getDetail/{id}")]
+    [Permission("Sys_User.Search")]
     public Task<WebResponseContent> GetDetail(int id, CancellationToken cancellationToken) =>
         _service.GetByIdAsync(id, cancellationToken);
 
     /// <summary>新增用户</summary>
     [HttpPost("add")]
+    [Permission("Sys_User.Add")]
     public Task<WebResponseContent> Add(
         [FromBody] Sys_User entity,
         CancellationToken cancellationToken
@@ -115,6 +124,7 @@ public class Sys_UserController : ControllerBase
 
     /// <summary>更新用户</summary>
     [HttpPost("update")]
+    [Permission("Sys_User.Update")]
     public Task<WebResponseContent> Update(
         [FromBody] Sys_User entity,
         CancellationToken cancellationToken
@@ -122,6 +132,7 @@ public class Sys_UserController : ControllerBase
 
     /// <summary>删除用户</summary>
     [HttpPost("del")]
+    [Permission("Sys_User.Delete")]
     public Task<WebResponseContent> Delete(
         [FromBody] int[] ids,
         CancellationToken cancellationToken
@@ -129,6 +140,7 @@ public class Sys_UserController : ControllerBase
 
     /// <summary>修改密码</summary>
     [HttpPost("modifyPwd")]
+    [Permission("Sys_User.ModifyPwd")]
     public Task<WebResponseContent> ModifyPwd(
         [FromBody] ModifyPwdRequest request,
         CancellationToken cancellationToken
@@ -158,6 +170,7 @@ public class ModifyPwdRequest
 [Route("api/Sys_Role")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "system")]
 public class Sys_RoleController : ControllerBase
 {
     private readonly ISysRoleService _service;
@@ -167,6 +180,7 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>分页查询</summary>
     [HttpPost("getPageData")]
+    [Permission("Sys_Role.Search")]
     public async Task<WebResponseContent> GetPageData(
         [FromBody] PageDataOptions options,
         CancellationToken cancellationToken
@@ -174,11 +188,13 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>获取角色详情（含权限）</summary>
     [HttpGet("getDetail/{id}")]
+    [Permission("Sys_Role.Search")]
     public Task<WebResponseContent> GetDetail(int id, CancellationToken cancellationToken) =>
         _service.GetByIdAsync(id, cancellationToken);
 
     /// <summary>新增</summary>
     [HttpPost("add")]
+    [Permission("Sys_Role.Add")]
     public Task<WebResponseContent> Add(
         [FromBody] Sys_Role entity,
         CancellationToken cancellationToken
@@ -186,6 +202,7 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>更新</summary>
     [HttpPost("update")]
+    [Permission("Sys_Role.Update")]
     public Task<WebResponseContent> Update(
         [FromBody] Sys_Role entity,
         CancellationToken cancellationToken
@@ -193,6 +210,7 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>删除</summary>
     [HttpPost("del")]
+    [Permission("Sys_Role.Delete")]
     public Task<WebResponseContent> Delete(
         [FromBody] int[] ids,
         CancellationToken cancellationToken
@@ -200,6 +218,7 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>保存权限</summary>
     [HttpPost("savePermission")]
+    [Permission("Sys_Role.SavePermission")]
     public Task<WebResponseContent> SavePermission(
         [FromBody] SaveRolePermissionRequest request,
         CancellationToken cancellationToken
@@ -207,11 +226,13 @@ public class Sys_RoleController : ControllerBase
 
     /// <summary>获取当前用户可分配的菜单权限树</summary>
     [HttpPost("getCurrentTreePermission")]
+    [Permission("Sys_Role.Search")]
     public Task<WebResponseContent> GetCurrentTreePermission(CancellationToken cancellationToken) =>
         _service.GetCurrentTreePermissionAsync(cancellationToken);
 
     /// <summary>获取指定角色已分配权限</summary>
     [HttpPost("getUserTreePermission")]
+    [Permission("Sys_Role.Search")]
     public Task<WebResponseContent> GetUserTreePermission(
         [FromBody] RolePermissionQueryRequest request,
         CancellationToken cancellationToken
@@ -242,6 +263,7 @@ public class SavePermissionRequest
 [Route("api/Sys_Menu")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "system")]
 public class Sys_MenuController : ControllerBase
 {
     private readonly ISysMenuService _service;
@@ -251,16 +273,19 @@ public class Sys_MenuController : ControllerBase
 
     /// <summary>获取菜单树</summary>
     [HttpGet("getTree")]
+    [Permission("Sys_Menu.Search")]
     public Task<WebResponseContent> GetTree(CancellationToken cancellationToken) =>
         _service.GetTreeAsync(cancellationToken);
 
     /// <summary>菜单管理：获取全部菜单扁平列表</summary>
     [HttpGet("getMenuList")]
+    [Permission("Sys_Menu.Search")]
     public Task<WebResponseContent> GetMenuList(CancellationToken cancellationToken) =>
         _service.GetMenuListAsync(cancellationToken);
 
     /// <summary>菜单管理：获取单条菜单详情</summary>
     [HttpPost("getTreeItem")]
+    [Permission("Sys_Menu.Search")]
     public Task<WebResponseContent> GetTreeItem(
         [FromQuery] int menuId,
         CancellationToken cancellationToken
@@ -273,6 +298,7 @@ public class Sys_MenuController : ControllerBase
 
     /// <summary>新建或编辑菜单</summary>
     [HttpPost("save")]
+    [Permission("Sys_Menu.Update")]
     public Task<WebResponseContent> Save(
         [FromBody] Sys_Menu entity,
         CancellationToken cancellationToken
@@ -280,6 +306,7 @@ public class Sys_MenuController : ControllerBase
 
     /// <summary>新增菜单</summary>
     [HttpPost("add")]
+    [Permission("Sys_Menu.Add")]
     public Task<WebResponseContent> Add(
         [FromBody] Sys_Menu entity,
         CancellationToken cancellationToken
@@ -287,6 +314,7 @@ public class Sys_MenuController : ControllerBase
 
     /// <summary>更新菜单</summary>
     [HttpPost("update")]
+    [Permission("Sys_Menu.Update")]
     public Task<WebResponseContent> Update(
         [FromBody] Sys_Menu entity,
         CancellationToken cancellationToken
@@ -294,6 +322,7 @@ public class Sys_MenuController : ControllerBase
 
     /// <summary>删除菜单</summary>
     [HttpPost("del")]
+    [Permission("Sys_Menu.Delete")]
     public Task<WebResponseContent> Delete(
         [FromQuery] int menuId,
         CancellationToken cancellationToken
@@ -313,11 +342,13 @@ public class Sys_DepartmentController : ControllerBase
 
     /// <summary>获取部门树</summary>
     [HttpGet("getTree")]
+    [Permission("Sys_Department.Search")]
     public Task<WebResponseContent> GetTree(CancellationToken cancellationToken) =>
         _service.GetTreeAsync(cancellationToken);
 
     /// <summary>新增</summary>
     [HttpPost("add")]
+    [Permission("Sys_Department.Add")]
     public Task<WebResponseContent> Add(
         [FromBody] Sys_Department entity,
         CancellationToken cancellationToken
@@ -325,6 +356,7 @@ public class Sys_DepartmentController : ControllerBase
 
     /// <summary>更新</summary>
     [HttpPost("update")]
+    [Permission("Sys_Department.Update")]
     public Task<WebResponseContent> Update(
         [FromBody] Sys_Department entity,
         CancellationToken cancellationToken
@@ -332,6 +364,7 @@ public class Sys_DepartmentController : ControllerBase
 
     /// <summary>删除</summary>
     [HttpPost("del")]
+    [Permission("Sys_Department.Delete")]
     public Task<WebResponseContent> Delete(
         [FromBody] int id,
         CancellationToken cancellationToken
@@ -342,6 +375,7 @@ public class Sys_DepartmentController : ControllerBase
 [Route("api/Sys_Dictionary")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "system")]
 public class Sys_DictionaryController : ControllerBase
 {
     private readonly ISysDictionaryService _service;
@@ -351,6 +385,7 @@ public class Sys_DictionaryController : ControllerBase
 
     /// <summary>分页查询</summary>
     [HttpPost("getPageData")]
+    [Permission("Sys_Dictionary.Search")]
     public Task<WebResponseContent> GetPageData(
         [FromBody] PageDataOptions options,
         CancellationToken cancellationToken
@@ -358,6 +393,7 @@ public class Sys_DictionaryController : ControllerBase
 
     /// <summary>获取前端字典数据</summary>
     [HttpPost("getVueDictionary")]
+    [Permission("Sys_Dictionary.Search")]
     public Task<WebResponseContent> GetVueDictionary(
         [FromBody] string[] dicNos,
         CancellationToken cancellationToken
@@ -365,11 +401,13 @@ public class Sys_DictionaryController : ControllerBase
 
     /// <summary>代码生成器字典</summary>
     [HttpPost("GetBuilderDictionary")]
+    [Permission("Builder.Search")]
     public Task<WebResponseContent> GetBuilderDictionary(CancellationToken cancellationToken) =>
         _service.GetBuilderDictionaryAsync(cancellationToken);
 
     /// <summary>新增</summary>
     [HttpPost("add")]
+    [Permission("Sys_Dictionary.Add")]
     public Task<WebResponseContent> Add(
         [FromBody] Sys_Dictionary entity,
         CancellationToken cancellationToken
@@ -377,6 +415,7 @@ public class Sys_DictionaryController : ControllerBase
 
     /// <summary>更新</summary>
     [HttpPost("update")]
+    [Permission("Sys_Dictionary.Update")]
     public Task<WebResponseContent> Update(
         [FromBody] Sys_Dictionary entity,
         CancellationToken cancellationToken
@@ -384,6 +423,7 @@ public class Sys_DictionaryController : ControllerBase
 
     /// <summary>删除</summary>
     [HttpPost("del")]
+    [Permission("Sys_Dictionary.Delete")]
     public Task<WebResponseContent> Delete(
         [FromBody] int[] ids,
         CancellationToken cancellationToken
@@ -394,6 +434,7 @@ public class Sys_DictionaryController : ControllerBase
 [Route("api/Sys_Log")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "system")]
 public class Sys_LogController : ControllerBase
 {
     private readonly ISysLogService _service;
@@ -403,6 +444,7 @@ public class Sys_LogController : ControllerBase
 
     /// <summary>分页查询日志</summary>
     [HttpPost("getPageData")]
+    [Permission("Sys_Log.Search")]
     public async Task<WebResponseContent> GetPageData(
         [FromBody] PageDataOptions options,
         CancellationToken cancellationToken
@@ -413,6 +455,8 @@ public class Sys_LogController : ControllerBase
 [Route("api/Sys_WorkFlow")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("WorkFlow")]
+[ApiExplorerSettings(GroupName = "workflow")]
 public class Sys_WorkFlowController : ControllerBase
 {
     private readonly IWorkFlowService _service;
@@ -420,8 +464,35 @@ public class Sys_WorkFlowController : ControllerBase
     /// <summary>构造函数</summary>
     public Sys_WorkFlowController(IWorkFlowService service) => _service = service;
 
+    [HttpPost("listDefinitions")]
+    [Permission("Sys_WorkFlow.Search")]
+    public Task<WebResponseContent> ListDefinitions(CancellationToken cancellationToken) =>
+        _service.ListDefinitionsAsync(cancellationToken);
+
+    [HttpPost("getDefinition")]
+    [Permission("Sys_WorkFlow.Search")]
+    public Task<WebResponseContent> GetDefinition(
+        [FromBody] WorkFlowIdRequest request,
+        CancellationToken cancellationToken
+    ) => _service.GetDefinitionAsync(request.WorkFlowId, cancellationToken);
+
+    [HttpPost("saveDefinition")]
+    [Permission("Sys_WorkFlow.Update")]
+    public Task<WebResponseContent> SaveDefinition(
+        [FromBody] WorkFlowDefinitionRequest request,
+        CancellationToken cancellationToken
+    ) => _service.SaveDefinitionAsync(request, cancellationToken);
+
+    [HttpPost("delete")]
+    [Permission("Sys_WorkFlow.Delete")]
+    public Task<WebResponseContent> Delete(
+        [FromBody] IdsRequest request,
+        CancellationToken cancellationToken
+    ) => _service.DeleteDefinitionsAsync(request.Ids ?? [], cancellationToken);
+
     /// <summary>提交审批</summary>
     [HttpPost("submit")]
+    [Permission("Sys_WorkFlow.Search")]
     public Task<WebResponseContent> Submit(
         [FromBody] WorkFlowSubmitRequest request,
         CancellationToken cancellationToken
@@ -429,6 +500,7 @@ public class Sys_WorkFlowController : ControllerBase
 
     /// <summary>审批</summary>
     [HttpPost("audit")]
+    [Permission("Sys_WorkFlow.Audit")]
     public Task<WebResponseContent> Audit(
         [FromBody] WorkFlowAuditRequest request,
         CancellationToken cancellationToken
@@ -442,10 +514,41 @@ public class Sys_WorkFlowController : ControllerBase
 
     /// <summary>分页查询实例</summary>
     [HttpPost("getPageData")]
+    [Permission("Sys_WorkFlow.Search")]
     public async Task<WebResponseContent> GetPageData(
         [FromBody] PageDataOptions options,
         CancellationToken cancellationToken
     ) => WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, cancellationToken));
+}
+
+/// <summary>工作流实例 API（待办/已办）</summary>
+[Route("api/Sys_WorkFlowTable")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("WorkFlow")]
+[ApiExplorerSettings(GroupName = "workflow")]
+public class Sys_WorkFlowTableController : ControllerBase
+{
+    private readonly IWorkFlowService _service;
+
+    public Sys_WorkFlowTableController(IWorkFlowService service) => _service = service;
+
+    [HttpPost("getPageData")]
+    [Permission("Sys_WorkFlowTable.Search")]
+    public async Task<WebResponseContent> GetPageData(
+        [FromBody] PageDataOptions options,
+        CancellationToken cancellationToken
+    ) => WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, cancellationToken));
+}
+
+public class WorkFlowIdRequest
+{
+    public int WorkFlowId { get; set; }
+}
+
+public class IdsRequest
+{
+    public int[]? Ids { get; set; }
 }
 
 /// <summary>提交审批请求</summary>
@@ -475,6 +578,8 @@ public class WorkFlowAuditRequest
 [Route("api/Builder")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("Builder")]
+[ApiExplorerSettings(GroupName = "builder")]
 public class BuilderController : ControllerBase
 {
     private readonly IBuilderService _service;
@@ -484,11 +589,13 @@ public class BuilderController : ControllerBase
 
     /// <summary>获取配置树</summary>
     [HttpPost("GetTableTree")]
+    [Permission("Builder.Search")]
     public Task<WebResponseContent> GetTableTree(CancellationToken cancellationToken) =>
         _service.GetTableTreeAsync(cancellationToken);
 
     /// <summary>加载/新建单表配置</summary>
     [HttpPost("LoadTableInfo")]
+    [Permission("Builder.Search")]
     public Task<WebResponseContent> LoadTableInfo(
         [FromBody] LoadTableRequest request,
         CancellationToken cancellationToken
@@ -496,11 +603,13 @@ public class BuilderController : ControllerBase
 
     /// <summary>加载全部表信息</summary>
     [HttpGet("loadTableInfo")]
+    [Permission("Builder.Search")]
     public Task<WebResponseContent> LoadAllTableInfo(CancellationToken cancellationToken) =>
         _service.LoadTableInfoAsync(cancellationToken);
 
     /// <summary>保存配置</summary>
     [HttpPost("Save")]
+    [Permission("Builder.Update")]
     public Task<WebResponseContent> Save(
         [FromBody] Domain.Entities.Core.Sys_TableInfo tableInfo,
         CancellationToken cancellationToken
@@ -508,6 +617,7 @@ public class BuilderController : ControllerBase
 
     /// <summary>同步表结构</summary>
     [HttpPost("syncTable")]
+    [Permission("Builder.Update")]
     public Task<WebResponseContent> SyncTable(
         [FromQuery] string tableName,
         CancellationToken cancellationToken
@@ -515,6 +625,7 @@ public class BuilderController : ControllerBase
 
     /// <summary>生成 Entity</summary>
     [HttpPost("CreateModel")]
+    [Permission("Builder.Update")]
     public Task<WebResponseContent> CreateModel(
         [FromBody] Domain.Entities.Core.Sys_TableInfo tableInfo,
         CancellationToken cancellationToken
@@ -522,6 +633,7 @@ public class BuilderController : ControllerBase
 
     /// <summary>生成业务类</summary>
     [HttpPost("CreateServices")]
+    [Permission("Builder.Update")]
     public Task<WebResponseContent> CreateServices(
         [FromBody] CreateServicesRequest request,
         CancellationToken cancellationToken
@@ -529,6 +641,7 @@ public class BuilderController : ControllerBase
 
     /// <summary>生成 Vue 页面</summary>
     [HttpPost("CreateVuePage")]
+    [Permission("Builder.Update")]
     public Task<WebResponseContent> CreateVuePage(
         [FromBody] CreateVuePageRequest request,
         CancellationToken cancellationToken
@@ -567,6 +680,8 @@ public class BuilderController : ControllerBase
 [Route("api/Sys_Alarm")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("Alarm")]
+[ApiExplorerSettings(GroupName = "ops")]
 public class Sys_AlarmController : ControllerBase
 {
     private readonly IAlarmService _service;
@@ -576,6 +691,7 @@ public class Sys_AlarmController : ControllerBase
 
     /// <summary>分页查询告警</summary>
     [HttpPost("getPageData")]
+    [Permission("Sys_Alarm.Search")]
     public async Task<WebResponseContent> GetPageData(
         [FromBody] PageDataOptions options,
         CancellationToken cancellationToken
@@ -633,6 +749,7 @@ public class Sys_AlarmController : ControllerBase
 [Route("api/MessageQueue")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "ops")]
 public class MessageQueueController : ControllerBase
 {
     private readonly IMessageQueueService _service;
@@ -657,6 +774,7 @@ public class MessageQueueController : ControllerBase
 [Route("api/File")]
 [ApiController]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[ApiExplorerSettings(GroupName = "ops")]
 public class FileController : ControllerBase
 {
     private readonly IFileStorageService _storage;
@@ -687,10 +805,171 @@ public class FileController : ControllerBase
 /// <summary>健康检查</summary>
 [Route("api/[controller]")]
 [ApiController]
+[ApiExplorerSettings(GroupName = "ops")]
 public class HealthController : ControllerBase
 {
     /// <summary>健康状态</summary>
     [HttpGet]
     [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     public WebResponseContent Get() => WebResponseContent.Ok("Seven API is running");
+}
+
+/// <summary>验证码</summary>
+[Route("api/Captcha")]
+[ApiController]
+[RequiresFeature("Captcha")]
+[ApiExplorerSettings(GroupName = "system")]
+public class CaptchaController : ControllerBase
+{
+    private readonly Seven.Infrastructure.Security.ICaptchaService _captcha;
+
+    public CaptchaController(Seven.Infrastructure.Security.ICaptchaService captcha) => _captcha = captcha;
+
+    [HttpGet("create")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("login")]
+    public Task<WebResponseContent> Create(CancellationToken cancellationToken) =>
+        _captcha.CreateAsync(cancellationToken);
+}
+
+/// <summary>定时任务</summary>
+[Route("api/Sys_QuartzOptions")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("Quartz")]
+[ApiExplorerSettings(GroupName = "system")]
+public class Sys_QuartzOptionsController : ControllerBase
+{
+    private readonly Seven.Infrastructure.Quartz.IQuartzJobService _service;
+
+    public Sys_QuartzOptionsController(Seven.Infrastructure.Quartz.IQuartzJobService service) => _service = service;
+
+    [HttpPost("getPageData")]
+    public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken ct) =>
+        WebResponseContent.Ok(data: await _service.GetPageDataAsync(options, ct));
+
+    [HttpPost("save")]
+    public Task<WebResponseContent> Save([FromBody] Seven.Domain.Entities.Quartz.Sys_QuartzOptions entity, CancellationToken ct) =>
+        _service.SaveAsync(entity, ct);
+
+    [HttpPost("delete")]
+    public Task<WebResponseContent> Delete([FromBody] IdsRequest request, CancellationToken ct) =>
+        _service.DeleteAsync(request.Ids ?? [], ct);
+
+    [HttpPost("setEnable")]
+    public Task<WebResponseContent> SetEnable([FromBody] QuartzEnableRequest request, CancellationToken ct) =>
+        _service.SetEnableAsync(request.Id, request.Enable, ct);
+
+    [HttpPost("enable")]
+    public Task<WebResponseContent> Enable([FromBody] QuartzIdRequest request, CancellationToken ct) =>
+        _service.SetEnableAsync(request.Id, true, ct);
+
+    [HttpPost("disable")]
+    public Task<WebResponseContent> Disable([FromBody] QuartzIdRequest request, CancellationToken ct) =>
+        _service.SetEnableAsync(request.Id, false, ct);
+
+    [HttpPost("runNow")]
+    public Task<WebResponseContent> RunNow([FromBody] QuartzIdRequest request, CancellationToken ct) =>
+        _service.RunNowAsync(request.Id, ct);
+}
+
+/// <summary>定时任务执行日志</summary>
+[Route("api/Sys_QuartzLog")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("Quartz")]
+[ApiExplorerSettings(GroupName = "system")]
+public class Sys_QuartzLogController : ControllerBase
+{
+    private readonly Seven.Infrastructure.Quartz.IQuartzJobService _service;
+
+    public Sys_QuartzLogController(Seven.Infrastructure.Quartz.IQuartzJobService service) => _service = service;
+
+    [HttpPost("getPageData")]
+    [Permission("Sys_QuartzLog.Search")]
+    public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken ct) =>
+        WebResponseContent.Ok(data: await _service.GetLogPageDataAsync(options, ct));
+}
+
+public class QuartzEnableRequest
+{
+    public int Id { get; set; }
+    public bool Enable { get; set; }
+}
+
+public class QuartzIdRequest
+{
+    public int Id { get; set; }
+}
+
+/// <summary>邮件</summary>
+[Route("api/Mail")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("Mail")]
+[ApiExplorerSettings(GroupName = "ops")]
+public class MailController : ControllerBase
+{
+    private readonly Seven.Infrastructure.Mail.IEmailService _mail;
+
+    public MailController(Seven.Infrastructure.Mail.IEmailService mail) => _mail = mail;
+
+    [HttpPost("send")]
+    public Task<WebResponseContent> Send([FromBody] MailSendRequest request, CancellationToken ct) =>
+        _mail.SendAsync(request.To, request.Subject, request.HtmlBody, ct);
+}
+
+public class MailSendRequest
+{
+    public string To { get; set; } = "";
+    public string Subject { get; set; } = "";
+    public string HtmlBody { get; set; } = "";
+}
+
+/// <summary>系统通知 / 在线人数</summary>
+[Route("api/Notify")]
+[ApiController]
+[Microsoft.AspNetCore.Authorization.Authorize]
+[RequiresFeature("SignalR")]
+[ApiExplorerSettings(GroupName = "ops")]
+public class NotifyController : ControllerBase
+{
+    private readonly IMessagePushService _push;
+
+    public NotifyController(IMessagePushService push) => _push = push;
+
+    [HttpGet("online")]
+    public WebResponseContent Online() =>
+        WebResponseContent.Ok(data: new { count = Seven.WebApi.Hubs.MessageHub.OnlineCount });
+
+    [HttpPost("broadcast")]
+    public async Task<WebResponseContent> Broadcast([FromBody] NotifyRequest request)
+    {
+        await _push.PushSystemNotifyAsync(request.Title, request.Content);
+        return WebResponseContent.Ok("已推送");
+    }
+}
+
+public class NotifyRequest
+{
+    public string Title { get; set; } = "";
+    public string Content { get; set; } = "";
+}
+
+/// <summary>运行时功能开关（供前端隐藏菜单/入口）</summary>
+[Route("api/config")]
+[ApiController]
+[ApiExplorerSettings(GroupName = "system")]
+public class ConfigController : ControllerBase
+{
+    private readonly Microsoft.Extensions.Options.IOptions<Seven.Infrastructure.Configuration.FeatureOptions> _features;
+
+    public ConfigController(
+        Microsoft.Extensions.Options.IOptions<Seven.Infrastructure.Configuration.FeatureOptions> features
+    ) => _features = features;
+
+    /// <summary>获取功能开关（匿名）</summary>
+    [HttpGet("features")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public WebResponseContent GetFeatures() => WebResponseContent.Ok(data: _features.Value);
 }

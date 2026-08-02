@@ -3,8 +3,11 @@ namespace Seven.Domain.Common;
 /// <summary>
 /// 实体基类，包含审计字段与软删除标记。
 /// </summary>
-public abstract class BaseEntity
+public abstract class BaseEntity : ISoftDelete
 {
+    /// <summary>多租户 Id（0 表示默认/未启用租户）</summary>
+    public int TenantId { get; set; }
+
     /// <summary>创建人 Id</summary>
     public int? CreateId { get; set; }
 

@@ -4,6 +4,7 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Business;
 using Seven.Infrastructure.Excel;
 using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Security;
 
 namespace Seven.Infrastructure.Services;
 
@@ -11,18 +12,29 @@ namespace Seven.Infrastructure.Services;
 public class SysDeviceService : ISysDeviceService
 {
     private readonly SevenDbContext _db;
+    private readonly IDataScopeService _dataScope;
+    private readonly ICurrentUserService _currentUser;
 
-    public SysDeviceService(SevenDbContext db) => _db = db;
+    public SysDeviceService(SevenDbContext db, IDataScopeService dataScope, ICurrentUserService currentUser)
+    {
+        _db = db;
+        _dataScope = dataScope;
+        _currentUser = currentUser;
+    }
 
     public async Task<PageGridData<Device>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)
     {
-        var query = _db.Set<Device>().AsNoTracking().Where(x => !x.IsDeleted);
+        var query = _db.Set<Device>().AsNoTracking();
+        var allowed = await _dataScope.GetAllowedUserIdsAsync(cancellationToken);
+        query = DataScopeService.FilterByCreateIds(query, allowed);
         return await CrudHelper.PaginateAsync(query, options, cancellationToken);
     }
 
     public async Task<WebResponseContent> AddAsync(Device entity, CancellationToken cancellationToken = default)
     {
         entity.CreateDate = DateTime.Now;
+        entity.CreateId = _currentUser.UserId;
+        entity.Creator = _currentUser.UserName;
         entity.IsDeleted = false;
         _db.Set<Device>().Add(entity);
         await _db.SaveChangesAsync(cancellationToken);

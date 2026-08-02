@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Seven.Domain.Common;
 using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
@@ -7,6 +8,7 @@ using Seven.Domain.Entities.Form;
 using Seven.Domain.Entities.News;
 using Seven.Domain.Entities.Quartz;
 using Seven.Domain.Entities.System;
+using Seven.Infrastructure.Messaging.Outbox;
 
 namespace Seven.Infrastructure.Persistence;
 
@@ -15,8 +17,17 @@ namespace Seven.Infrastructure.Persistence;
 /// </summary>
 public class SevenDbContext : DbContext
 {
+    /// <summary>当前租户（0=不过滤/默认）</summary>
+    public int CurrentTenantId { get; set; }
+
+    /// <summary>是否启用租户过滤</summary>
+    public bool TenantFilterEnabled { get; set; }
+
     /// <summary>构造函数</summary>
     public SevenDbContext(DbContextOptions<SevenDbContext> options) : base(options) { }
+
+    /// <summary>租户</summary>
+    public DbSet<Sys_Tenant> Sys_Tenants => Set<Sys_Tenant>();
 
     /// <summary>用户</summary>
     public DbSet<Sys_User> Sys_Users => Set<Sys_User>();
@@ -96,10 +107,38 @@ public class SevenDbContext : DbContext
     /// <summary>告警记录</summary>
     public DbSet<Sys_Alarm> Sys_Alarms => Set<Sys_Alarm>();
 
+    /// <summary>Outbox 出站消息</summary>
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SevenDbContext).Assembly);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (!typeof(BaseEntity).IsAssignableFrom(entityType.ClrType)) continue;
+            var clr = entityType.ClrType;
+            var param = System.Linq.Expressions.Expression.Parameter(clr, "e");
+            var isDeleted = System.Linq.Expressions.Expression.Property(param, nameof(ISoftDelete.IsDeleted));
+            var notDeleted = System.Linq.Expressions.Expression.Equal(
+                isDeleted, System.Linq.Expressions.Expression.Constant(false));
+
+            var tenantIdProp = System.Linq.Expressions.Expression.Property(param, nameof(BaseEntity.TenantId));
+            var ctxConst = System.Linq.Expressions.Expression.Constant(this);
+            var filterEnabled = System.Linq.Expressions.Expression.Property(ctxConst, nameof(TenantFilterEnabled));
+            var currentTenant = System.Linq.Expressions.Expression.Property(ctxConst, nameof(CurrentTenantId));
+            var tenantOk = System.Linq.Expressions.Expression.OrElse(
+                System.Linq.Expressions.Expression.Not(filterEnabled),
+                System.Linq.Expressions.Expression.OrElse(
+                    System.Linq.Expressions.Expression.Equal(tenantIdProp, System.Linq.Expressions.Expression.Constant(0)),
+                    System.Linq.Expressions.Expression.Equal(tenantIdProp, currentTenant)));
+
+            var body = System.Linq.Expressions.Expression.AndAlso(notDeleted, tenantOk);
+            var lambda = System.Linq.Expressions.Expression.Lambda(body, param);
+            modelBuilder.Entity(clr).HasQueryFilter(lambda);
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -1,21 +1,20 @@
 # Seven.Master
 
-企业级后台系统（.NET 8 + Vue 3）。
+企业级后台（.NET 8 + Vue 3）。能力可按场景裁剪：极简 CRUD 只需打开数据库与 JWT；工作流、Quartz、MQ、多租户等通过 **`Features`** 开关按需启用。
 
 ## 快速启动
 
 ### 后端
-
-打开 `Seven.Net8/Seven.sln` 即可加载全部模块，或：
 
 ```bash
 cd Seven.Net8
 dotnet run --project Seven.WebApi
 ```
 
-- API: http://localhost:5000
-- Swagger: http://localhost:5000/swagger
-- 默认账号: `admin` / `123456`
+- API: http://localhost:5000  
+- Swagger: http://localhost:5000/swagger（开发环境）  
+- 默认账号: `admin` / `123456`  
+- 功能开关: `GET /api/config/features`
 
 ### 前端
 
@@ -33,27 +32,29 @@ npm run dev
 docker compose up -d
 ```
 
-## 项目结构
+## 仓库结构
 
 | 目录 | 说明 |
 |------|------|
-| `Seven.Net8/` | 后端 .NET 8 解决方案 |
+| `Seven.Net8/` | 后端解决方案（Domain / Application / Infrastructure / Business / Builder / WebApi / Tests） |
 | `Seven.Vue3/` | 前端 Vite + Vue 3 + Pinia |
-| `scripts/` | 数据迁移脚本 |
-| `../doc/` | 使用文档 |
-| `../系统迁移实现大纲.md` | 迁移设计文档 |
+| `deploy/` | Nginx 反代样例、K8s Deployment/Service/Ingress |
+| `doc/` | 开发文档（含 [功能开关](doc/14-功能开关.md)） |
+| `docker-compose.yml` | MySQL / Redis / RabbitMQ / MinIO / API |
+| `scripts/` | 辅助脚本 |
 
-## 核心改造
+## 功能开关（摘要）
 
-- BCrypt 密码哈希（替代 DES）
-- JWT + Refresh Token
-- 延迟双删缓存（Memory/Redis 可切换）
-- EF Core 8 CodeFirst
-- Serilog 日志
-- SignalR 实时推送
-- RabbitMQ + MassTransit 消息队列（与告警模块集成）
-- MinIO/本地文件存储
+编辑 `Seven.Net8/Seven.WebApi/appsettings.json` → `Features`：
+
+- 默认关闭：WorkFlow、Quartz、MessageQueue、Outbox、Mail、MinIO、Tenant、Captcha  
+- 默认开启：SignalR、Alarm、RateLimit、Idempotency、DataScope、AuditInterceptor、Builder  
+
+完整说明：[doc/14-功能开关.md](doc/14-功能开关.md)
 
 ## 文档
 
-详见 [doc/README.md](../doc/README.md)
+- [文档索引](doc/README.md)
+- [快速开始](doc/01-快速开始.md)
+- [后端指南](doc/02-后端开发指南.md)
+- [前端指南](doc/03-前端开发指南.md)

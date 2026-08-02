@@ -52,6 +52,28 @@
               autocomplete="current-password"
             />
           </el-form-item>
+          <el-form-item v-if="featureStore.captchaEnabled" :label="t('login.captcha')">
+            <div class="captcha-row">
+              <el-input
+                v-model="form.verificationCode"
+                :placeholder="t('login.captchaPlaceholder')"
+                size="large"
+                maxlength="6"
+                autocomplete="off"
+                @keyup.enter="handleLogin"
+              />
+              <button
+                type="button"
+                class="captcha-display"
+                :title="t('login.captchaRefresh')"
+                :disabled="captchaLoading"
+                @click="loadCaptcha"
+              >
+                <span v-if="captchaLoading">…</span>
+                <span v-else class="captcha-code">{{ captchaDisplay }}</span>
+              </button>
+            </div>
+          </el-form-item>
           <el-button
             type="primary"
             native-type="submit"
@@ -69,13 +91,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Box, Lock, Monitor, Operation, User } from '@element-plus/icons-vue'
-import { login } from '../api/http'
+import { createCaptcha, login } from '../api/http'
 import { useUserStore } from '../stores/user'
+import { useFeatureStore } from '../stores/features'
 import { ActionIcons } from '../constants/actionIcons'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import LocaleSwitch from '../components/LocaleSwitch.vue'
@@ -83,13 +106,48 @@ import LocaleSwitch from '../components/LocaleSwitch.vue'
 const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
+const featureStore = useFeatureStore()
 const loading = ref(false)
-const form = reactive({ userName: 'admin', password: '123456' })
+const captchaLoading = ref(false)
+const captchaDisplay = ref('----')
+const form = reactive({
+  userName: 'admin',
+  password: '123456',
+  verificationCode: '',
+  uuid: '',
+})
+
+async function loadCaptcha() {
+  if (!featureStore.captchaEnabled) return
+  captchaLoading.value = true
+  try {
+    const res = await createCaptcha()
+    if (res.status && res.data) {
+      form.uuid = res.data.key
+      captchaDisplay.value = res.data.code
+      form.verificationCode = ''
+    }
+  } catch {
+    captchaDisplay.value = '????'
+  } finally {
+    captchaLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  if (!featureStore.loaded) await featureStore.load()
+  void loadCaptcha()
+})
 
 async function handleLogin() {
   loading.value = true
   try {
-    const res = await login(form.userName, form.password)
+    const res = await login(
+      form.userName,
+      form.password,
+      form.verificationCode || undefined,
+      form.uuid || undefined
+    )
     if (res.status && res.data) {
       const data = res.data as {
         token: string; refreshToken: string; userId: number; userName: string
@@ -107,9 +165,11 @@ async function handleLogin() {
       router.push('/home')
     } else {
       ElMessage.error(res.message || t('login.failed'))
+      await loadCaptcha()
     }
   } catch {
     ElMessage.error(t('login.requestFailed'))
+    await loadCaptcha()
   } finally {
     loading.value = false
   }
@@ -288,6 +348,42 @@ async function handleLogin() {
 
 .login-btn:not(.is-link):not(.is-text):hover {
   box-shadow: var(--seven-btn-primary-hover-shadow);
+}
+
+.captcha-row {
+  display: flex;
+  gap: var(--seven-space-2);
+  width: 100%;
+}
+
+.captcha-row :deep(.el-input) {
+  flex: 1;
+}
+
+.captcha-display {
+  flex-shrink: 0;
+  width: 112px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--el-border-color);
+  border-radius: var(--el-border-radius-base);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.captcha-display:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.captcha-code {
+  font-family: var(--seven-font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: #f97316;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
 }
 
 @media (max-width: 768px) {

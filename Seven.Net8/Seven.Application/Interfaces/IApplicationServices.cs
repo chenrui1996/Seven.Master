@@ -105,9 +105,34 @@ public interface ISysLogService
 /// </summary>
 public interface IWorkFlowService
 {
+    Task<WebResponseContent> ListDefinitionsAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetDefinitionAsync(int workFlowId, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> SaveDefinitionAsync(WorkFlowDefinitionRequest request, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> DeleteDefinitionsAsync(int[] ids, CancellationToken cancellationToken = default);
     Task<WebResponseContent> SubmitAsync(string tableName, string tableKey, CancellationToken cancellationToken = default);
     Task<WebResponseContent> AuditAsync(int workFlowTableId, int auditStatus, string? remark, CancellationToken cancellationToken = default);
     Task<PageGridData<Domain.Entities.Flow.Sys_WorkFlowTable>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default);
+}
+
+/// <summary>工作流定义保存请求</summary>
+public class WorkFlowDefinitionRequest
+{
+    public int WorkFlow_Id { get; set; }
+    public string WorkName { get; set; } = string.Empty;
+    public string? WorkTable { get; set; }
+    public string? WorkTableKey { get; set; }
+    public byte? Enable { get; set; } = 1;
+    public List<WorkFlowStepRequest> Steps { get; set; } = [];
+}
+
+/// <summary>工作流步骤</summary>
+public class WorkFlowStepRequest
+{
+    public int WorkStepFlow_Id { get; set; }
+    public string StepName { get; set; } = string.Empty;
+    public int StepOrder { get; set; }
+    public int? StepType { get; set; }
+    public string? StepValue { get; set; }
 }
 
 /// <summary>

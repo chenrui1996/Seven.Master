@@ -1,5 +1,22 @@
 <template>
   <div class="seven-page home-dashboard">
+    <div class="home-toolbar">
+      <div class="home-toolbar__text">
+        <h2 class="home-toolbar__title">{{ t('home.title') }}</h2>
+        <p class="home-toolbar__subtitle">{{ t('home.subtitle') }}</p>
+      </div>
+      <a
+        class="home-toolbar__docs"
+        :href="docsUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <el-button type="primary" plain :icon="Document">
+          {{ t('home.devDocs') }}
+        </el-button>
+      </a>
+    </div>
+
     <div class="seven-kpi-grid">
       <div v-for="kpi in kpiCards" :key="kpi.label" class="seven-kpi-card" :class="kpi.variant">
         <div class="seven-kpi-label">{{ kpi.label }}</div>
@@ -43,7 +60,7 @@
       </el-col>
 
       <el-col :xs="24" :lg="10">
-        <div class="seven-panel">
+        <div v-if="featureStore.flags.alarm" class="seven-panel">
           <div class="seven-panel__header">
             <h3 class="seven-panel__title">{{ t('home.alarmTitle') }}</h3>
             <el-button link type="primary" @click="router.push('/Sys_Alarm')">{{ t('home.viewAll') }}</el-button>
@@ -82,28 +99,57 @@
             </div>
           </div>
         </div>
+
+        <div v-if="featureStore.signalREnabled" class="seven-panel notify-panel" style="margin-top: 16px">
+          <div class="seven-panel__header">
+            <h3 class="seven-panel__title">{{ t('home.notifyTitle') }}</h3>
+          </div>
+          <div class="seven-panel__body">
+            <el-form label-position="top" size="small" @submit.prevent="sendBroadcast">
+              <el-form-item :label="t('home.notifyTitleLabel')">
+                <el-input v-model="notifyTitle" maxlength="80" />
+              </el-form-item>
+              <el-form-item :label="t('home.notifyContentLabel')">
+                <el-input v-model="notifyContent" type="textarea" :rows="2" maxlength="500" />
+              </el-form-item>
+              <el-button type="primary" size="small" :loading="notifySending" @click="sendBroadcast">
+                {{ t('home.notifySend') }}
+              </el-button>
+            </el-form>
+          </div>
+        </div>
       </el-col>
     </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'Home' })
+
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { Document } from '@element-plus/icons-vue'
 import * as echarts from 'echarts/core'
 import { PieChart } from 'echarts/charts'
 import { LegendComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { ECharts } from 'echarts/core'
-import { getPageData } from '../api/http'
+import { getPageData, default as http } from '../api/http'
+import { ElMessage } from 'element-plus'
 import { useAlarmStore } from '../stores/alarm'
+import { useFeatureStore } from '../stores/features'
 
 echarts.use([PieChart, LegendComponent, TooltipComponent, CanvasRenderer])
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const alarmStore = useAlarmStore()
+const featureStore = useFeatureStore()
+
+/** GitHub 文档入口：快速开始 */
+const docsUrl =
+  'https://github.com/chenrui1996/Seven.Master/blob/main/doc/01-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B.md'
 
 const occupancyChartRef = ref<HTMLElement | null>(null)
 let occupancyChart: ECharts | null = null
@@ -130,6 +176,31 @@ interface DeviceRow {
 
 const alarmRows = ref<AlarmRow[]>([])
 const deviceRows = ref<DeviceRow[]>([])
+const notifyTitle = ref('')
+const notifyContent = ref('')
+const notifySending = ref(false)
+
+async function sendBroadcast() {
+  const title = notifyTitle.value.trim()
+  const content = notifyContent.value.trim()
+  if (!title || !content) {
+    ElMessage.warning(t('home.notifyRequired'))
+    return
+  }
+  notifySending.value = true
+  try {
+    const res = await http.post<{ status: boolean; message?: string }>('/api/Notify/broadcast', {
+      title,
+      content,
+    })
+    if (res.status) {
+      ElMessage.success(res.message || t('home.notifySent'))
+      notifyContent.value = ''
+    }
+  } finally {
+    notifySending.value = false
+  }
+}
 
 /** 库存 Demo 数据（尚无独立库存 API） */
 const inventoryRows = [
@@ -293,7 +364,11 @@ function onResize() {
 }
 
 onMounted(async () => {
-  await Promise.all([alarmStore.fetchActiveCount(), loadAlarms(), loadDevices()])
+  const tasks: Promise<unknown>[] = [loadDevices()]
+  if (featureStore.flags.alarm) {
+    tasks.push(alarmStore.fetchActiveCount(), loadAlarms())
+  }
+  await Promise.all(tasks)
   await nextTick()
   renderOccupancyChart()
   window.addEventListener('resize', onResize)
@@ -313,6 +388,33 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-dashboard {
   max-width: 1400px;
+}
+
+.home-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.home-toolbar__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--seven-text);
+  line-height: 1.3;
+}
+
+.home-toolbar__subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--seven-text-muted);
+}
+
+.home-toolbar__docs {
+  flex-shrink: 0;
+  text-decoration: none;
 }
 
 .panel-meta {

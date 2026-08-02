@@ -3,10 +3,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Seven.Application.Interfaces;
 using Seven.Domain.Common;
 using Seven.Domain.Entities.System;
+using Seven.Infrastructure.Mail;
 using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Security;
 
 namespace Seven.Infrastructure.Services;
 
@@ -19,18 +22,33 @@ public class AuthService : IAuthService
     private readonly IPasswordHasher _hasher;
     private readonly ITokenService _tokenService;
     private readonly ICurrentUserService _currentUser;
+    private readonly Security.ICaptchaService _captcha;
+    private readonly Microsoft.Extensions.Options.IOptions<Configuration.SecurityOptions> _security;
+    private readonly Microsoft.Extensions.Options.IOptions<Configuration.FeatureOptions> _features;
+    private readonly IEmailService _email;
+    private readonly ILogger<AuthService> _logger;
 
     /// <summary>构造函数</summary>
     public AuthService(
         SevenDbContext db,
         IPasswordHasher hasher,
         ITokenService tokenService,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        Security.ICaptchaService captcha,
+        Microsoft.Extensions.Options.IOptions<Configuration.SecurityOptions> security,
+        Microsoft.Extensions.Options.IOptions<Configuration.FeatureOptions> features,
+        IEmailService email,
+        ILogger<AuthService> logger)
     {
         _db = db;
         _hasher = hasher;
         _tokenService = tokenService;
         _currentUser = currentUser;
+        _captcha = captcha;
+        _security = security;
+        _features = features;
+        _email = email;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -39,17 +57,34 @@ public class AuthService : IAuthService
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(password))
             return WebResponseContent.Error("用户名或密码不能为空");
 
+        if (_features.Value.Captcha && _security.Value.CaptchaEnabled)
+        {
+            if (!await _captcha.ValidateAsync(captchaKey, captchaCode, cancellationToken))
+            {
+                await WriteLoginLogAsync(userName, false, "验证码错误", cancellationToken);
+                return WebResponseContent.Error("验证码错误或已过期");
+            }
+        }
+
         var user = await _db.Sys_Users.FirstOrDefaultAsync(u => u.UserName == userName && u.Enable == 1, cancellationToken);
-        if (user == null) return WebResponseContent.Error("用户名或密码错误");
+        if (user == null)
+        {
+            await WriteLoginLogAsync(userName, false, "用户不存在", cancellationToken);
+            return WebResponseContent.Error("用户名或密码错误");
+        }
         if (user.MustResetPassword) return WebResponseContent.Error("请重置密码后再登录");
         if (!_hasher.VerifyPassword(password, user.PasswordHash))
+        {
+            await WriteLoginLogAsync(userName, false, "密码错误", cancellationToken);
             return WebResponseContent.Error("用户名或密码错误");
+        }
 
         user.LastLoginDate = DateTime.Now;
         await _db.SaveChangesAsync(cancellationToken);
 
-        var (accessToken, refreshToken) = _tokenService.GenerateTokens(user.User_Id, user.UserName, user.Role_Id);
+        var (accessToken, refreshToken) = _tokenService.GenerateTokens(user.User_Id, user.UserName, user.Role_Id, user.TenantId);
         var permissions = await GetPermissionsAsync(user.Role_Id, cancellationToken);
+        await WriteLoginLogAsync(userName, true, "登录成功", cancellationToken);
 
         return WebResponseContent.Ok("登录成功", new
         {
@@ -59,9 +94,24 @@ public class AuthService : IAuthService
             userName = user.UserName,
             userTrueName = user.UserTrueName,
             roleId = user.Role_Id,
+            tenantId = user.TenantId,
             permissions,
             img = user.HeadImageUrl
         });
+    }
+
+    async Task WriteLoginLogAsync(string userName, bool ok, string message, CancellationToken ct)
+    {
+        _db.Sys_Logs.Add(new Sys_Log
+        {
+            LogType = "Login",
+            UserName = userName,
+            Url = "/api/Auth/login",
+            ResponseParameter = ok ? "OK" : message,
+            ExceptionInfo = ok ? null : message,
+            CreateDate = DateTime.Now,
+        });
+        try { await _db.SaveChangesAsync(ct); } catch { /* ignore */ }
     }
 
     /// <inheritdoc />
@@ -90,6 +140,25 @@ public class AuthService : IAuthService
         user.MustResetPassword = false;
         user.LastModifyPwdDate = DateTime.Now;
         await _db.SaveChangesAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            try
+            {
+                var mail = await _email.SendAsync(
+                    user.Email,
+                    "Seven 密码已修改",
+                    "<p>您的账户密码已成功修改。如非本人操作，请联系管理员。</p>",
+                    cancellationToken);
+                if (!mail.Status)
+                    _logger.LogDebug("改密通知邮件未发送 UserId={UserId} Reason={Reason}", userId, mail.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "改密通知邮件异常 UserId={UserId}", userId);
+            }
+        }
+
         return WebResponseContent.Ok("密码修改成功");
     }
 
@@ -127,6 +196,17 @@ public class AuthService : IAuthService
 /// <summary>分页辅助</summary>
 public static class CrudHelper
 {
+    /// <summary>按数据权限（CreateId）过滤后分页</summary>
+    public static async Task<PageGridData<T>> PaginateWithCreateIdScopeAsync<T>(
+        IQueryable<T> query,
+        PageDataOptions options,
+        IDataScopeService dataScope,
+        CancellationToken ct) where T : BaseEntity
+    {
+        query = await dataScope.ApplyCreateIdScopeAsync(query, ct);
+        return await PaginateAsync(query, options, ct);
+    }
+
     /// <summary>分页查询（支持 Wheres JSON 过滤）</summary>
     public static async Task<PageGridData<T>> PaginateAsync<T>(IQueryable<T> query, PageDataOptions options, CancellationToken ct)
     {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 /** 菜单项类型 */
 export interface MenuItem {
@@ -26,25 +26,83 @@ export const useMenuStore = defineStore('menu', () => {
   return { menus, routesLoaded, setMenus }
 })
 
+export interface DictOption {
+  label: string
+  value: string | number
+}
+
+interface VueDictListItem {
+  dicName?: string
+  dicValue?: string
+  enable?: number
+}
+
+interface VueDictEntry {
+  key: string
+  data: VueDictListItem[]
+}
+
 /** 字典 Store */
 export const useDictStore = defineStore('dict', () => {
-  const dictionaries = ref<Record<string, unknown[]>>({})
+  const dictionaries = ref<Record<string, VueDictListItem[]>>({})
 
-  function setDictionary(key: string, data: unknown[]) {
+  function setDictionary(key: string, data: VueDictListItem[]) {
     dictionaries.value[key] = data
   }
 
-  return { dictionaries, setDictionary }
+  async function loadDictionaries(dicNos: string[]) {
+    const pending = dicNos.filter((no) => no && !dictionaries.value[no])
+    if (!pending.length) return
+
+    const { getVueDictionary } = await import('../api/http')
+    const res = await getVueDictionary(pending)
+    if (res.status && Array.isArray(res.data)) {
+      for (const entry of res.data as VueDictEntry[]) {
+        if (entry?.key) dictionaries.value[entry.key] = entry.data ?? []
+      }
+    }
+  }
+
+  function getOptions(dicNo: string): DictOption[] {
+    const list = dictionaries.value[dicNo] ?? []
+    return list
+      .filter((item) => item.enable !== 0)
+      .map((item) => ({
+        label: String(item.dicName ?? ''),
+        value: item.dicValue ?? '',
+      }))
+  }
+
+  return { dictionaries, setDictionary, loadDictionaries, getOptions }
 })
+
+export interface TabItem {
+  title: string
+  path: string
+  /** 与路由页面组件 name 一致，供 keep-alive include */
+  componentName?: string
+}
 
 /** 标签页 Store */
 export const useTabsStore = defineStore('tabs', () => {
-  const tabs = ref<{ title: string; path: string }[]>([{ title: '首页', path: '/home' }])
+  const tabs = ref<TabItem[]>([
+    { title: '首页', path: '/home', componentName: 'Home' },
+  ])
   const activeTab = ref('/home')
 
-  function addTab(title: string, path: string) {
-    if (!tabs.value.find((t) => t.path === path)) {
-      tabs.value.push({ title, path })
+  const keepAliveIncludes = computed(() => {
+    const names = tabs.value
+      .map((t) => t.componentName)
+      .filter((n): n is string => !!n)
+    return [...new Set(names)]
+  })
+
+  function addTab(title: string, path: string, componentName?: string) {
+    const existing = tabs.value.find((t) => t.path === path)
+    if (existing) {
+      if (componentName && !existing.componentName) existing.componentName = componentName
+    } else {
+      tabs.value.push({ title, path, componentName })
     }
     activeTab.value = path
   }
@@ -57,5 +115,5 @@ export const useTabsStore = defineStore('tabs', () => {
     }
   }
 
-  return { tabs, activeTab, addTab, removeTab }
+  return { tabs, activeTab, keepAliveIncludes, addTab, removeTab }
 })

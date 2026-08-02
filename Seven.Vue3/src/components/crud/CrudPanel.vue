@@ -127,7 +127,7 @@
           :align="col.kind === 'number' ? 'right' : undefined"
         >
           <template v-if="col.kind === 'enum'" #default="{ row }">
-            {{ enumLabel(enumOptionsMap[col.prop], row[col.prop]) }}
+            {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
           </template>
           <template v-else-if="col.kind === 'bool'" #default="{ row }">
             {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
@@ -176,6 +176,12 @@
                   :disabled="!!btn.disabled?.(row)"
                   @click="onRowExtButton(btn, row)"
                 >{{ btn.label }}</el-button>
+                <el-button
+                  v-if="extension?.hooks?.submitAudit"
+                  link
+                  type="success"
+                  @click="onSubmitAudit(row)"
+                >提交审批</el-button>
               </template>
               <el-button
                 v-if="userStore.hasPermission(`${tableName}.Delete`)"
@@ -228,7 +234,7 @@
               :width="col.width"
             >
               <template v-if="col.kind === 'enum'" #default="{ row }">
-                {{ enumLabel(enumOptionsMap[col.prop], row[col.prop]) }}
+                {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
               </template>
               <template v-else-if="col.kind === 'bool'" #default="{ row }">
                 {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
@@ -316,7 +322,7 @@
           :width="col.width"
         >
           <template v-if="col.kind === 'enum'" #default="{ row }">
-            {{ enumLabel(enumOptionsMap[col.prop], row[col.prop]) }}
+            {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
           </template>
           <template v-else-if="col.kind === 'bool'" #default="{ row }">
             {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
@@ -365,7 +371,7 @@ import type {
   ToolbarButton,
 } from '../../extension/types'
 import { useUserStore } from '../../stores/user'
-import { useTabsStore } from '../../stores'
+import { useDictStore, useTabsStore } from '../../stores'
 import { ActionIcons } from '../../constants/actionIcons'
 import TableColumnSettings from '../TableColumnSettings.vue'
 import { useTableColumns, type ColumnDef } from '../../composables/useTableColumns'
@@ -411,6 +417,7 @@ const { t } = useI18n()
 const router = useRouter()
 const tabsStore = useTabsStore()
 const userStore = useUserStore()
+const dictStore = useDictStore()
 
 const loading = ref(false)
 const tableData = ref<Record<string, unknown>[]>([])
@@ -491,7 +498,8 @@ const rowButtons = computed(() =>
 
 const actionsColumnWidth = computed(() => {
   const base = 2
-  const extra = props.depth === 0 ? rowButtons.value.length : 0
+  const submitAuditExtra = props.depth === 0 && props.extension?.hooks?.submitAudit ? 1 : 0
+  const extra = props.depth === 0 ? rowButtons.value.length + submitAuditExtra : 0
   return Math.max(180, (base + extra) * 88)
 })
 
@@ -547,16 +555,73 @@ function detailColLabel(col: DetailColumnConfig) {
   return col.prop
 }
 
+function fieldDictionaryKey(f: { dicNo?: string; dataSource?: string }) {
+  return f.dicNo || f.dataSource
+}
+
+function collectDicNosFromDetailTables(tables: DetailTableConfig[] | undefined, out: Set<string>) {
+  for (const dt of tables ?? []) {
+    for (const f of [...(dt.searchFields ?? []), ...(dt.formFields ?? [])]) {
+      const key = fieldDictionaryKey(f)
+      if (key) out.add(key)
+    }
+    for (const c of dt.columns) {
+      if (c.kind === 'enum') {
+        const key = fieldDictionaryKey(c)
+        if (key) out.add(key)
+      }
+    }
+    collectDicNosFromDetailTables(dt.children, out)
+  }
+}
+
+function collectDicNos(): string[] {
+  const set = new Set<string>()
+  for (const f of [...resolvedSearchFields.value, ...props.formFields]) {
+    const key = fieldDictionaryKey(f)
+    if (key) set.add(key)
+  }
+  for (const c of props.columns) {
+    if (c.kind === 'enum') {
+      const key = fieldDictionaryKey(c)
+      if (key) set.add(key)
+    }
+  }
+  collectDicNosFromDetailTables(props.detailTables, set)
+  return [...set]
+}
+
+async function ensureDictionariesLoaded() {
+  const nos = collectDicNos()
+  if (nos.length) await dictStore.loadDictionaries(nos)
+}
+
+const mergedEnumOptionsMap = computed(() => {
+  const map: Record<string, { value: number | string; label: string }[]> = {
+    ...props.enumOptionsMap,
+  }
+  const bindField = (f: { prop: string; dicNo?: string; dataSource?: string }) => {
+    const no = fieldDictionaryKey(f)
+    if (!no || map[f.prop]?.length) return
+    map[f.prop] = dictStore.getOptions(no)
+  }
+  for (const f of [...resolvedSearchFields.value, ...props.formFields]) bindField(f)
+  for (const c of props.columns) {
+    if (c.kind === 'enum') bindField(c)
+  }
+  return map
+})
+
 function searchFieldOptions(f: SearchFieldConfig) {
   if (f.options?.length) return f.options
   if (f.kind === 'bool') return boolSearchOptions.value
-  return props.enumOptionsMap[f.prop] ?? []
+  return mergedEnumOptionsMap.value[f.prop] ?? []
 }
 
 function formFieldOptions(f: FormFieldDef) {
   if (f.options?.length) return f.options
   if (f.kind === 'bool') return boolSearchOptions.value
-  return props.enumOptionsMap[f.prop] ?? []
+  return mergedEnumOptionsMap.value[f.prop] ?? []
 }
 
 function detailState(key: string) {
@@ -639,6 +704,10 @@ async function onRowExtButton(btn: RowButton, row: Record<string, unknown>) {
   await btn.onClick(buildRowActionContext(row))
 }
 
+async function onSubmitAudit(row: Record<string, unknown>) {
+  await props.extension?.hooks?.submitAudit?.({ row, tableName: props.tableName })
+}
+
 function guessKeyField(dt: DetailTableConfig): string {
   if (dt.keyField) return dt.keyField
   if (!dt.apiRoute) return 'id'
@@ -672,10 +741,20 @@ function buildNestedEnumMap(
   dt: DetailTableConfig,
 ): Record<string, { value: number | string; label: string }[]> {
   const map: Record<string, { value: number | string; label: string }[]> = {
-    ...props.enumOptionsMap,
+    ...mergedEnumOptionsMap.value,
   }
   for (const f of [...(dt.formFields ?? []), ...(dt.searchFields ?? [])]) {
     if (f.options?.length) map[f.prop] = f.options
+    else {
+      const no = fieldDictionaryKey(f)
+      if (no) map[f.prop] = dictStore.getOptions(no)
+    }
+  }
+  for (const c of dt.columns) {
+    if (c.kind === 'enum') {
+      const no = fieldDictionaryKey(c)
+      if (no && !map[c.prop]?.length) map[c.prop] = dictStore.getOptions(no)
+    }
   }
   return map
 }
@@ -771,7 +850,7 @@ function openDetailPage(cfg: DetailTableConfig, row: Record<string, unknown>) {
     return
   }
   const path = `/${cfg.apiRoute}?${cfg.foreignKey}=${encodeURIComponent(String(id))}`
-  tabsStore.addTab(cfg.title, path)
+  tabsStore.addTab(cfg.title, path, cfg.apiRoute)
   void router.push(path)
 }
 
@@ -975,6 +1054,14 @@ async function downloadTemplate() {
     ElMessage.error(t('common.operationFailed'))
   }
 }
+
+watch(
+  () => [props.columns, props.searchFields, props.formFields, props.detailTables],
+  () => {
+    void ensureDictionariesLoaded()
+  },
+  { deep: true, immediate: true },
+)
 
 watch(
   () => props.fixedFilter,
