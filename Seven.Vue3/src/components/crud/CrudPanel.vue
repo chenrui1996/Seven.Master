@@ -9,6 +9,7 @@
               <el-button
                 v-for="btn in toolbarButtons"
                 :key="btn.key"
+                size="small"
                 :type="btn.type === 'default' ? undefined : (btn.type || undefined)"
                 :icon="btn.icon"
                 :disabled="!!btn.requireSelection && selectedIds.length === 0"
@@ -17,6 +18,7 @@
             </template>
             <el-button
               v-if="userStore.hasPermission(`${tableName}.Delete`)"
+              size="small"
               type="danger"
               plain
               :icon="ActionIcons.batchDelete"
@@ -26,16 +28,19 @@
             <template v-if="depth === 0">
               <el-button
                 v-if="userStore.hasPermission(`${tableName}.Import`)"
+                size="small"
                 :icon="ActionIcons.import"
                 @click="triggerImport"
               >{{ t('common.import') }}</el-button>
               <el-button
                 v-if="userStore.hasPermission(`${tableName}.Export`)"
+                size="small"
                 :icon="ActionIcons.export"
                 @click="doExport"
               >{{ t('common.export') }}</el-button>
               <el-button
                 v-if="userStore.hasPermission(`${tableName}.Import`)"
+                size="small"
                 link
                 type="primary"
                 @click="downloadTemplate"
@@ -43,11 +48,12 @@
             </template>
             <el-button
               v-if="userStore.hasPermission(`${tableName}.Add`)"
+              size="small"
               type="primary"
               :icon="ActionIcons.add"
               @click="openForm()"
             >{{ t('common.add') }}</el-button>
-            <el-button :icon="ActionIcons.columnSettings" @click="openColumnSettings" />
+            <el-button size="small" :icon="ActionIcons.columnSettings" @click="openColumnSettings" />
           </div>
         </div>
       </template>
@@ -56,6 +62,7 @@
         v-if="resolvedSearchFields.length"
         :model="searchModel"
         inline
+        size="small"
         class="search-bar"
         @submit.prevent="onSearch"
       >
@@ -96,8 +103,8 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onSearch">{{ t('common.search') }}</el-button>
-          <el-button @click="onResetSearch">{{ t('common.reset') }}</el-button>
+          <el-button size="small" type="primary" @click="onSearch">{{ t('common.search') }}</el-button>
+          <el-button size="small" @click="onResetSearch">{{ t('common.reset') }}</el-button>
         </el-form-item>
       </el-form>
 
@@ -183,10 +190,11 @@
       </el-table>
       <el-pagination
         v-model:current-page="page"
+        size="small"
         :page-size="pageSize"
         :total="total"
         @change="loadData"
-        style="margin-top:16px"
+        class="crud-pagination"
       />
     </el-card>
 
@@ -275,8 +283,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer-actions">
-          <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button type="primary" :icon="ActionIcons.save" @click="save">{{ t('common.confirm') }}</el-button>
+          <el-button size="small" @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
+          <el-button size="small" type="primary" :icon="ActionIcons.save" @click="save">{{ t('common.confirm') }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -985,30 +993,34 @@ onMounted(loadData)
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--seven-space-2);
+  min-height: 28px;
 }
 .toolbar-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .row-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 4px;
+  gap: 0 2px;
 }
 .search-bar {
-  margin-bottom: 12px;
+  margin-bottom: var(--seven-space-2);
+}
+.crud-pagination {
+  margin-top: var(--seven-space-3);
 }
 .detail-card {
-  margin-top: 12px;
+  margin-top: var(--seven-space-3);
 }
 .detail-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--seven-space-2);
 }
 .detail-title {
   font-weight: 600;
@@ -1017,14 +1029,14 @@ onMounted(loadData)
 }
 .detail-hint {
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: 12px;
 }
 .crud-panel--nested {
-  margin-top: 12px;
+  margin-top: var(--seven-space-3);
 }
 .dialog-footer-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 </style>

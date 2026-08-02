@@ -14,7 +14,7 @@
   justify-content: space-between;
   gap: var(--seven-space-2);
   flex-wrap: wrap;
-  min-height: 32px;
+  min-height: 28px;
 }
 
 .toolbar-title {
@@ -34,8 +34,9 @@
   gap: 6px;
 }
 
-/* Element Plus 按钮 — 紧凑尺寸 */
+/* Element Plus 按钮 — 紧凑尺寸（Data-Dense） */
 .el-button {
+  --el-button-size: 28px;
   font-family: var(--seven-font-body);
   font-weight: 500;
   font-size: var(--seven-text-sm);
@@ -49,14 +50,24 @@
 }
 
 .el-button:not(.is-link):not(.is-text) {
-  min-height: 32px;
-  padding: 4px 11px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
 }
 
 .el-button--small:not(.is-link):not(.is-text) {
-  min-height: 28px;
-  padding: 2px 9px;
+  --el-button-size: 26px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 9px;
   font-size: var(--seven-text-xs);
+}
+
+.el-button--large:not(.is-link):not(.is-text) {
+  --el-button-size: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 14px;
 }
 
 .el-button.is-link {

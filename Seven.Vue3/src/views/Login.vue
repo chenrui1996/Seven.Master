@@ -12,7 +12,7 @@
 
     <div class="login-shell">
       <section class="login-brand">
-        <img src="../assets/icons/logo-wms.svg" alt="" class="brand-logo" />
+        <img src="../assets/icons/logo-master.svg" alt="" class="brand-logo" />
         <h1>{{ t('login.title') }}</h1>
         <p class="brand-tagline">{{ t('login.tagline') }}</p>
         <ul class="feature-list">

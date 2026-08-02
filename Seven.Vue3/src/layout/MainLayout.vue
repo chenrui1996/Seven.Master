@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="sidebarWidth" class="aside">
       <div class="logo-block">
-        <img src="../assets/icons/logo-wms.svg" alt="Seven Master" class="logo-icon" />
+        <img src="../assets/icons/logo-master.svg" alt="Seven Master" class="logo-icon" />
         <div class="logo-text">
           <span class="logo-title">{{ t('layout.logoTitle') }}</span>
           <span class="logo-sub">{{ t('layout.logoSub') }}</span>
