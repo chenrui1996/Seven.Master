@@ -19,6 +19,7 @@ export interface FeatureFlags {
   dataScope: boolean
   auditInterceptor: boolean
   builder: boolean
+  hotStore: boolean
 }
 
 const defaults: FeatureFlags = {
@@ -37,6 +38,7 @@ const defaults: FeatureFlags = {
   dataScope: true,
   auditInterceptor: true,
   builder: true,
+  hotStore: false,
 }
 
 /** 菜单 TableName → 功能开关 */

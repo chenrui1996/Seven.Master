@@ -135,6 +135,52 @@ public class CorsOptions
 }
 
 /// <summary>
+/// 热数据通道配置（路径占用、流量、车辆实时状态等）。
+/// 与 Features.HotStore 为 AND 关系。
+/// </summary>
+public class HotStoreOptions
+{
+    /// <summary>配置节名称</summary>
+    public const string SectionName = "HotStore";
+
+    /// <summary>存储类型：Memory / Redis</summary>
+    public string Provider { get; set; } = "Memory";
+
+    /// <summary>Redis 连接字符串；为空时回退 Cache:RedisConnectionString</summary>
+    public string RedisConnectionString { get; set; } = "";
+
+    /// <summary>热 key 前缀，与 menu:/dict: 隔离</summary>
+    public string KeyPrefix { get; set; } = "hot:";
+
+    /// <summary>启动时执行已注册的 IHotStoreWarmup</summary>
+    public bool WarmupOnStartup { get; set; } = true;
+
+    /// <summary>预热超时秒数</summary>
+    public int WarmupTimeoutSeconds { get; set; } = 30;
+
+    /// <summary>是否启用异步落库</summary>
+    public bool PersistEnabled { get; set; } = true;
+
+    /// <summary>落库节拍（毫秒）</summary>
+    public int PersistIntervalMs { get; set; } = 1000;
+
+    /// <summary>每批最大变更条数</summary>
+    public int PersistBatchSize { get; set; } = 200;
+
+    /// <summary>热 key 默认过期秒数；0=不过期</summary>
+    public int DefaultTtlSeconds { get; set; }
+
+    /// <summary>落库实体短名/表名列表，跳过字段审计</summary>
+    public List<string> AuditExcludeEntities { get; set; } = [];
+
+    /// <summary>单活写入假设；多实例需 Redis + 业务选主</summary>
+    public bool SingleWriter { get; set; } = true;
+
+    /// <summary>注册四向车 Demo 预热/落库/节拍（仅演示，生产保持 false）</summary>
+    public bool EnableDemoScheduler { get; set; }
+}
+
+/// <summary>
 /// 功能总开关。关闭后后端不注册对应宿主/中间件，前端隐藏菜单与入口。
 /// 与细节节（MinIO/Mail/Tenant/Security/MessageQueue）为 AND 关系。
 /// </summary>
@@ -157,6 +203,9 @@ public class FeatureOptions
     public bool DataScope { get; set; } = true;
     public bool AuditInterceptor { get; set; } = true;
     public bool Builder { get; set; } = true;
+
+    /// <summary>热数据通道（路径/流量等高频读写）；细节见 HotStore 节</summary>
+    public bool HotStore { get; set; }
 
     /// <summary>按属性名读取开关（忽略大小写）</summary>
     public bool IsEnabled(string featureName)

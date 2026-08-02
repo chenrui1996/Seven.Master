@@ -973,3 +973,60 @@ public class ConfigController : ControllerBase
     [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     public WebResponseContent GetFeatures() => WebResponseContent.Ok(data: _features.Value);
 }
+
+/// <summary>热数据通道状态（需 Features.HotStore）</summary>
+[Route("api/HotStore")]
+[ApiController]
+[ApiExplorerSettings(GroupName = "system")]
+public class HotStoreController : ControllerBase
+{
+    private readonly Microsoft.Extensions.Options.IOptions<Seven.Infrastructure.Configuration.FeatureOptions> _features;
+    private readonly Microsoft.Extensions.Options.IOptions<Seven.Infrastructure.Configuration.HotStoreOptions> _options;
+    private readonly Seven.Application.Interfaces.IHotStore _store;
+
+    public HotStoreController(
+        Microsoft.Extensions.Options.IOptions<Seven.Infrastructure.Configuration.FeatureOptions> features,
+        Microsoft.Extensions.Options.IOptions<Seven.Infrastructure.Configuration.HotStoreOptions> options,
+        Seven.Application.Interfaces.IHotStore store)
+    {
+        _features = features;
+        _options = options;
+        _store = store;
+    }
+
+    /// <summary>热通道就绪状态与配置摘要</summary>
+    [HttpGet("status")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public WebResponseContent GetStatus()
+    {
+        if (!_features.Value.HotStore)
+            return WebResponseContent.Error("HotStore 未启用（Features:HotStore=false）");
+
+        var o = _options.Value;
+        return WebResponseContent.Ok(data: new
+        {
+            ready = _store.IsReady,
+            provider = o.Provider,
+            keyPrefix = o.KeyPrefix,
+            warmupOnStartup = o.WarmupOnStartup,
+            persistEnabled = o.PersistEnabled,
+            persistIntervalMs = o.PersistIntervalMs,
+            singleWriter = o.SingleWriter,
+            enableDemoScheduler = o.EnableDemoScheduler
+        });
+    }
+
+    /// <summary>读取热数据（监控用；调度请直接注入 IHotStore）</summary>
+    [HttpGet("get")]
+    [Permission("HotStore.Search")]
+    public async Task<WebResponseContent> Get([FromQuery] string key, CancellationToken cancellationToken)
+    {
+        if (!_features.Value.HotStore)
+            return WebResponseContent.Error("HotStore 未启用");
+        if (string.IsNullOrWhiteSpace(key))
+            return WebResponseContent.Error("key 不能为空");
+
+        var value = await _store.GetAsync<object>(key, cancellationToken);
+        return WebResponseContent.Ok(data: new { key, value, ready = _store.IsReady });
+    }
+}

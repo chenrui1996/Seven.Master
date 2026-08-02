@@ -47,10 +47,10 @@ docker compose up -d
 
 编辑 `Seven.Net8/Seven.WebApi/appsettings.json` → `Features`：
 
-- 默认关闭：WorkFlow、Quartz、MessageQueue、Outbox、Mail、MinIO、Tenant、Captcha  
+- 默认关闭：WorkFlow、Quartz、MessageQueue、Outbox、Mail、MinIO、Tenant、Captcha、HotStore  
 - 默认开启：SignalR、Alarm、RateLimit、Idempotency、DataScope、AuditInterceptor、Builder  
 
-完整说明：[doc/14-功能开关.md](doc/14-功能开关.md)
+完整说明：[doc/14-功能开关.md](doc/14-功能开关.md)；高频读写热通道：[doc/15-热数据HotStore.md](doc/15-热数据HotStore.md)
 
 ## 文档
 
@@ -58,3 +58,4 @@ docker compose up -d
 - [快速开始](doc/01-快速开始.md)
 - [后端指南](doc/02-后端开发指南.md)
 - [前端指南](doc/03-前端开发指南.md)
+- [热数据 HotStore](doc/15-热数据HotStore.md)

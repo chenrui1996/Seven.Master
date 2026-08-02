@@ -17,6 +17,7 @@ using Seven.Application.Interfaces;
 using Seven.Domain.Enums;
 using Seven.Infrastructure.Caching;
 using Seven.Infrastructure.Configuration;
+using Seven.Infrastructure.HotStore;
 using Seven.Infrastructure.Mail;
 using Seven.Infrastructure.Messaging;
 using Seven.Infrastructure.Messaging.Outbox;
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.Configure<TenantOptions>(configuration.GetSection(TenantOptions.SectionName));
         services.Configure<SecurityOptions>(configuration.GetSection(SecurityOptions.SectionName));
         services.Configure<FeatureOptions>(configuration.GetSection(FeatureOptions.SectionName));
+        services.Configure<HotStoreOptions>(configuration.GetSection(HotStoreOptions.SectionName));
 
         var features = configuration.GetSection(FeatureOptions.SectionName).Get<FeatureOptions>() ?? new FeatureOptions();
 
@@ -57,6 +59,7 @@ public static class DependencyInjection
 
         AddDatabase(services, configuration, features);
         AddCache(services, configuration);
+        services.AddSevenHotStore(configuration);
         AddAuthentication(services, configuration);
         services.AddSevenMessageQueue(configuration);
         if (features.Quartz)
