@@ -301,7 +301,7 @@ public sealed class ShuttleSchedulerHostedService : BackgroundService
 
 ---
 
-## 6. 四向车 Demo（可选）
+## 6. Demo（可选）
 
 验证通道是否工作，本地可临时打开：
 
