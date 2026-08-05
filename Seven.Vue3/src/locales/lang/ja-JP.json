@@ -53,7 +53,8 @@
     "submit": "ダッシュボードへ",
     "success": "ログイン成功",
     "failed": "ログイン失敗",
-    "requestFailed": "ログイン要求失敗"
+    "requestFailed": "ログイン要求失敗",
+    "expired": "ログインの有効期限が切れました。再度ログインしてください"
   },
   "home": {
     "title": "Master ダッシュボード",

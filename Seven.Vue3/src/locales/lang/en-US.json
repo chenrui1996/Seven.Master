@@ -56,7 +56,8 @@
     "submit": "Enter Dashboard",
     "success": "Signed in successfully",
     "failed": "Sign in failed",
-    "requestFailed": "Sign in request failed"
+    "requestFailed": "Sign in request failed",
+    "expired": "Session expired. Please sign in again"
   },
   "home": {
     "title": "Master Dashboard",

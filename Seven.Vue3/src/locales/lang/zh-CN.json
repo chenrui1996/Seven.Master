@@ -56,7 +56,8 @@
     "submit": "进入控制台",
     "success": "登录成功",
     "failed": "登录失败",
-    "requestFailed": "登录请求失败"
+    "requestFailed": "登录请求失败",
+    "expired": "登录已过期，请重新登录"
   },
   "home": {
     "title": "Master 控制台",
