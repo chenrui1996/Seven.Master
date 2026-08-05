@@ -35,7 +35,15 @@
     "systemRunning": "システム稼働中",
     "systemOnline": "サービスオンライン",
     "onlineUsers": "オンライン {count} 人",
-    "homeTab": "ホーム"
+    "homeTab": "ホーム",
+    "tabMenu": {
+      "refresh": "更新",
+      "close": "閉じる",
+      "closeOthers": "他を閉じる",
+      "closeAll": "すべて閉じる",
+      "fullscreen": "ページを全画面",
+      "exitFullscreen": "全画面を終了"
+    }
   },
   "login": {
     "title": "Seven Master",

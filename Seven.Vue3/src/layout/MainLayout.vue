@@ -1,5 +1,5 @@
 <template>
-  <el-container class="layout-container">
+  <el-container class="layout-container" :class="{ 'is-content-fullscreen': isContentFullscreen }">
     <el-aside :width="sidebarWidth" class="aside">
       <div class="logo-block">
         <img src="../assets/icons/logo-master.svg" alt="Seven Master" class="logo-icon" />
@@ -93,6 +93,7 @@
           class="tab-item cursor-pointer"
           :class="{ active: tabsStore.activeTab === tab.path }"
           @click="switchTab(tab.path)"
+          @contextmenu.prevent="openTabMenu($event, tab.path)"
         >
           {{ tabLabel(tab) }}
           <el-icon
@@ -103,10 +104,43 @@
         </div>
       </div>
 
+      <Teleport to="body">
+        <ul
+          v-show="tabMenuVisible"
+          class="tab-context-menu"
+          :style="{ left: `${tabMenuX}px`, top: `${tabMenuY}px` }"
+          @click.stop
+        >
+          <li @click="onTabMenuCommand('refresh')">
+            <el-icon><Refresh /></el-icon>{{ t('layout.tabMenu.refresh') }}
+          </li>
+          <li
+            :class="{ disabled: tabMenuPath === '/home' }"
+            @click="onTabMenuCommand('close')"
+          >
+            <el-icon><Close /></el-icon>{{ t('layout.tabMenu.close') }}
+          </li>
+          <li @click="onTabMenuCommand('closeOthers')">
+            <el-icon><CircleClose /></el-icon>{{ t('layout.tabMenu.closeOthers') }}
+          </li>
+          <li @click="onTabMenuCommand('closeAll')">
+            <el-icon><FolderDelete /></el-icon>{{ t('layout.tabMenu.closeAll') }}
+          </li>
+          <li @click="onTabMenuCommand('fullscreen')">
+            <el-icon><FullScreen /></el-icon>
+            {{ isContentFullscreen ? t('layout.tabMenu.exitFullscreen') : t('layout.tabMenu.fullscreen') }}
+          </li>
+        </ul>
+      </Teleport>
+
       <el-main class="main-content">
         <router-view v-slot="{ Component }">
           <keep-alive :include="tabsStore.keepAliveIncludes">
-            <component :is="Component" v-if="Component" :key="route.fullPath" />
+            <component
+              :is="Component"
+              v-if="Component"
+              :key="`${route.fullPath}-${viewKey}`"
+            />
           </keep-alive>
         </router-view>
       </el-main>
@@ -120,10 +154,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   ArrowDown,
+  CircleClose,
   Clock,
   Close,
   Connection,
+  FolderDelete,
+  FullScreen,
   HomeFilled,
+  Refresh,
   SwitchButton,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
@@ -195,11 +233,100 @@ function switchTab(path: string) {
   router.push(path)
 }
 
+const tabMenuVisible = ref(false)
+const tabMenuX = ref(0)
+const tabMenuY = ref(0)
+const tabMenuPath = ref('/home')
+const isContentFullscreen = ref(false)
+const viewKey = ref(0)
+
+function closeTabMenu() {
+  tabMenuVisible.value = false
+}
+
+function openTabMenu(e: MouseEvent, path: string) {
+  tabMenuPath.value = path
+  const menuW = 160
+  const menuH = 180
+  tabMenuX.value = Math.min(e.clientX, window.innerWidth - menuW - 8)
+  tabMenuY.value = Math.min(e.clientY, window.innerHeight - menuH - 8)
+  tabMenuVisible.value = true
+}
+
+function nextPathAfterClose(path: string): string {
+  const list = tabsStore.tabs
+  const idx = list.findIndex((t) => t.path === path)
+  if (idx < 0) return tabsStore.activeTab
+  return list[idx + 1]?.path ?? list[idx - 1]?.path ?? '/home'
+}
+
 function closeTab(path: string) {
+  if (path === '/home') return
   const wasActive = tabsStore.activeTab === path || route.path === path
+  const next = wasActive ? nextPathAfterClose(path) : tabsStore.activeTab
   tabsStore.removeTab(path)
-  if (wasActive && tabsStore.activeTab !== route.path) {
-    router.push(tabsStore.activeTab)
+  if (wasActive) {
+    tabsStore.activeTab = next
+    if (route.path !== next) router.push(next)
+  }
+}
+
+function closeOtherTabs(path: string) {
+  tabsStore.closeOthers(path)
+  if (route.path !== path) router.push(path)
+}
+
+function closeAllTabs() {
+  tabsStore.closeAll()
+  if (route.path !== '/home') router.push('/home')
+}
+
+async function refreshTab(path: string) {
+  if (tabsStore.activeTab !== path || route.path !== path) {
+    switchTab(path)
+    await router.isReady()
+  }
+  const tab = tabsStore.tabs.find((t) => t.path === path)
+  const name = tab?.componentName
+  if (name) tabsStore.setKeepAliveExclude([name])
+  viewKey.value += 1
+  await Promise.resolve()
+  tabsStore.setKeepAliveExclude([])
+}
+
+function toggleContentFullscreen() {
+  isContentFullscreen.value = !isContentFullscreen.value
+}
+
+function onTabMenuCommand(cmd: string) {
+  const path = tabMenuPath.value
+  closeTabMenu()
+  if (cmd === 'refresh') {
+    void refreshTab(path)
+    return
+  }
+  if (cmd === 'close') {
+    if (path === '/home') return
+    closeTab(path)
+    return
+  }
+  if (cmd === 'closeOthers') {
+    closeOtherTabs(path)
+    return
+  }
+  if (cmd === 'closeAll') {
+    closeAllTabs()
+    return
+  }
+  if (cmd === 'fullscreen') {
+    if (tabsStore.activeTab !== path) switchTab(path)
+    toggleContentFullscreen()
+  }
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isContentFullscreen.value) {
+    isContentFullscreen.value = false
   }
 }
 
@@ -219,12 +346,16 @@ watch(locale, updateTime)
 onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
+  document.addEventListener('click', closeTabMenu)
+  document.addEventListener('keydown', onKeydown)
 })
 
 let timer: ReturnType<typeof setInterval> | undefined
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
+  document.removeEventListener('click', closeTabMenu)
+  document.removeEventListener('keydown', onKeydown)
 })
 </script>
 
@@ -453,9 +584,54 @@ onUnmounted(() => {
   transform: translateY(-4px);
 }
 
+.layout-container.is-content-fullscreen .aside,
+.layout-container.is-content-fullscreen .header {
+  display: none;
+}
+
+.layout-container.is-content-fullscreen .main-wrap {
+  width: 100%;
+}
+
+.layout-container.is-content-fullscreen .main-content {
+  height: calc(100vh - var(--seven-tabs-height));
+}
+
 @media (max-width: 768px) {
   .header-meta {
     display: none;
   }
+}
+</style>
+
+<style>
+.tab-context-menu {
+  position: fixed;
+  z-index: 4000;
+  margin: 0;
+  padding: 4px 0;
+  min-width: 148px;
+  list-style: none;
+  background: var(--seven-bg-panel, #fff);
+  border: 1px solid var(--seven-border-light, #e2e8f0);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+.tab-context-menu li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--seven-text, #0f172a);
+  cursor: pointer;
+}
+.tab-context-menu li:hover:not(.disabled) {
+  color: var(--seven-accent, #f97316);
+  background: rgba(249, 115, 22, 0.08);
+}
+.tab-context-menu li.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

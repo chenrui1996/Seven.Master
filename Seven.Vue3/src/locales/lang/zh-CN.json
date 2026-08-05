@@ -35,7 +35,15 @@
     "systemRunning": "系统运行中",
     "systemOnline": "服务在线",
     "onlineUsers": "在线 {count} 人",
-    "homeTab": "首页"
+    "homeTab": "首页",
+    "tabMenu": {
+      "refresh": "刷新",
+      "close": "关闭",
+      "closeOthers": "关闭其它",
+      "closeAll": "全部关闭",
+      "fullscreen": "当前页全屏",
+      "exitFullscreen": "退出全屏"
+    }
   },
   "login": {
     "title": "Seven Master",

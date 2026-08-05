@@ -89,13 +89,20 @@ export const useTabsStore = defineStore('tabs', () => {
     { title: '首页', path: '/home', componentName: 'Home' },
   ])
   const activeTab = ref('/home')
+  /** 刷新时短暂排除，避免 keep-alive 回填旧实例 */
+  const keepAliveExclude = ref<string[]>([])
 
   const keepAliveIncludes = computed(() => {
+    const excluded = new Set(keepAliveExclude.value)
     const names = tabs.value
       .map((t) => t.componentName)
-      .filter((n): n is string => !!n)
+      .filter((n): n is string => !!n && !excluded.has(n))
     return [...new Set(names)]
   })
+
+  function setKeepAliveExclude(names: string[]) {
+    keepAliveExclude.value = names
+  }
 
   function addTab(title: string, path: string, componentName?: string) {
     const existing = tabs.value.find((t) => t.path === path)
@@ -108,6 +115,7 @@ export const useTabsStore = defineStore('tabs', () => {
   }
 
   function removeTab(path: string) {
+    if (path === '/home') return
     const list = tabs.value.filter((t) => t.path !== path)
     tabs.value = list
     if (activeTab.value === path) {
@@ -115,5 +123,25 @@ export const useTabsStore = defineStore('tabs', () => {
     }
   }
 
-  return { tabs, activeTab, keepAliveIncludes, addTab, removeTab }
+  function closeOthers(path: string) {
+    tabs.value = tabs.value.filter((t) => t.path === '/home' || t.path === path)
+    activeTab.value = path
+  }
+
+  function closeAll() {
+    tabs.value = tabs.value.filter((t) => t.path === '/home')
+    activeTab.value = '/home'
+  }
+
+  return {
+    tabs,
+    activeTab,
+    keepAliveIncludes,
+    keepAliveExclude,
+    setKeepAliveExclude,
+    addTab,
+    removeTab,
+    closeOthers,
+    closeAll,
+  }
 })

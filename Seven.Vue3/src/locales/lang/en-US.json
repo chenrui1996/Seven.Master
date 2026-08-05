@@ -35,7 +35,15 @@
     "systemRunning": "System Running",
     "systemOnline": "Service Online",
     "onlineUsers": "{count} online",
-    "homeTab": "Home"
+    "homeTab": "Home",
+    "tabMenu": {
+      "refresh": "Refresh",
+      "close": "Close",
+      "closeOthers": "Close Others",
+      "closeAll": "Close All",
+      "fullscreen": "Fullscreen Page",
+      "exitFullscreen": "Exit Fullscreen"
+    }
   },
   "login": {
     "title": "Seven Master",
