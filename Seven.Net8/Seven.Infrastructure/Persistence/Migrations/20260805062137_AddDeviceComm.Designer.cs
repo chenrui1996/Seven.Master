@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Seven.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Seven.Infrastructure.Migrations
+namespace Seven.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SevenDbContext))]
-    partial class SevenDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805062137_AddDeviceComm")]
+    partial class AddDeviceComm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

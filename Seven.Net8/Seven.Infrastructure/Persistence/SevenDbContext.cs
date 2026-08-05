@@ -3,6 +3,7 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
+using Seven.Domain.Entities.DeviceComm;
 using Seven.Domain.Entities.Flow;
 using Seven.Domain.Entities.Form;
 using Seven.Domain.Entities.News;
@@ -97,6 +98,18 @@ public class SevenDbContext : DbContext
 
     /// <summary>子设备</summary>
     public DbSet<SubDevice> SubDevices => Set<SubDevice>();
+
+    /// <summary>设备通讯连接</summary>
+    public DbSet<CommConnection> CommConnections => Set<CommConnection>();
+
+    /// <summary>设备通讯点位</summary>
+    public DbSet<CommPoint> CommPoints => Set<CommPoint>();
+
+    /// <summary>设备通讯规则</summary>
+    public DbSet<CommRule> CommRules => Set<CommRule>();
+
+    /// <summary>设备通讯事件日志</summary>
+    public DbSet<CommEventLog> CommEventLogs => Set<CommEventLog>();
 
     /// <summary>新闻</summary>
     public DbSet<App_News> App_News => Set<App_News>();

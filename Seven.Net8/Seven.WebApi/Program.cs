@@ -16,6 +16,11 @@ using Seven.WebApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 告警码独立配置（与主 appsettings 分离，便于运维维护）
+builder.Configuration
+    .AddJsonFile("appsettings.Alarm.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.Alarm.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .WriteTo.Console()
@@ -31,6 +36,10 @@ builder.Services.AddSevenBusiness();
 builder.Services.AddScoped<IBuilderService, BuilderService>();
 builder.Services.AddScoped<IMessagePushService, MessagePushService>();
 builder.Services.AddScoped<IAlarmPushService, AlarmPushService>();
+if (features.DeviceComm)
+    builder.Services.AddSingleton<IDeviceCommPushService, DeviceCommPushService>();
+else
+    builder.Services.AddSingleton<IDeviceCommPushService, NoOpDeviceCommPushService>();
 
 builder.Services
     .AddControllers()
@@ -191,6 +200,8 @@ if (features.SignalR)
     app.MapHub<MessageHub>("/hub/message");
     if (features.Alarm)
         app.MapHub<AlarmHub>("/hub/alarm");
+    if (features.DeviceComm)
+        app.MapHub<DeviceCommHub>("/hub/devicecomm");
 }
 app.MapHealthChecks("/health");
 

@@ -17,6 +17,7 @@ using Seven.Application.Interfaces;
 using Seven.Domain.Enums;
 using Seven.Infrastructure.Caching;
 using Seven.Infrastructure.Configuration;
+using Seven.Infrastructure.DeviceComm;
 using Seven.Infrastructure.HotStore;
 using Seven.Infrastructure.Mail;
 using Seven.Infrastructure.Messaging;
@@ -60,6 +61,7 @@ public static class DependencyInjection
         AddDatabase(services, configuration, features);
         AddCache(services, configuration);
         services.AddSevenHotStore(configuration);
+        services.AddSevenDeviceComm(configuration);
         AddAuthentication(services, configuration);
         services.AddSevenMessageQueue(configuration);
         if (features.Quartz)
@@ -186,7 +188,9 @@ public static class DependencyInjection
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/hub/alarm") || path.StartsWithSegments("/hub/message")))
+                            (path.StartsWithSegments("/hub/alarm")
+                             || path.StartsWithSegments("/hub/message")
+                             || path.StartsWithSegments("/hub/devicecomm")))
                         {
                             context.Token = accessToken;
                         }

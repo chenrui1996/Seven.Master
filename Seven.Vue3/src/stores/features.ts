@@ -20,6 +20,7 @@ export interface FeatureFlags {
   auditInterceptor: boolean
   builder: boolean
   hotStore: boolean
+  deviceComm: boolean
 }
 
 const defaults: FeatureFlags = {
@@ -39,6 +40,7 @@ const defaults: FeatureFlags = {
   auditInterceptor: true,
   builder: true,
   hotStore: false,
+  deviceComm: false,
 }
 
 /** 菜单 TableName → 功能开关 */
@@ -49,6 +51,11 @@ const menuFeatureMap: Record<string, keyof FeatureFlags> = {
   Sys_QuartzLog: 'quartz',
   Sys_Alarm: 'alarm',
   Sys_TableInfo: 'builder',
+  CommConnection: 'deviceComm',
+  CommPoint: 'deviceComm',
+  CommRule: 'deviceComm',
+  DeviceComm: 'deviceComm',
+  DeviceCommFolder: 'deviceComm',
 }
 
 export const useFeatureStore = defineStore('features', () => {
@@ -81,6 +88,8 @@ export const useFeatureStore = defineStore('features', () => {
     if (url?.includes('Quartz')) return flags.value.quartz
     if (url?.includes('Alarm')) return flags.value.alarm
     if (url?.includes('coder') || url?.includes('TableInfo')) return flags.value.builder
+    if (url?.includes('DeviceComm') || url?.includes('CommConnection') || url?.includes('CommPoint') || url?.includes('CommRule'))
+      return flags.value.deviceComm
     return true
   }
 

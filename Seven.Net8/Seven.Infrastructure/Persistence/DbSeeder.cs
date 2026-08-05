@@ -52,6 +52,7 @@ public static class DbSeeder
         await MigrateBoardToBusinessMetadataAsync(db, logger);
         await SeedDeviceDetailDemoAsync(db, logger);
         await SeedExtraMenusAndJobsAsync(db, logger);
+        await SeedDeviceCommMenusAsync(db, logger);
         await SeedDefaultTenantAsync(db, logger);
 
         if (await db.Sys_Users.AnyAsync())
@@ -394,5 +395,103 @@ public static class DbSeeder
 
         if (added > 0)
             logger.LogInformation("已补充菜单 {Count} 项（工作流/审批/定时任务）", added);
+    }
+
+    /// <summary>幂等：顶级「设备通讯」目录 + 子菜单；已挂到系统管理下的会迁移过来</summary>
+    static async Task SeedDeviceCommMenusAsync(SevenDbContext db, ILogger logger)
+    {
+        var folder = await db.Sys_Menus.FirstOrDefaultAsync(m =>
+            m.ParentId == 0 && (m.MenuName == "设备通讯" || m.TableName == "DeviceCommFolder"));
+        if (folder == null)
+        {
+            folder = new Sys_Menu
+            {
+                ParentId = 0,
+                MenuName = "设备通讯",
+                Icon = "Connection",
+                OrderNo = 5,
+                Url = null,
+                TableName = "DeviceCommFolder",
+                Auth = null,
+                Enable = 1,
+                CreateDate = DateTime.Now,
+            };
+            db.Sys_Menus.Add(folder);
+            await db.SaveChangesAsync();
+            logger.LogInformation("已创建顶级菜单目录「设备通讯」");
+        }
+        else if (folder.ParentId != 0 || folder.MenuName != "设备通讯")
+        {
+            folder.ParentId = 0;
+            folder.MenuName = "设备通讯";
+            folder.Icon ??= "Connection";
+            folder.TableName = "DeviceCommFolder";
+            folder.Url = null;
+            folder.OrderNo = folder.OrderNo == 0 ? 5 : folder.OrderNo;
+            await db.SaveChangesAsync();
+        }
+
+        var items = new[]
+        {
+            new { MenuName = "通讯连接", Url = "/DeviceComm/CommConnection", TableName = "CommConnection", Auth = "Search,Add,Update,Delete", OrderNo = 1 },
+            new { MenuName = "通讯点位", Url = "/DeviceComm/CommPoint", TableName = "CommPoint", Auth = "Search,Add,Update,Delete", OrderNo = 2 },
+            new { MenuName = "通讯规则", Url = "/DeviceComm/CommRule", TableName = "CommRule", Auth = "Search,Add,Update,Delete", OrderNo = 3 },
+            new { MenuName = "通讯运行态", Url = "/DeviceComm/Runtime", TableName = "DeviceComm", Auth = "Search,Update", OrderNo = 4 },
+        };
+
+        var adminRole = await db.Sys_Roles.OrderBy(r => r.Role_Id).FirstOrDefaultAsync();
+        var added = 0;
+        var moved = 0;
+        foreach (var m in items)
+        {
+            var existing = await db.Sys_Menus.FirstOrDefaultAsync(x =>
+                x.Url == m.Url || x.TableName == m.TableName);
+            if (existing != null)
+            {
+                var dirty = false;
+                if (existing.ParentId != folder.Menu_Id)
+                {
+                    existing.ParentId = folder.Menu_Id;
+                    dirty = true;
+                    moved++;
+                }
+                if (existing.OrderNo != m.OrderNo)
+                {
+                    existing.OrderNo = m.OrderNo;
+                    dirty = true;
+                }
+                if (dirty)
+                    await db.SaveChangesAsync();
+                continue;
+            }
+
+            var menu = new Sys_Menu
+            {
+                ParentId = folder.Menu_Id,
+                MenuName = m.MenuName,
+                Url = m.Url,
+                TableName = m.TableName,
+                Auth = m.Auth,
+                OrderNo = m.OrderNo,
+                Enable = 1,
+                CreateDate = DateTime.Now,
+            };
+            db.Sys_Menus.Add(menu);
+            await db.SaveChangesAsync();
+            if (adminRole != null)
+            {
+                db.Sys_RoleAuths.Add(new Sys_RoleAuth
+                {
+                    Role_Id = adminRole.Role_Id,
+                    Menu_Id = menu.Menu_Id,
+                    AuthValue = m.Auth,
+                });
+                await db.SaveChangesAsync();
+            }
+            added++;
+        }
+
+        if (added > 0 || moved > 0)
+            logger.LogInformation("设备通讯菜单：新增 {Added}，迁移归类 {Moved}", added, moved);
     }
 }

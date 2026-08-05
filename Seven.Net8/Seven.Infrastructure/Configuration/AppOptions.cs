@@ -181,6 +181,43 @@ public class HotStoreOptions
 }
 
 /// <summary>
+/// 设备通讯配置。与 Features.DeviceComm 为 AND 关系。
+/// </summary>
+public class DeviceCommOptions
+{
+    public const string SectionName = "DeviceComm";
+
+    /// <summary>单活写入假设；多实例需业务选主</summary>
+    public bool SingleWriter { get; set; } = true;
+
+    public int DefaultConnectTimeoutMs { get; set; } = 3000;
+    public int DefaultIoTimeoutMs { get; set; } = 2000;
+
+    public DeviceCommRetryOptions Retry { get; set; } = new();
+    public DeviceCommReconnectOptions Reconnect { get; set; } = new();
+
+    public int RuleScanIntervalMs { get; set; } = 200;
+    public bool EnableAlarmOnDisconnect { get; set; } = true;
+    public string AlarmCodeDisconnect { get; set; } = "DEV001";
+    public bool WriteHotStoreOnPointChange { get; set; }
+}
+
+/// <summary>IO 失败重试</summary>
+public class DeviceCommRetryOptions
+{
+    public int MaxAttempts { get; set; } = 3;
+    public int BackoffMs { get; set; } = 500;
+}
+
+/// <summary>断连自动重连</summary>
+public class DeviceCommReconnectOptions
+{
+    public bool Enabled { get; set; } = true;
+    public int IntervalMs { get; set; } = 5000;
+    public int MaxIntervalMs { get; set; } = 60000;
+}
+
+/// <summary>
 /// 功能总开关。关闭后后端不注册对应宿主/中间件，前端隐藏菜单与入口。
 /// 与细节节（MinIO/Mail/Tenant/Security/MessageQueue）为 AND 关系。
 /// </summary>
@@ -206,6 +243,9 @@ public class FeatureOptions
 
     /// <summary>热数据通道（路径/流量等高频读写）；细节见 HotStore 节</summary>
     public bool HotStore { get; set; }
+
+    /// <summary>设备通讯（Step7 / Modbus TCP）；细节见 DeviceComm 节</summary>
+    public bool DeviceComm { get; set; }
 
     /// <summary>按属性名读取开关（忽略大小写）</summary>
     public bool IsEnabled(string featureName)

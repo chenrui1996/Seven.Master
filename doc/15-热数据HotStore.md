@@ -342,6 +342,7 @@ public sealed class ShuttleSchedulerHostedService : BackgroundService
 5. **不要**把主数据（菜单/字典）放进 HotStore；继续用 `ICacheService`。
 6. **不要**对热表开全量字段审计；配置 `AuditExcludeEntities`。
 7. 单元测试参考：`Seven.Tests/Unit/HotStoreTests.cs`、`AuditExcludeTests.cs`。
+8. DeviceComm 规则可选把点位快照写入热层（需本模块开启且热层就绪），见 [16](./16-设备通讯DeviceComm.md)；**不要**用 HotStore 替代 PLC 通讯引擎。
 
 ---
 
@@ -353,4 +354,5 @@ public sealed class ShuttleSchedulerHostedService : BackgroundService
 | [14-功能开关](./14-功能开关.md) | `Features.HotStore` |
 | [07-部署指南](./07-部署指南.md) | 环境变量 |
 | [09-告警模块](./09-告警模块.md) / [10-消息队列](./10-消息队列指南.md) | WCS 抛警集成 |
+| [16-设备通讯DeviceComm](./16-设备通讯DeviceComm.md) | 规则 Emit 可选写热层 |
 | [01-快速开始](./01-快速开始.md) | 本地启动与 Features 示例 |

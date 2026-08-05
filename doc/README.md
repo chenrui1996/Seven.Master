@@ -1,6 +1,6 @@
 # Seven.Master 开发文档
 
-Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级后台系统。复杂能力（工作流、Quartz、MQ、多租户等）均可通过 [`Features`](./14-功能开关.md) 开关裁剪，适合从简单 CRUD 平滑扩展到完整平台。
+Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级后台系统。复杂能力（工作流、Quartz、MQ、多租户、HotStore、DeviceComm 等）均可通过 [`Features`](./14-功能开关.md) 开关裁剪，适合从简单 CRUD 平滑扩展到完整平台。
 
 ## 文档索引
 
@@ -21,6 +21,7 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 | [13-安全与数据权限](./13-安全与数据权限.md) | 验证码、限流、防重、API/数据权限、多租户 |
 | [14-功能开关](./14-功能开关.md) | **Features 总控**：简单项目裁剪复杂能力 |
 | [15-热数据HotStore](./15-热数据HotStore.md) | 热通道：**实现思路**、配置、预热/落库/调度接入、Demo、API（需 `Features.HotStore`） |
+| [16-设备通讯DeviceComm](./16-设备通讯DeviceComm.md) | Step7 / Modbus TCP：**实现思路**、连接与规则、配置与使用、API（需 `Features.DeviceComm`） |
 
 ## 仓库布局
 
@@ -36,5 +37,5 @@ Seven.Master/
 
 ## 技术栈
 
-- **后端**: .NET 8 + EF Core 8 + JWT + Redis + RabbitMQ + Quartz + MinIO + Serilog（均可按 Features 裁剪）
+- **后端**: .NET 8 + EF Core 8 + JWT + Redis + RabbitMQ + Quartz + MinIO + Serilog + DeviceComm（Step7/Modbus，均可按 Features 裁剪）
 - **前端**: Vue 3 + Vite + TypeScript + Pinia + Element Plus + vue-i18n
