@@ -22,6 +22,8 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 | [14-功能开关](./14-功能开关.md) | **Features 总控**：简单项目裁剪复杂能力 |
 | [15-热数据HotStore](./15-热数据HotStore.md) | 热通道：**实现思路**、配置、预热/落库/调度接入、Demo、API（需 `Features.HotStore`） |
 | [16-设备通讯DeviceComm](./16-设备通讯DeviceComm.md) | Step7 / Modbus TCP：**实现思路**、连接与规则、配置与使用、API（需 `Features.DeviceComm`） |
+| [17-健康检查看板](./17-健康检查看板.md) | HealthChecks.UI：`/health-ui` 用法、检查项、与 K8s `/health` 关系 |
+| [18-指标与监控](./18-指标与监控.md) | Prometheus `/metrics` + Grafana / cAdvisor / node-exporter |
 
 ## 仓库布局
 

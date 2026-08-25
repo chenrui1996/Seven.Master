@@ -142,6 +142,7 @@ builder.Services.AddCors(o =>
 
 var app = builder.Build();
 
+app.UseSevenMetrics();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<TraceIdMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -194,6 +195,7 @@ if (features.SignalR)
         app.MapHub<DeviceCommHub>("/hub/devicecomm");
 }
 app.MapSevenHealthChecks();
+app.MapSevenMetrics();
 
 if (!app.Environment.IsEnvironment("Testing"))
 {
