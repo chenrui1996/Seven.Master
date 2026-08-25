@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Seven.Application.Interfaces;
@@ -115,16 +114,7 @@ builder.Services.AddSwaggerGen(c =>
 // 始终注册 SignalR 服务（推送实现依赖 IHubContext）；是否对外 MapHub 由 Features.SignalR 控制
 builder.Services.AddSignalR();
 builder.Services.AddResponseCompression();
-builder.Services.AddSingleton<SevenInfrastructureHealthCheck>();
-builder.Services.AddSingleton<RedisHealthCheck>();
-builder.Services.AddSingleton<RabbitMqHealthCheck>();
-builder.Services.AddSingleton<MinioHealthCheck>();
-builder.Services.AddHealthChecks()
-    .AddCheck("self", () => HealthCheckResult.Healthy())
-    .AddCheck<SevenInfrastructureHealthCheck>("infrastructure")
-    .AddCheck<RedisHealthCheck>("redis")
-    .AddCheck<RabbitMqHealthCheck>("rabbitmq")
-    .AddCheck<MinioHealthCheck>("minio");
+builder.Services.AddSevenHealthChecks(builder.Configuration, builder.Environment);
 
 var corsOrigins =
     builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()?.Origins
@@ -203,7 +193,7 @@ if (features.SignalR)
     if (features.DeviceComm)
         app.MapHub<DeviceCommHub>("/hub/devicecomm");
 }
-app.MapHealthChecks("/health");
+app.MapSevenHealthChecks();
 
 if (!app.Environment.IsEnvironment("Testing"))
 {

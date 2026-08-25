@@ -30,5 +30,17 @@ public class HealthApiTests : IClassFixture<SevenWebApplicationFactory>
     {
         var response = await _client.GetAsync("/health");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var json = await response.Content.ReadAsStringAsync();
+        json.Should().Contain("Healthy");
+        json.Should().Contain("self");
+        json.Should().Contain("database");
+        json.Should().NotContain("infrastructure");
+    }
+
+    [Fact]
+    public async Task HealthUi_ShouldReturnOk()
+    {
+        var response = await _client.GetAsync("/health-ui");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
