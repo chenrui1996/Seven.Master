@@ -12,7 +12,7 @@ public sealed class BusTransportOrderRequest : ITransportOrderRequest
 
     public bool IsEnabled => true;
 
-    public Task RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default)
+    public Task<Guid> RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         var to = string.IsNullOrWhiteSpace(request.ToLocationCode)
@@ -25,7 +25,9 @@ public sealed class BusTransportOrderRequest : ITransportOrderRequest
                 request.FromLocationCode,
                 to,
                 request.RefType,
-                request.RefId),
+                request.RefId,
+                request.WcsGroupNo,
+                request.WcsPri),
             ct);
     }
 }

@@ -14,5 +14,7 @@ public class WmsOutboundOrderLine : BaseEntity
     public string? ContainerCode { get; set; }
     public string? FromLocation { get; set; }
     public string? ToLocation { get; set; }
+    /// <summary>组内优先级；0 表示审核时按 LineNo 赋值。</summary>
+    public int WcsPri { get; set; }
     public WmsOutboundOrder? Order { get; set; }
 }

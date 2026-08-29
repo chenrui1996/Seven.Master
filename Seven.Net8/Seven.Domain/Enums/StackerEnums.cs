@@ -21,6 +21,17 @@ public enum StkPutAwayStatus
     Failed = 5
 }
 
+/// <summary>堆垛机出库取货任务状态。</summary>
+public enum StkRetrievalStatus
+{
+    Accepted = 0,
+    Dispatched = 1,
+    Completed = 2,
+    Cancelled = 3,
+    Failed = 4,
+    Suspended = 5
+}
+
 /// <summary>堆垛机设备段任务状态。</summary>
 public enum StkDeviceTaskStatus
 {

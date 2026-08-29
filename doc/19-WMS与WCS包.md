@@ -2,6 +2,8 @@
 
 单进程 Seven 产品 = **WMS 账本** + **薄编排总线** + **可插拔 WCS 包**（自研或外部）。按项目启用 Features 组合，例如仅堆垛机、仅四向车、堆垛机 + 外部 AGV 等。
 
+**实现逻辑合集（WMS / 立库 / 四向）见 [20-WMS与WCS实现说明](./20-WMS与WCS实现说明.md)。**
+
 相关开关见 [14-功能开关](./14-功能开关.md)；热层见 [15-热数据HotStore](./15-热数据HotStore.md)；PLC 通讯见 [16-设备通讯DeviceComm](./16-设备通讯DeviceComm.md)（Phase H 后置）。
 
 ---
@@ -57,21 +59,25 @@
 
 | 开关 | 关闭效果 |
 |------|----------|
-| `Wms` | WMS API 404；隐藏 WMS/SCADA 菜单；库存与三单不可用 |
-| `OrchestrationBus` | 不注册总线服务；`Bus_*` 运输单不可创建 |
-| `WcsPacks.Stacker` | 堆垛机包 HostedService 不启动；`Stk_*` 业务不可用 |
-| `WcsPacks.FourWay` | 四向车包不启动；需 `HotStore=true` 才启用寻路/交通 |
-| `WcsPacks.BoxSort` | 箱式分拣包（预留） |
+| `Wms` | **仅隐藏** WMS/SCADA 菜单；后端 `Wms_*` 与 API 始终可用 |
+| `OrchestrationBus` | **仅隐藏** 总线/运维菜单；编排与 `Bus_*` 始终注册 |
+| `WcsPacks.Stacker` | **仅隐藏** 堆垛机相关菜单；`Stk_*` 服务始终保留 |
+| `WcsPacks.FourWay` | **仅隐藏** 四向相关菜单；包服务始终保留（运行时 HotStore 仍按基础设施开关） |
+| `WcsPacks.BoxSort` | **仅隐藏** 箱式分拣菜单（预留） |
 | `ExternalWcs` | 外部供应商包列表（`PackId` / `Transport` / `Codec`） |
 
-| 场景 | 建议开关 |
+| 场景 | 建议 UI 勾选 |
 |------|----------|
-| 纯账本/单据联调 | `Wms=true`，总线与包可先 false |
-| 巷道立库仿真 | Wms + OrchestrationBus + WcsPacks.Stacker；DeviceComm 仍可 false |
-| 四向车库 | + HotStore + WcsPacks.FourWay |
+| 纯账本/单据界面 | `Wms=true`（仓库仍须绑定 ≥1 个 WCS 包以具备货位前缀结构） |
+| 巷道立库联调界面 | Wms + OrchestrationBus + WcsPacks.Stacker |
+| 四向车库界面 | + WcsPacks.FourWay（热路径另开 HotStore） |
+| 同仓多包 | 库区/货位码前缀区分（`Stk.`/`Fw.`）；见 [design/wms/02](../design/wms/02-location-multi-pack-prefix.md) |
 | 接外部供应商 | + ExternalWcs 项；MessageQueue 按传输需要 |
 
-包开关为嵌套对象时，API/`RequiresFeature` 用显式 `IsWcsPackEnabled("Stacker")`，不要依赖仅反射顶层 bool 的 `IsEnabled`。
+模块 UI 开关不卸载后端能力。基础设施类开关（HotStore/DeviceComm 等）仍控制运行时宿主。
+
+WMS/堆垛机/四向设计原稿：[`design/wms/`](../design/wms/)、[`design/srm-wcs/`](../design/srm-wcs/)、[`design/shuttle-wcs/`](../design/shuttle-wcs/)。  
+产品实现说明：[20-WMS与WCS实现说明](./20-WMS与WCS实现说明.md)。
 
 **生产 HotStore：** `HotStore:EnableDemoScheduler` 保持 **false**（见 [15 §3](./15-热数据HotStore.md)）；四向车业务使用 `fw:` 命名空间，禁止生产路径使用 Demo 全局 `wcs:` 键。
 

@@ -6,7 +6,7 @@ using Seven.Infrastructure.Persistence;
 
 namespace Seven.Infrastructure.Wms;
 
-/// <summary>运输单完成后：移库（收货位→目标 / 货位→出库口），并回写入/出库单完成。</summary>
+/// <summary>运输单完成后：移库（收货位→目标 / 货位→出库口），并回写组盘明细与入/出库单。</summary>
 public sealed class WmsTransportCompletionHandler : IWmsTransportCompletionHandler
 {
     private readonly SevenDbContext _db;
@@ -33,13 +33,23 @@ public sealed class WmsTransportCompletionHandler : IWmsTransportCompletionHandl
         }
 
         await MoveStockIfNeededAsync(order.FromLocationCode, order.ToLocationCode, order.ContainerCode, order.RefType, order.RefId, ct);
+        await OccupyTargetLocationAsync(order.ToLocationCode, order.ContainerCode, ct);
+        if (string.Equals(order.RefType, "OutboundOrder", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(order.RefType, "StackerTransfer", StringComparison.OrdinalIgnoreCase))
+            await ReleaseSourceLocationAsync(order.FromLocationCode, ct);
 
         if (string.IsNullOrWhiteSpace(order.RefId))
             return;
 
+        if (string.Equals(order.RefType, "InboundDetail", StringComparison.OrdinalIgnoreCase))
+        {
+            await CompleteInboundDetailAsync(order.RefId, orderId, ct);
+            return;
+        }
+
         if (string.Equals(order.RefType, "InboundOrder", StringComparison.OrdinalIgnoreCase))
         {
-            await CompleteInboundIfReadyAsync(order.RefType!, order.RefId, orderId, ct);
+            await CompleteInboundOrderByNoAsync(order.RefType!, order.RefId, orderId, ct);
             return;
         }
 
@@ -47,15 +57,55 @@ public sealed class WmsTransportCompletionHandler : IWmsTransportCompletionHandl
             await CompleteOutboundIfReadyAsync(order.RefType!, order.RefId, orderId, ct);
     }
 
-    private async Task CompleteInboundIfReadyAsync(string refType, string refId, Guid completedOrderId, CancellationToken ct)
+    private async Task CompleteInboundDetailAsync(string detailIdText, Guid completedOrderId, CancellationToken ct)
+    {
+        if (!int.TryParse(detailIdText, out var detailId))
+        {
+            _logger?.LogWarning("Invalid InboundDetail RefId {RefId}", detailIdText);
+            return;
+        }
+
+        var detail = await _db.WmsInboundDetails.FirstOrDefaultAsync(x => x.Id == detailId, ct);
+        if (detail == null) return;
+
+        detail.Status = WmsInboundDetailStatus.Completed;
+        detail.TransportOrderId ??= completedOrderId;
+        detail.ModifyDate = DateTime.UtcNow;
+
+        var inbound = await _db.WmsInboundOrders
+            .Include(x => x.Lines)
+            .Include(x => x.Details)
+            .FirstOrDefaultAsync(x => x.Id == detail.OrderId, ct);
+        if (inbound != null
+            && inbound.Lines.All(x => x.CompletedQty >= x.Qty)
+            && inbound.Details.All(d =>
+                d.Id == detail.Id
+                || d.Status is WmsInboundDetailStatus.Completed or WmsInboundDetailStatus.Cancelled))
+        {
+            inbound.Status = WmsOrderStatus.Completed;
+            inbound.ModifyDate = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync(ct);
+    }
+
+    private async Task CompleteInboundOrderByNoAsync(string refType, string refId, Guid completedOrderId, CancellationToken ct)
     {
         if (await HasPendingTransportAsync(refType, refId, completedOrderId, ct))
             return;
 
         var inbound = await _db.WmsInboundOrders
             .Include(x => x.Lines)
+            .Include(x => x.Details)
             .FirstOrDefaultAsync(x => x.OrderNo == refId, ct);
         if (inbound == null) return;
+
+        foreach (var detail in inbound.Details.Where(d =>
+                     d.Status is WmsInboundDetailStatus.Created or WmsInboundDetailStatus.Transporting))
+        {
+            detail.Status = WmsInboundDetailStatus.Completed;
+            detail.ModifyDate = DateTime.UtcNow;
+        }
 
         inbound.Status = WmsOrderStatus.Completed;
         inbound.ModifyDate = DateTime.UtcNow;
@@ -88,6 +138,30 @@ public sealed class WmsTransportCompletionHandler : IWmsTransportCompletionHandl
             && x.Status != BusOrderStatus.Completed
             && x.Status != BusOrderStatus.Failed, ct);
 
+    private async Task OccupyTargetLocationAsync(string toLoc, string? containerCode, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(toLoc)) return;
+        var loc = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == toLoc, ct);
+        if (loc == null) return;
+        loc.IsBooked = false;
+        loc.IsOccupied = true;
+        loc.CurrentContainerCode = containerCode;
+        loc.ModifyDate = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+    }
+
+    private async Task ReleaseSourceLocationAsync(string fromLoc, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(fromLoc)) return;
+        var loc = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == fromLoc, ct);
+        if (loc == null) return;
+        loc.IsOccupied = false;
+        loc.IsBooked = false;
+        loc.CurrentContainerCode = null;
+        loc.ModifyDate = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+    }
+
     private async Task MoveStockIfNeededAsync(
         string fromLoc,
         string toLoc,
@@ -112,7 +186,6 @@ public sealed class WmsTransportCompletionHandler : IWmsTransportCompletionHandl
             .ToListAsync(ct);
         foreach (var stock in stocks)
         {
-            // 预留后 AvailableQty 可能小于 Qty，出库移库仍按账面 Qty 扣减
             var qty = stock.Qty;
             if (qty <= 0) continue;
             if (stock.AvailableQty < qty)

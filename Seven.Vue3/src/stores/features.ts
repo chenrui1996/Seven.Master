@@ -61,7 +61,23 @@ const defaults: FeatureFlags = {
   },
 }
 
-/** 菜单 TableName → 功能开关（顶层 bool）；嵌套包见 isMenuEnabled 特殊分支 */
+type MenuLike = {
+  tableName?: string | null
+  TableName?: string | null
+  url?: string | null
+  Url?: string | null
+  children?: MenuLike[]
+}
+
+function pickTableName(m: MenuLike): string {
+  return String(m.tableName ?? m.TableName ?? '').trim()
+}
+
+function pickUrl(m: MenuLike): string {
+  return String(m.url ?? m.Url ?? '').trim()
+}
+
+/** 菜单 TableName → 顶层开关；嵌套包见 isMenuEnabled */
 const menuFeatureMap: Record<string, keyof FeatureFlags> = {
   Sys_WorkFlow: 'workFlow',
   Sys_WorkFlowTable: 'workFlow',
@@ -77,19 +93,26 @@ const menuFeatureMap: Record<string, keyof FeatureFlags> = {
   WmsFolder: 'wms',
   WmsLocation: 'wms',
   WmsStock: 'wms',
+  WmsWarehouse: 'wms',
+  WmsZone: 'wms',
+  WmsLayer: 'wms',
+  WmsAisle: 'wms',
+  WmsContainer: 'wms',
+  WmsContainerType: 'wms',
+  WmsHandoverLink: 'wms',
+  WmsStockLedger: 'wms',
   WmsInboundOrder: 'wms',
   WmsOutboundOrder: 'wms',
   WmsCycleCount: 'wms',
   ScadaFolder: 'wms',
-  WcsFolder: 'orchestrationBus',
-  WcsOpsFolder: 'orchestrationBus',
+  ScadaFloor2d: 'wms',
   BusTransportOrder: 'orchestrationBus',
   CtlMode: 'orchestrationBus',
   IfcApiLog: 'orchestrationBus',
 }
 
 export const useFeatureStore = defineStore('features', () => {
-  const flags = ref<FeatureFlags>({ ...defaults })
+  const flags = ref<FeatureFlags>({ ...defaults, wcsPacks: { ...defaults.wcsPacks } })
   const loaded = ref(false)
 
   const captchaEnabled = computed(() => flags.value.captcha)
@@ -98,50 +121,100 @@ export const useFeatureStore = defineStore('features', () => {
 
   async function load() {
     try {
-      const res = await http.get<{ status: boolean; data?: Partial<FeatureFlags> & { wcsPacks?: Partial<WcsPackFeatureFlags> } }>('/api/config/features')
+      const res = await http.get<{
+        status: boolean
+        data?: Partial<FeatureFlags> & { wcsPacks?: Partial<WcsPackFeatureFlags> }
+      }>('/api/config/features')
       if (res.status && res.data) {
+        const packs = res.data.wcsPacks ?? (res.data as { WcsPacks?: Partial<WcsPackFeatureFlags> }).WcsPacks
         flags.value = {
           ...defaults,
           ...res.data,
-          wcsPacks: { ...defaults.wcsPacks, ...res.data.wcsPacks },
+          wms: !!(res.data.wms ?? (res.data as { Wms?: boolean }).Wms),
+          orchestrationBus: !!(
+            res.data.orchestrationBus ?? (res.data as { OrchestrationBus?: boolean }).OrchestrationBus
+          ),
+          simulator: !!(res.data.simulator ?? (res.data as { Simulator?: boolean }).Simulator),
+          deviceComm: !!(res.data.deviceComm ?? (res.data as { DeviceComm?: boolean }).DeviceComm),
+          wcsPacks: {
+            ...defaults.wcsPacks,
+            stacker: !!(packs?.stacker ?? (packs as { Stacker?: boolean } | undefined)?.Stacker),
+            fourWay: !!(packs?.fourWay ?? (packs as { FourWay?: boolean } | undefined)?.FourWay),
+            boxSort: !!(packs?.boxSort ?? (packs as { BoxSort?: boolean } | undefined)?.BoxSort),
+          },
         }
+      } else {
+        flags.value = { ...defaults, wcsPacks: { ...defaults.wcsPacks } }
       }
     } catch {
-      flags.value = { ...defaults }
+      flags.value = { ...defaults, wcsPacks: { ...defaults.wcsPacks } }
     } finally {
       loaded.value = true
     }
   }
 
+  function anyWcsPack() {
+    const p = flags.value.wcsPacks
+    return !!(p.stacker || p.fourWay || p.boxSort)
+  }
+
   function isMenuEnabled(tableName?: string | null, url?: string | null) {
-    const key = tableName || ''
-    if (key === 'StackerTrigger' || url?.includes('/Wcs/Stacker'))
-      return !!flags.value.wcsPacks.stacker || !!flags.value.orchestrationBus
+    const key = (tableName || '').trim()
+    const path = (url || '').trim()
+
+    if (key === 'StackerTrigger' || key.startsWith('Stk') || path.includes('/Wcs/Stacker'))
+      return !!flags.value.wcsPacks.stacker
+    if (
+      key === 'FourWayTrigger' ||
+      key === 'FourWayFolder' ||
+      key.startsWith('Fw') ||
+      path.includes('/Wcs/FourWay')
+    )
+      return !!flags.value.wcsPacks.fourWay
+    if (key === 'WcsFolder')
+      return !!flags.value.orchestrationBus || !!flags.value.wcsPacks.stacker
+    if (key === 'WcsOpsFolder')
+      return !!flags.value.orchestrationBus || !!flags.value.wms
+
     const feature = menuFeatureMap[key]
-    if (feature) return !!flags.value[feature]
-    if (url?.includes('WorkFlow')) return flags.value.workFlow
-    if (url?.includes('Quartz')) return flags.value.quartz
-    if (url?.includes('Alarm')) return flags.value.alarm
-    if (url?.includes('coder') || url?.includes('TableInfo')) return flags.value.builder
-    if (url?.includes('DeviceComm') || url?.includes('CommConnection') || url?.includes('CommPoint') || url?.includes('CommRule'))
+    if (feature) {
+      const v = flags.value[feature]
+      return typeof v === 'boolean' ? v : true
+    }
+
+    if (path.includes('WorkFlow')) return flags.value.workFlow
+    if (path.includes('Quartz')) return flags.value.quartz
+    if (path.includes('Alarm')) return flags.value.alarm
+    if (path.includes('coder') || path.includes('TableInfo')) return flags.value.builder
+    if (
+      path.includes('DeviceComm') ||
+      path.includes('CommConnection') ||
+      path.includes('CommPoint') ||
+      path.includes('CommRule')
+    )
       return flags.value.deviceComm
-    if (url?.includes('/Wms/') || url?.includes('/Scada/')) return flags.value.wms
-    if (url?.includes('/Wcs/') || url?.includes('/Platform/')) return flags.value.orchestrationBus || flags.value.wms
+    if (path.includes('/Wms/') || path.includes('/Scada/')) return flags.value.wms
+    if (path.includes('/Wcs/Bus') || path.includes('/Platform/')) return flags.value.orchestrationBus
+    if (path.includes('/Wcs/')) return anyWcsPack() || flags.value.orchestrationBus
     return true
   }
 
-  function filterMenus<T extends { tableName?: string; url?: string; children?: T[] }>(menus: T[]): T[] {
+  /**
+   * 递归过滤：叶子按开关；无 url 的目录仅在仍有子节点时保留。
+   * 不再用「自身关闭但有子节点则保留」——避免未映射子项把已关闭模块撑出来。
+   */
+  function filterMenus<T extends MenuLike>(menus: T[]): T[] {
     return menus
       .map((m) => {
         const children = m.children ? filterMenus(m.children) : undefined
-        return { ...m, children }
+        return { ...m, children } as T
       })
       .filter((m) => {
-        const selfOk = isMenuEnabled(m.tableName, m.url)
+        const url = pickUrl(m)
+        const table = pickTableName(m)
         const hasKids = (m.children?.length ?? 0) > 0
-        // 目录节点：有可用子菜单则保留
-        if (!m.url && !m.tableName) return hasKids
-        return selfOk || hasKids
+        if (!url) return hasKids
+        return isMenuEnabled(table, url)
       })
   }
 

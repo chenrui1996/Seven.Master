@@ -10,7 +10,6 @@ namespace Seven.WebApi.Controllers.Scada;
 [Route("api/ScdView")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class ScdViewsController : ControllerBase
 {
     private readonly IScadaViewService _views;
@@ -22,7 +21,7 @@ public class ScdViewsController : ControllerBase
     public async Task<WebResponseContent> GetByCode(string code, CancellationToken ct)
     {
         var view = await _views.GetByCodeAsync(code, ct);
-        return view == null ? WebResponseContent.Error("视图不存在") : WebResponseContent.Ok(data: view);
+        return view == null ? WebResponseContent.Error("è§å¾ä¸å­å¨") : WebResponseContent.Ok(data: view);
     }
 
     [HttpGet("{id:int}/status")]
@@ -30,7 +29,7 @@ public class ScdViewsController : ControllerBase
     public async Task<WebResponseContent> GetStatus(int id, CancellationToken ct)
     {
         var status = await _views.GetStatusAsync(id, ct);
-        return status == null ? WebResponseContent.Error("视图不存在") : WebResponseContent.Ok(data: status);
+        return status == null ? WebResponseContent.Error("è§å¾ä¸å­å¨") : WebResponseContent.Ok(data: status);
     }
 
     [HttpPost("getPageData")]
@@ -52,7 +51,6 @@ public class ScdViewsController : ControllerBase
 [Route("api/ScdNodeBind")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class ScdNodeBindsController : ControllerBase
 {
     private readonly IScadaNodeBindService _binds;

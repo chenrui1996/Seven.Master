@@ -18,6 +18,7 @@ public class BusTransportOrderConfiguration : IEntityTypeConfiguration<BusTransp
         builder.Property(x => x.FailReason).HasMaxLength(512);
         builder.Property(x => x.RefType).HasMaxLength(64);
         builder.Property(x => x.RefId).HasMaxLength(64);
+        builder.Property(x => x.WcsGroupNo).HasMaxLength(64);
         builder.HasMany(x => x.Legs)
             .WithOne(x => x.Order)
             .HasForeignKey(x => x.OrderId)

@@ -13,6 +13,8 @@ public class WmsWarehouseConfiguration : IEntityTypeConfiguration<WmsWarehouse>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
         builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.EnabledPackIds).HasMaxLength(256).IsRequired().HasDefaultValue(string.Empty);
+        builder.Property(x => x.IsCycleCountLocked).HasDefaultValue(false);
         builder.HasIndex(x => x.Code).IsUnique();
     }
 }
@@ -23,12 +25,61 @@ public class WmsZoneConfiguration : IEntityTypeConfiguration<WmsZone>
     {
         builder.ToTable(TablePrefixes.Wms + "Zone");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.PackId).HasMaxLength(32).IsRequired().HasDefaultValue(string.Empty);
         builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
         builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
-        builder.HasIndex(x => new { x.WarehouseId, x.Code }).IsUnique();
+        builder.HasIndex(x => x.Code).IsUnique();
+        builder.HasIndex(x => new { x.WarehouseId, x.PackId });
         builder.HasOne<WmsWarehouse>()
             .WithMany()
             .HasForeignKey(x => x.WarehouseId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class WmsLayerConfiguration : IEntityTypeConfiguration<WmsLayer>
+{
+    public void Configure(EntityTypeBuilder<WmsLayer> builder)
+    {
+        builder.ToTable(TablePrefixes.Wms + "Layer");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.PackId).HasMaxLength(32).IsRequired();
+        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
+        builder.HasIndex(x => x.Code).IsUnique();
+        builder.HasOne<WmsWarehouse>()
+            .WithMany()
+            .HasForeignKey(x => x.WarehouseId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WmsZone>()
+            .WithMany()
+            .HasForeignKey(x => x.ZoneId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class WmsAisleConfiguration : IEntityTypeConfiguration<WmsAisle>
+{
+    public void Configure(EntityTypeBuilder<WmsAisle> builder)
+    {
+        builder.ToTable(TablePrefixes.Wms + "Aisle");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.PackId).HasMaxLength(32).IsRequired();
+        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.EpPointCode).HasMaxLength(64);
+        builder.HasIndex(x => x.Code).IsUnique();
+        builder.HasOne<WmsWarehouse>()
+            .WithMany()
+            .HasForeignKey(x => x.WarehouseId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WmsZone>()
+            .WithMany()
+            .HasForeignKey(x => x.ZoneId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WmsLayer>()
+            .WithMany()
+            .HasForeignKey(x => x.LayerId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -39,14 +90,16 @@ public class WmsLocationConfiguration : IEntityTypeConfiguration<WmsLocation>
     {
         builder.ToTable(TablePrefixes.Wms + "Location");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.PackId).HasMaxLength(32).IsRequired().HasDefaultValue(string.Empty);
         builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
-        builder.Property(x => x.Aisle).HasMaxLength(32);
+        builder.Property(x => x.Aisle).HasMaxLength(64);
         builder.Property(x => x.Row).HasMaxLength(32);
         builder.Property(x => x.Column).HasMaxLength(32);
         builder.Property(x => x.Layer).HasMaxLength(32);
+        builder.Property(x => x.Depth).HasMaxLength(32);
         builder.Property(x => x.CurrentContainerCode).HasMaxLength(64);
         builder.HasIndex(x => x.Code).IsUnique();
-        builder.HasIndex(x => x.WarehouseId);
+        builder.HasIndex(x => new { x.WarehouseId, x.PackId });
         builder.HasOne<WmsWarehouse>()
             .WithMany()
             .HasForeignKey(x => x.WarehouseId)
@@ -54,6 +107,14 @@ public class WmsLocationConfiguration : IEntityTypeConfiguration<WmsLocation>
         builder.HasOne<WmsZone>()
             .WithMany()
             .HasForeignKey(x => x.ZoneId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WmsLayer>()
+            .WithMany()
+            .HasForeignKey(x => x.LayerId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WmsAisle>()
+            .WithMany()
+            .HasForeignKey(x => x.AisleId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -155,6 +216,34 @@ public class WmsInboundOrderLineConfiguration : IEntityTypeConfiguration<WmsInbo
     }
 }
 
+public class WmsInboundDetailConfiguration : IEntityTypeConfiguration<WmsInboundDetail>
+{
+    public void Configure(EntityTypeBuilder<WmsInboundDetail> builder)
+    {
+        builder.ToTable(TablePrefixes.Wms + "InboundDetail");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.MaterialCode).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.Qty).HasPrecision(18, 4);
+        builder.Property(x => x.ContainerCode).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.ReceiveLocationCode).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.TargetLocationCode).HasMaxLength(64);
+        builder.Property(x => x.AssignedAisle).HasMaxLength(64);
+        builder.Property(x => x.AssignedLayer).HasMaxLength(64);
+        builder.Property(x => x.PackId).HasMaxLength(32).IsRequired();
+        builder.HasIndex(x => new { x.OrderId, x.DetailNo }).IsUnique();
+        builder.HasIndex(x => x.TransportOrderId);
+        builder.HasIndex(x => x.ContainerCode);
+        builder.HasOne(x => x.Order)
+            .WithMany(x => x.Details)
+            .HasForeignKey(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Line)
+            .WithMany(x => x.Details)
+            .HasForeignKey(x => x.LineId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 public class WmsOutboundOrderConfiguration : IEntityTypeConfiguration<WmsOutboundOrder>
 {
     public void Configure(EntityTypeBuilder<WmsOutboundOrder> builder)
@@ -162,6 +251,7 @@ public class WmsOutboundOrderConfiguration : IEntityTypeConfiguration<WmsOutboun
         builder.ToTable(TablePrefixes.Wms + "OutboundOrder");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.OrderNo).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.WcsGroupNo).HasMaxLength(64);
         builder.HasIndex(x => x.OrderNo).IsUnique();
         builder.HasMany(x => x.Lines)
             .WithOne(x => x.Order)

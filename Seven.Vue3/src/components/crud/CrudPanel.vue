@@ -181,7 +181,7 @@
                   link
                   type="success"
                   @click="onSubmitAudit(row)"
-                >提交审批</el-button>
+                >{{ t('common.submitAudit') }}</el-button>
               </template>
               <el-button
                 v-if="userStore.hasPermission(`${tableName}.Delete`)"

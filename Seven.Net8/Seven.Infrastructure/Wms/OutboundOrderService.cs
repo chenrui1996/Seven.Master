@@ -28,6 +28,11 @@ public sealed class OutboundOrderService : IOutboundOrderService
     public Task<PageGridData<WmsOutboundOrder>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
         CrudHelper.PaginateAsync(_db.WmsOutboundOrders.AsNoTracking(), options, ct);
 
+    public Task<WmsOutboundOrder?> GetAsync(int orderId, CancellationToken ct = default) =>
+        _db.WmsOutboundOrders.AsNoTracking()
+            .Include(x => x.Lines)
+            .FirstOrDefaultAsync(x => x.Id == orderId, ct);
+
     public async Task<WmsOutboundOrder> CreateAsync(CreateOutboundOrderRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -43,6 +48,7 @@ public sealed class OutboundOrderService : IOutboundOrderService
             OrderNo = request.OrderNo.Trim(),
             OrderType = request.OrderType,
             Status = WmsOrderStatus.Draft,
+            WcsGroupNo = string.IsNullOrWhiteSpace(request.WcsGroupNo) ? null : request.WcsGroupNo.Trim(),
             CreateDate = DateTime.UtcNow
         };
         foreach (var line in request.Lines)
@@ -58,7 +64,8 @@ public sealed class OutboundOrderService : IOutboundOrderService
                 Qty = line.Qty,
                 FromLocation = line.FromLocation,
                 ToLocation = line.ToLocation,
-                ContainerCode = line.ContainerCode
+                ContainerCode = line.ContainerCode,
+                WcsPri = line.WcsPri > 0 ? line.WcsPri : line.LineNo
             });
         }
 
@@ -74,13 +81,17 @@ public sealed class OutboundOrderService : IOutboundOrderService
             throw new WmsDomainException("仅草稿可审核");
         order.Status = WmsOrderStatus.Approved;
         order.ModifyDate = DateTime.UtcNow;
+        if (string.IsNullOrWhiteSpace(order.WcsGroupNo))
+            order.WcsGroupNo = order.OrderNo;
+        foreach (var line in order.Lines.Where(x => x.WcsPri <= 0))
+            line.WcsPri = line.LineNo;
         await _db.SaveChangesAsync(ct);
 
         if (_transport is not { IsEnabled: true })
             return;
 
         var needsTransport = false;
-        foreach (var line in order.Lines.OrderBy(x => x.LineNo))
+        foreach (var line in order.Lines.OrderBy(x => x.WcsPri).ThenBy(x => x.LineNo))
         {
             if (!NeedsTransport(line)) continue;
             needsTransport = true;
@@ -99,7 +110,9 @@ public sealed class OutboundOrderService : IOutboundOrderService
                 line.ToLocation!,
                 line.ContainerCode,
                 "OutboundOrder",
-                order.OrderNo), ct);
+                order.OrderNo,
+                order.WcsGroupNo,
+                line.WcsPri), ct);
         }
 
         if (!needsTransport) return;

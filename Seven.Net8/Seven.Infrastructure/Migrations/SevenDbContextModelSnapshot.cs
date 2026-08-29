@@ -298,6 +298,13 @@ namespace Seven.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
+                    b.Property<string>("WcsGroupNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int?>("WcsPri")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Status");
@@ -2509,6 +2516,516 @@ namespace Seven.Infrastructure.Migrations
                     b.ToTable("Ext_System", (string)null);
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwAislePolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AisleCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("AllocationWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DestinationPointCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("MaxHeight")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxShuttleCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MaxWeight")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<int>("MinEmptySlots")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LayerCode", "AisleCode")
+                        .IsUnique();
+
+                    b.ToTable("Fw_AislePolicy", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwAssignmentRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssignCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LastAssignedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ScopeCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("ScopeType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScopeType", "ScopeCode")
+                        .IsUnique();
+
+                    b.ToTable("Fw_AssignmentRecord", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwHoistDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CurrentLayer")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("CurrentLocation")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("HoistNo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoistNo")
+                        .IsUnique();
+
+                    b.ToTable("Fw_HoistDevice", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwHoistExecTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DesAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("DesLayer")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("HoistNo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<Guid>("HoistTaskId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LegId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SrcAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("SrcLayer")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WcsPri")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoistTaskId");
+
+                    b.HasIndex("LegId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("HoistNo", "SrcAddress", "Status");
+
+                    b.ToTable("Fw_HoistExecTask", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwHoistLayerPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("HoistNo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("InboundAp")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("InboundEp")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OutboundAp")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("OutboundEp")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoistNo", "LayerCode")
+                        .IsUnique();
+
+                    b.ToTable("Fw_HoistLayerPoint", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwHoistTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DesAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("DesLayer")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("FromCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("HoistNo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LegId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SrcAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("SrcLayer")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ToCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("WcsPri")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerCode");
+
+                    b.HasIndex("LegId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Fw_HoistTask", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwLayerPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AllocationWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("MaxHeight")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MaxWeight")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NextPolicyId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("StartSign")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("WarehouseCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("ZoneCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WarehouseCode", "ZoneCode", "LayerCode");
+
+                    b.ToTable("Fw_LayerPolicy", (string)null);
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwMapVersion", b =>
                 {
                     b.Property<int>("Id")
@@ -2537,6 +3054,10 @@ namespace Seven.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("LayerCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<string>("Modifier")
                         .HasColumnType("longtext");
 
@@ -2558,6 +3079,8 @@ namespace Seven.Infrastructure.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("LayerCode");
 
                     b.ToTable("Fw_MapVersion", (string)null);
                 });
@@ -2614,6 +3137,288 @@ namespace Seven.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Fw_Node", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwParkingLedger", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AisleCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("ContainerCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayerCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("LocationCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ShuttleNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("LayerCode", "AisleCode", "Status");
+
+                    b.ToTable("Fw_ParkingLedger", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwPutAwayTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("AssignedAisle")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("AssignedLayer")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("AssignedLocationCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FromCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LegId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ToCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerCode");
+
+                    b.HasIndex("LegId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Fw_PutAwayTask", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwRequestPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AisleCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayerCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Fw_RequestPoint", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwRetrievalTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FromCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LegId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ToCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("WcsGroupNo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("WcsPri")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerCode");
+
+                    b.HasIndex("LegId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WcsGroupNo", "WcsPri");
+
+                    b.ToTable("Fw_RetrievalTask", (string)null);
                 });
 
             modelBuilder.Entity("Seven.Domain.Entities.Wcs.FourWay.FwRoute", b =>
@@ -2869,6 +3674,11 @@ namespace Seven.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
+                    b.Property<int>("AllocationWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<DateTime?>("CreateDate")
                         .HasColumnType("datetime(6)");
 
@@ -2894,6 +3704,11 @@ namespace Seven.Infrastructure.Migrations
 
                     b.Property<int>("MaxWeight")
                         .HasColumnType("int");
+
+                    b.Property<int>("MinEmptySlots")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Modifier")
                         .HasColumnType("longtext");
@@ -2966,6 +3781,56 @@ namespace Seven.Infrastructure.Migrations
                     b.ToTable("Stk_AssignmentRecord", (string)null);
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkDeviceCoder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LocationCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PointCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationCode")
+                        .IsUnique();
+
+                    b.ToTable("Stk_DeviceCoder", (string)null);
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkDeviceTask", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2990,6 +3855,20 @@ namespace Seven.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
+                    b.Property<string>("ExeStackCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("FromPointCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
@@ -3005,8 +3884,14 @@ namespace Seven.Infrastructure.Migrations
                     b.Property<int?>("ModifyId")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("PutAwayTaskId")
+                    b.Property<Guid?>("PutAwayTaskId")
                         .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("RetrievalTaskId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Seq")
+                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -3020,9 +3905,70 @@ namespace Seven.Infrastructure.Migrations
 
                     b.HasIndex("PutAwayTaskId");
 
+                    b.HasIndex("RetrievalTaskId");
+
                     b.HasIndex("Status");
 
+                    b.HasIndex("LegId", "Seq");
+
                     b.ToTable("Stk_DeviceTask", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkLocationProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BinGroupCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("InLockBin")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LocationCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("OutLockBin")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BinGroupCode");
+
+                    b.HasIndex("LocationCode")
+                        .IsUnique();
+
+                    b.ToTable("Stk_LocationProfile", (string)null);
                 });
 
             modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkPutAwayTask", b =>
@@ -3148,6 +4094,292 @@ namespace Seven.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Stk_RequestPoint", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkRetrievalTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FromCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LegId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ToCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("WcsGroupNo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("WcsPri")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerCode");
+
+                    b.HasIndex("LegId")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WcsGroupNo", "WcsPri");
+
+                    b.ToTable("Stk_RetrievalTask", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkRoute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ExeStackCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("FromCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("MapCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ToCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("MapCode", "FromCode", "ToCode");
+
+                    b.ToTable("Stk_Route", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wcs.Stacker.StkRouteFlow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("DeviceTaskId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("LegId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RouteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceTaskId");
+
+                    b.HasIndex("LegId");
+
+                    b.HasIndex("RouteId");
+
+                    b.ToTable("Stk_RouteFlow", (string)null);
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsAisle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AllocationWeight")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("EpPointCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("LayerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxDepth")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("PackId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("LayerId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.HasIndex("ZoneId");
+
+                    b.ToTable("Wms_Aisle", (string)null);
                 });
 
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsContainer", b =>
@@ -3435,6 +4667,103 @@ namespace Seven.Infrastructure.Migrations
                     b.ToTable("Wms_HandoverLink", (string)null);
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsInboundDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedAisle")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("AssignedLayer")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("ContainerCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("DetailNo")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LineId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MaterialCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PackId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<decimal>("Qty")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ReceiveLocationCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetLocationCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TransportOrderId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContainerCode");
+
+                    b.HasIndex("LineId");
+
+                    b.HasIndex("TransportOrderId");
+
+                    b.HasIndex("OrderId", "DetailNo")
+                        .IsUnique();
+
+                    b.ToTable("Wms_InboundDetail", (string)null);
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsInboundOrder", b =>
                 {
                     b.Property<int>("Id")
@@ -3557,6 +4886,80 @@ namespace Seven.Infrastructure.Migrations
                     b.ToTable("Wms_InboundOrderLine", (string)null);
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsLayer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AllocationWeight")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CreateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Creator")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("MaxShuttleCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Modifier")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ModifyDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ModifyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("PackId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZoneId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("WarehouseId");
+
+                    b.HasIndex("ZoneId");
+
+                    b.ToTable("Wms_Layer", (string)null);
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsLocation", b =>
                 {
                     b.Property<int>("Id")
@@ -3566,8 +4969,11 @@ namespace Seven.Infrastructure.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Aisle")
-                        .HasMaxLength(32)
-                        .HasColumnType("varchar(32)");
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int?>("AisleId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -3591,6 +4997,13 @@ namespace Seven.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
+                    b.Property<string>("Depth")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<bool>("IsBooked")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
@@ -3607,6 +5020,9 @@ namespace Seven.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
+                    b.Property<int?>("LayerId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Modifier")
                         .HasColumnType("longtext");
 
@@ -3615,6 +5031,13 @@ namespace Seven.Infrastructure.Migrations
 
                     b.Property<int?>("ModifyId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PackId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("");
 
                     b.Property<string>("Row")
                         .HasMaxLength(32)
@@ -3631,12 +5054,16 @@ namespace Seven.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AisleId");
+
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.HasIndex("WarehouseId");
+                    b.HasIndex("LayerId");
 
                     b.HasIndex("ZoneId");
+
+                    b.HasIndex("WarehouseId", "PackId");
 
                     b.ToTable("Wms_Location", (string)null);
                 });
@@ -3683,6 +5110,10 @@ namespace Seven.Infrastructure.Migrations
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
+
+                    b.Property<string>("WcsGroupNo")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
 
                     b.HasKey("Id");
 
@@ -3754,6 +5185,9 @@ namespace Seven.Infrastructure.Migrations
                     b.Property<string>("ToLocation")
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
+
+                    b.Property<int>("WcsPri")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -3925,6 +5359,18 @@ namespace Seven.Infrastructure.Migrations
                     b.Property<string>("Creator")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("EnabledPackIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasDefaultValue("");
+
+                    b.Property<bool>("IsCycleCountLocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
@@ -3992,6 +5438,13 @@ namespace Seven.Infrastructure.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("varchar(128)");
 
+                    b.Property<string>("PackId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("");
+
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
@@ -4000,8 +5453,10 @@ namespace Seven.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WarehouseId", "Code")
+                    b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("WarehouseId", "PackId");
 
                     b.ToTable("Wms_Zone", (string)null);
                 });
@@ -4140,6 +5595,26 @@ namespace Seven.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsAisle", b =>
+                {
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsLayer", null)
+                        .WithMany()
+                        .HasForeignKey("LayerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsWarehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsZone", null)
+                        .WithMany()
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsContainer", b =>
                 {
                     b.HasOne("Seven.Domain.Entities.Wms.WmsContainerType", null)
@@ -4159,6 +5634,25 @@ namespace Seven.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsInboundDetail", b =>
+                {
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsInboundOrderLine", "Line")
+                        .WithMany("Details")
+                        .HasForeignKey("LineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsInboundOrder", "Order")
+                        .WithMany("Details")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Line");
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsInboundOrderLine", b =>
                 {
                     b.HasOne("Seven.Domain.Entities.Wms.WmsInboundOrder", "Order")
@@ -4170,8 +5664,33 @@ namespace Seven.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsLayer", b =>
+                {
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsWarehouse", null)
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsZone", null)
+                        .WithMany()
+                        .HasForeignKey("ZoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsLocation", b =>
                 {
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsAisle", null)
+                        .WithMany()
+                        .HasForeignKey("AisleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Seven.Domain.Entities.Wms.WmsLayer", null)
+                        .WithMany()
+                        .HasForeignKey("LayerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Seven.Domain.Entities.Wms.WmsWarehouse", null)
                         .WithMany()
                         .HasForeignKey("WarehouseId")
@@ -4246,7 +5765,14 @@ namespace Seven.Infrastructure.Migrations
 
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsInboundOrder", b =>
                 {
+                    b.Navigation("Details");
+
                     b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsInboundOrderLine", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("Seven.Domain.Entities.Wms.WmsOutboundOrder", b =>

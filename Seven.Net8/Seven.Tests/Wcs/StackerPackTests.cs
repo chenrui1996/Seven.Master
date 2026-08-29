@@ -17,6 +17,134 @@ namespace Seven.Tests.Wcs;
 public class StackerPackTests
 {
     [Fact]
+    public async Task SimulateDestinationRequest_CheckNg_ShouldReject()
+    {
+        var db = CreateDb();
+        var port = new InMemoryEquipmentTriggerPort();
+        SeedStackerMaster(db);
+        await db.SaveChangesAsync();
+
+        var control = new ControlModeService(db);
+        var pack = new StackerWcsPack(db, control);
+        var dest = new StackerDestinationService(
+            db,
+            port,
+            new StackerAisleAllocator(db),
+            new StackerLocationAllocator(db),
+            new StackerPathDispatcher(db, port));
+        dest.Subscribe();
+
+        await pack.AcceptLegAsync(NewLeg("TP-NG", "RECV-01", "LOC-A1-01"));
+        await port.SimulateDestinationRequestAsync(new DestinationRequestTrigger(
+            "TP-NG", "RP_IN_01", 1, 10, "NG"));
+
+        port.DispatchedDestinations.Should().BeEmpty();
+        port.RejectedDestinations.Should().ContainSingle(x => x.Reason.Contains("校验未通过"));
+        (await db.StkPutAwayTasks.SingleAsync(x => x.ContainerCode == "TP-NG"))
+            .Status.Should().Be(StkPutAwayStatus.Failed);
+    }
+
+    [Fact]
+    public async Task SelectAisle_ShouldSkip_WhenMinEmptySlotsNotMet()
+    {
+        var db = CreateDb();
+        db.StkAssignmentPolicies.Add(new StkAssignmentPolicy
+        {
+            AisleCode = "A1",
+            IsAvailable = true,
+            MaxHeight = 3,
+            MaxWeight = 100,
+            MinEmptySlots = 2,
+            DestinationPointCode = "EP-A1"
+        });
+        db.WmsLocations.Add(new WmsLocation
+        {
+            WarehouseId = 1,
+            PackId = "stacker",
+            Code = "Stk.LOC-A1-01",
+            Aisle = "A1"
+        });
+        await db.SaveChangesAsync();
+
+        var allocator = new StackerAisleAllocator(db);
+        var result = await allocator.SelectAisleAsync(1, 10);
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SelectLocation_ShouldPreferShallowDepth_AndBook()
+    {
+        var db = CreateDb();
+        db.WmsLocations.AddRange(
+            new WmsLocation
+            {
+                WarehouseId = 1,
+                PackId = "stacker",
+                Code = "Stk.LOC-DEEP",
+                Aisle = "A1",
+                Depth = "2",
+                Layer = "1",
+                Column = "1",
+                Row = "1"
+            },
+            new WmsLocation
+            {
+                WarehouseId = 1,
+                PackId = "stacker",
+                Code = "Stk.LOC-SHALLOW",
+                Aisle = "A1",
+                Depth = "1",
+                Layer = "1",
+                Column = "1",
+                Row = "1"
+            });
+        await db.SaveChangesAsync();
+
+        var code = await new StackerLocationAllocator(db).SelectLocationAsync("A1");
+        code.Should().Be("Stk.LOC-SHALLOW");
+        (await db.WmsLocations.SingleAsync(x => x.Code == "Stk.LOC-SHALLOW")).IsBooked.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LocationRequest_ShouldDispatchBin_AfterAisleAssigned()
+    {
+        var db = CreateDb();
+        var port = new InMemoryEquipmentTriggerPort();
+        SeedStackerMaster(db);
+        db.StkRequestPoints.Add(new StkRequestPoint
+        {
+            Code = "RP_LOC_01",
+            PointType = StkRequestPointType.LocationRequest,
+            IsEnabled = true,
+            AisleCode = "A1"
+        });
+        await db.SaveChangesAsync();
+
+        var control = new ControlModeService(db);
+        var pack = new StackerWcsPack(db, control);
+        var dest = new StackerDestinationService(
+            db,
+            port,
+            new StackerAisleAllocator(db),
+            new StackerLocationAllocator(db),
+            new StackerPathDispatcher(db, port));
+        dest.Subscribe();
+
+        var leg = NewLeg("TP-LOC", "RECV-01", "Stk.LOC-A1-01");
+        await pack.AcceptLegAsync(leg);
+        await port.SimulateDestinationRequestAsync(new DestinationRequestTrigger(
+            "TP-LOC", "RP_IN_01", 1, 10, "OK"));
+        port.DispatchedDestinations.Should().ContainSingle(x => x.DestinationPointCode == "EP-A1");
+
+        await port.SimulateDestinationRequestAsync(new DestinationRequestTrigger(
+            "TP-LOC", "RP_LOC_01", 1, 10, "OK"));
+        port.DispatchedDestinations.Should().Contain(x => x.DestinationPointCode == "Stk.LOC-A1-01");
+        (await db.StkPutAwayTasks.SingleAsync(x => x.ContainerCode == "TP-LOC"))
+            .Status.Should().Be(StkPutAwayStatus.LocationAssigned);
+        (await db.WmsLocations.SingleAsync(x => x.Code == "Stk.LOC-A1-01")).IsBooked.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task SelectAisle_ShouldRotate_AndSkipUnavailable()
     {
         var db = CreateDb();
@@ -57,6 +185,7 @@ public class StackerPackTests
             port,
             new StackerAisleAllocator(db),
             new StackerLocationAllocator(db),
+            new StackerPathDispatcher(db, port),
             bus: null);
         dest.Subscribe();
 
@@ -91,6 +220,7 @@ public class StackerPackTests
             port,
             new StackerAisleAllocator(db),
             new StackerLocationAllocator(db),
+            new StackerPathDispatcher(db, port),
             bus);
         dest.Subscribe();
 
@@ -161,7 +291,8 @@ public class StackerPackTests
         db.WmsLocations.Add(new WmsLocation
         {
             WarehouseId = 1,
-            Code = "LOC-A1-01",
+            PackId = "stacker",
+            Code = "Stk.LOC-A1-01",
             Aisle = "A1"
         });
     }

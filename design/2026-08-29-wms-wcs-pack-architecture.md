@@ -25,6 +25,7 @@
 | 自研 WCS | 以 **WCS 包** 为单位插拔（堆垛机包、四向车包、箱式分拣包等） |
 | 包内差异 | 各包调度、路径、流量模型独立；禁止合成统一路网 |
 | 仿真与上线 | 独立 **Seven.Simulator**（栈对齐 Vue3）：Features → 地图 Deploy → 仿真 → Promote 生产；见 `design/2026-08-29-seven-simulator-design.md` |
+| **仓与包（2026-08-29）** | **一仓多包**；库区/巷道/货位/层以 **WCS 类型前缀**区分（`Stk.`/`Fw.`…）；结构+分配在包内；见 `design/wms/02-location-multi-pack-prefix.md` |
 
 ---
 

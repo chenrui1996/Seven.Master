@@ -26,4 +26,13 @@ public class EquipmentTriggerPortTests
         await port.DispatchDestinationAsync(cmd);
         port.DispatchedDestinations.Should().Contain(cmd);
     }
+
+    [Fact]
+    public async Task RejectDestinationAsync_ShouldRecord_Command()
+    {
+        var port = new InMemoryEquipmentTriggerPort();
+        var cmd = new RejectDestinationCommand("TP001", "外形 NG", "RP_IN_01");
+        await port.RejectDestinationAsync(cmd);
+        port.RejectedDestinations.Should().Contain(cmd);
+    }
 }

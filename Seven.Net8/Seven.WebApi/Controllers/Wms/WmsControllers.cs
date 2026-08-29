@@ -12,7 +12,6 @@ namespace Seven.WebApi.Controllers.Wms;
 [Route("api/WmsLocation")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class WmsLocationsController : ControllerBase
 {
     private readonly ILocationService _locations;
@@ -24,7 +23,7 @@ public class WmsLocationsController : ControllerBase
     public async Task<WebResponseContent> GetByCode(string code, CancellationToken ct)
     {
         var loc = await _locations.GetByCodeAsync(code, ct);
-        return loc == null ? WebResponseContent.Error("库位不存在") : WebResponseContent.Ok(data: loc);
+        return loc == null ? WebResponseContent.Error("不存在") : WebResponseContent.Ok(data: loc);
     }
 
     [HttpPost("getPageData")]
@@ -41,12 +40,19 @@ public class WmsLocationsController : ControllerBase
     [Permission("WmsLocation.Update")]
     public Task<WebResponseContent> Update([FromBody] WmsLocation entity, CancellationToken ct) =>
         _locations.UpdateAsync(entity, ct);
+
+    [HttpPost("del")]
+    [Permission("WmsLocation.Delete")]
+    public Task<WebResponseContent> Del(
+        [FromBody] System.Text.Json.JsonElement ids,
+        [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsLocation> crud,
+        CancellationToken ct) =>
+        crud.DeleteAsync(ids, ct);
 }
 
 [Route("api/WmsStock")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class WmsStocksController : ControllerBase
 {
     private readonly IStockService _stocks;
@@ -64,7 +70,7 @@ public class WmsStocksController : ControllerBase
     {
         try
         {
-            return WebResponseContent.Ok("收货成功", await _stocks.ReceiveAsync(request, ct));
+            return WebResponseContent.Ok("操作成功", await _stocks.ReceiveAsync(request, ct));
         }
         catch (WmsDomainException ex)
         {
@@ -78,7 +84,7 @@ public class WmsStocksController : ControllerBase
     {
         try
         {
-            return WebResponseContent.Ok("发运成功", await _stocks.ShipAsync(request, ct));
+            return WebResponseContent.Ok("操作成功", await _stocks.ShipAsync(request, ct));
         }
         catch (WmsDomainException ex)
         {
@@ -90,7 +96,6 @@ public class WmsStocksController : ControllerBase
 [Route("api/WmsContainer")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class WmsContainersController : ControllerBase
 {
     private readonly IContainerService _containers;
@@ -102,7 +107,7 @@ public class WmsContainersController : ControllerBase
     public async Task<WebResponseContent> GetByCode(string code, CancellationToken ct)
     {
         var row = await _containers.GetByCodeAsync(code, ct);
-        return row == null ? WebResponseContent.Error("容器不存在") : WebResponseContent.Ok(data: row);
+        return row == null ? WebResponseContent.Error("不存在") : WebResponseContent.Ok(data: row);
     }
 
     [HttpPost("getPageData")]
@@ -119,12 +124,19 @@ public class WmsContainersController : ControllerBase
     [Permission("WmsContainer.Update")]
     public Task<WebResponseContent> Update([FromBody] WmsContainer entity, CancellationToken ct) =>
         _containers.UpdateAsync(entity, ct);
+
+    [HttpPost("del")]
+    [Permission("WmsContainer.Delete")]
+    public Task<WebResponseContent> Del(
+        [FromBody] System.Text.Json.JsonElement ids,
+        [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsContainer> crud,
+        CancellationToken ct) =>
+        crud.DeleteAsync(ids, ct);
 }
 
 [Route("api/WmsInboundOrder")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class WmsInboundOrdersController : ControllerBase
 {
     private readonly IInboundOrderService _orders;
@@ -136,13 +148,21 @@ public class WmsInboundOrdersController : ControllerBase
     public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken ct) =>
         WebResponseContent.Ok(data: await _orders.GetPageDataAsync(options, ct));
 
+    [HttpGet("{id:int}")]
+    [Permission("WmsInboundOrder.Search")]
+    public async Task<WebResponseContent> Get(int id, CancellationToken ct)
+    {
+        var order = await _orders.GetAsync(id, ct);
+        return order == null ? WebResponseContent.Error("入库单不存在") : WebResponseContent.Ok(data: order);
+    }
+
     [HttpPost("add")]
     [Permission("WmsInboundOrder.Add")]
     public async Task<WebResponseContent> Create([FromBody] CreateInboundOrderRequest request, CancellationToken ct)
     {
         try
         {
-            return WebResponseContent.Ok("创建成功", await _orders.CreateAsync(request, ct));
+            return WebResponseContent.Ok("操作成功", await _orders.CreateAsync(request, ct));
         }
         catch (WmsDomainException ex)
         {
@@ -157,7 +177,7 @@ public class WmsInboundOrdersController : ControllerBase
         try
         {
             await _orders.ApproveAsync(id, ct);
-            return WebResponseContent.Ok("审核成功");
+            return WebResponseContent.Ok("操作成功");
         }
         catch (WmsDomainException ex)
         {
@@ -175,7 +195,24 @@ public class WmsInboundOrdersController : ControllerBase
         try
         {
             await _orders.ReceiveAndBuildPalletAsync(id, request, ct);
-            return WebResponseContent.Ok("收货组盘成功");
+            return WebResponseContent.Ok("操作成功");
+        }
+        catch (WmsDomainException ex)
+        {
+            return WebResponseContent.Error(ex.Message);
+        }
+    }
+
+    [HttpPost("buildPallet/{id:int}")]
+    [Permission("WmsInboundOrder.Update")]
+    public async Task<WebResponseContent> BuildPallet(
+        int id,
+        [FromBody] BuildPalletRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            return WebResponseContent.Ok("组盘成功", await _orders.BuildPalletAsync(id, request, ct));
         }
         catch (WmsDomainException ex)
         {
@@ -187,7 +224,6 @@ public class WmsInboundOrdersController : ControllerBase
 [Route("api/WmsOutboundOrder")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class WmsOutboundOrdersController : ControllerBase
 {
     private readonly IOutboundOrderService _orders;
@@ -199,13 +235,21 @@ public class WmsOutboundOrdersController : ControllerBase
     public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken ct) =>
         WebResponseContent.Ok(data: await _orders.GetPageDataAsync(options, ct));
 
+    [HttpGet("{id:int}")]
+    [Permission("WmsOutboundOrder.Search")]
+    public async Task<WebResponseContent> Get(int id, CancellationToken ct)
+    {
+        var order = await _orders.GetAsync(id, ct);
+        return order == null ? WebResponseContent.Error("出库单不存在") : WebResponseContent.Ok(data: order);
+    }
+
     [HttpPost("add")]
     [Permission("WmsOutboundOrder.Add")]
     public async Task<WebResponseContent> Create([FromBody] CreateOutboundOrderRequest request, CancellationToken ct)
     {
         try
         {
-            return WebResponseContent.Ok("创建成功", await _orders.CreateAsync(request, ct));
+            return WebResponseContent.Ok("操作成功", await _orders.CreateAsync(request, ct));
         }
         catch (WmsDomainException ex)
         {
@@ -220,7 +264,7 @@ public class WmsOutboundOrdersController : ControllerBase
         try
         {
             await _orders.ApproveAsync(id, ct);
-            return WebResponseContent.Ok("审核成功");
+            return WebResponseContent.Ok("操作成功");
         }
         catch (WmsDomainException ex)
         {
@@ -235,7 +279,7 @@ public class WmsOutboundOrdersController : ControllerBase
         try
         {
             await _orders.ShipAsync(id, ct);
-            return WebResponseContent.Ok("发运成功");
+            return WebResponseContent.Ok("操作成功");
         }
         catch (WmsDomainException ex)
         {
@@ -247,7 +291,6 @@ public class WmsOutboundOrdersController : ControllerBase
 [Route("api/WmsCycleCount")]
 [ApiController]
 [Authorize]
-[RequiresFeature("Wms")]
 public class WmsCycleCountsController : ControllerBase
 {
     private readonly ICycleCountService _orders;
@@ -259,13 +302,21 @@ public class WmsCycleCountsController : ControllerBase
     public async Task<WebResponseContent> GetPageData([FromBody] PageDataOptions options, CancellationToken ct) =>
         WebResponseContent.Ok(data: await _orders.GetPageDataAsync(options, ct));
 
+    [HttpPost("get/{id:int}")]
+    [Permission("WmsCycleCount.Search")]
+    public async Task<WebResponseContent> Get(int id, CancellationToken ct)
+    {
+        var order = await _orders.GetAsync(id, ct);
+        return order == null ? WebResponseContent.Error("盘点单不存在") : WebResponseContent.Ok(data: order);
+    }
+
     [HttpPost("add")]
     [Permission("WmsCycleCount.Add")]
     public async Task<WebResponseContent> CreatePlan([FromBody] CreateCycleCountRequest request, CancellationToken ct)
     {
         try
         {
-            return WebResponseContent.Ok("创建成功", await _orders.CreatePlanAsync(request, ct));
+            return WebResponseContent.Ok("操作成功", await _orders.CreatePlanAsync(request, ct));
         }
         catch (WmsDomainException ex)
         {
@@ -280,7 +331,7 @@ public class WmsCycleCountsController : ControllerBase
         try
         {
             await _orders.RecordCountAsync(id, lineNo, countQty, ct);
-            return WebResponseContent.Ok("实盘录入成功");
+            return WebResponseContent.Ok("操作成功");
         }
         catch (WmsDomainException ex)
         {
@@ -295,7 +346,7 @@ public class WmsCycleCountsController : ControllerBase
         try
         {
             await _orders.ConfirmAdjustAsync(id, ct);
-            return WebResponseContent.Ok("调账成功");
+            return WebResponseContent.Ok("操作成功");
         }
         catch (WmsDomainException ex)
         {

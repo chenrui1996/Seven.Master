@@ -9,4 +9,5 @@ public interface ICycleCountService
     Task<WmsCycleCount> CreatePlanAsync(CreateCycleCountRequest request, CancellationToken ct = default);
     Task RecordCountAsync(int orderId, int lineNo, decimal countQty, CancellationToken ct = default);
     Task ConfirmAdjustAsync(int orderId, CancellationToken ct = default);
+    Task<WmsCycleCount?> GetAsync(int orderId, CancellationToken ct = default);
 }

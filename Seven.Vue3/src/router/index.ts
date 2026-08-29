@@ -130,7 +130,8 @@ router.beforeEach(async (to, _from, next) => {
     const { useFeatureStore } = await import('../stores/features')
     try {
       const featureStore = useFeatureStore()
-      if (!featureStore.loaded) await featureStore.load()
+      // 每次装载动态菜单都重拉 Features，避免改 appsettings 后仍用内存旧开关
+      await featureStore.load()
       const res = await getMenu()
       if (res.status && res.data) {
         const flat = res.data as unknown as MenuItem[]

@@ -14,5 +14,7 @@ public class BusTransportOrder : BaseEntity
     public string? FailReason { get; set; }
     public string? RefType { get; set; }
     public string? RefId { get; set; }
+    public string? WcsGroupNo { get; set; }
+    public int? WcsPri { get; set; }
     public ICollection<BusTransportLeg> Legs { get; set; } = new List<BusTransportLeg>();
 }

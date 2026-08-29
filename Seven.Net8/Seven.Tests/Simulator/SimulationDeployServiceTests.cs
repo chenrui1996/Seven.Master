@@ -33,12 +33,12 @@ public class SimulationDeployServiceTests
             []));
 
     [Fact]
-    public void ValidateFeatures_ShouldFail_WhenWmsOff()
+    public void ValidateFeatures_ShouldWarn_WhenWmsOff()
     {
         var svc = new SimulationDeployService(CreateDb());
         var result = svc.ValidateFeatures(new SimFeaturesDto(false, false, false, false, true, new SimWcsPacksDto(true, false, false)));
-        result.Ok.Should().BeFalse();
-        result.Errors.Should().Contain(e => e.Contains("Wms"));
+        result.Ok.Should().BeTrue();
+        result.Warnings.Should().Contain(e => e.Contains("Wms"));
     }
 
     [Fact]
@@ -54,7 +54,12 @@ public class SimulationDeployServiceTests
         result.LocationCount.Should().Be(2);
 
         (await db.WmsWarehouses.CountAsync()).Should().Be(1);
+        var wh = await db.WmsWarehouses.SingleAsync();
+        wh.EnabledPackIds.Should().Be("stacker");
         (await db.WmsLocations.CountAsync()).Should().Be(2);
+        (await db.WmsLocations.Select(x => x.Code).OrderBy(x => x).ToListAsync())
+            .Should().Equal("Stk.BIN-01", "Stk.RECV-01");
+        (await db.WmsLocations.AllAsync(x => x.PackId == "stacker")).Should().BeTrue();
         (await db.StkRequestPoints.CountAsync()).Should().Be(2);
         (await db.SimDeployments.CountAsync(x => x.Status == "Deployed")).Should().Be(1);
     }

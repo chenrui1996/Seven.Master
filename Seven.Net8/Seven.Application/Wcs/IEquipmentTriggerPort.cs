@@ -5,6 +5,7 @@ public interface IEquipmentTriggerPort
 {
     event Func<DestinationRequestTrigger, Task>? DestinationRequested; // SUDR
     Task DispatchDestinationAsync(DispatchDestinationCommand cmd, CancellationToken ct = default); // SUDS
+    Task RejectDestinationAsync(RejectDestinationCommand cmd, CancellationToken ct = default); // 拒收口
     Task DispatchMoveAsync(DispatchMoveCommand cmd, CancellationToken ct = default); // SUMT/SUMM/SUPM
     event Func<DeviceSegmentFeedback, Task>? SegmentFeedback; // SUMR/SUPR/SULL…
 

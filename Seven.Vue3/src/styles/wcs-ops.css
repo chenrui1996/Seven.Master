@@ -1,0 +1,87 @@
+/* 工业物流运维页局部 token（ui-ux-pro-max：Seven WCS Ops） */
+.wcs-ops {
+  --ops-primary: #2563eb;
+  --ops-primary-soft: #eff6ff;
+  --ops-accent: #f97316;
+  --ops-text: #1e40af;
+  --ops-muted: #475569;
+  --ops-border: #bfdbfe;
+  --ops-bg: #f8fafc;
+  font-family: 'Fira Sans', 'Segoe UI', system-ui, sans-serif;
+  color: #0f172a;
+  background: linear-gradient(180deg, var(--ops-primary-soft) 0%, var(--ops-bg) 120px);
+  min-height: 100%;
+  padding: 16px 16px 24px;
+  border-radius: 8px;
+}
+
+.wcs-ops .ops-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ops-text);
+  margin: 0 0 4px;
+}
+
+.wcs-ops .ops-sub {
+  margin: 0 0 16px;
+  color: var(--ops-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.wcs-ops .ops-mono {
+  font-family: 'Fira Code', ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+.wcs-ops .ops-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.wcs-ops .ops-toolbar .el-button {
+  min-height: 44px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.wcs-ops .ops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.wcs-ops .ops-panel {
+  background: #fff;
+  border: 1px solid var(--ops-border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.wcs-ops .ops-panel h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  color: var(--ops-text);
+}
+
+.wcs-ops .ops-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 16px;
+}
+
+@media (max-width: 960px) {
+  .wcs-ops .ops-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wcs-ops .ops-toolbar .el-button {
+    transition: none;
+  }
+}

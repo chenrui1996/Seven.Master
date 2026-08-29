@@ -7,7 +7,7 @@
 ## 开发
 
 ```powershell
-# WebApi：Development 默认 Features.Simulator/Wms/OrchestrationBus/Stacker = true
+# WebApi：Features 以 appsettings.json 为准（Development 不再覆盖）
 cd ..\Seven.Net8
 dotnet ef database update --project Seven.Infrastructure --startup-project Seven.WebApi --context SevenDbContext
 dotnet run --project Seven.WebApi
@@ -20,14 +20,16 @@ npm run dev
 
 默认 http://localhost:5174 ，`/api` 代理到 `http://localhost:5000`（按实际 WebApi 端口调整 `vite.config.ts`）。
 
-## API（需 `Features.Simulator=true`）
+## API
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/simulation/projects/validate-features` | 校验工程 Features |
+| POST | `/api/simulation/projects/validate-features` | 校验工程 Features（提示级） |
 | POST | `/api/simulation/deploy` | 写入 `Wms_*` + 包种子 + `Sim_Deployment` |
 | POST | `/api/simulation/undeploy` | 标记 Undeployed（可选删空库位） |
 | GET | `/api/simulation/deployments` | 最近部署记录 |
+
+> `Features.Simulator` / `Wms` 等仅影响运维前端菜单；Deploy API 与后端业务始终可用。
 
 ## 页面
 

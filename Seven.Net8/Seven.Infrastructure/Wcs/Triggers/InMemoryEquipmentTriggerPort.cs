@@ -10,6 +10,7 @@ public sealed class InMemoryEquipmentTriggerPort : IEquipmentTriggerPort
     private Func<DeviceSegmentFeedback, Task>? _segmentFeedback;
 
     public List<DispatchDestinationCommand> DispatchedDestinations { get; } = [];
+    public List<RejectDestinationCommand> RejectedDestinations { get; } = [];
     public List<DispatchMoveCommand> DispatchedMoves { get; } = [];
 
     public event Func<DestinationRequestTrigger, Task>? DestinationRequested
@@ -61,7 +62,10 @@ public sealed class InMemoryEquipmentTriggerPort : IEquipmentTriggerPort
 
         if (handler != null)
         {
-            await handler(trigger).ConfigureAwait(false);
+            foreach (var d in handler.GetInvocationList())
+            {
+                await ((Func<DestinationRequestTrigger, Task>)d)(trigger).ConfigureAwait(false);
+            }
         }
     }
 
@@ -78,7 +82,10 @@ public sealed class InMemoryEquipmentTriggerPort : IEquipmentTriggerPort
 
         if (handler != null)
         {
-            await handler(feedback).ConfigureAwait(false);
+            foreach (var d in handler.GetInvocationList())
+            {
+                await ((Func<DeviceSegmentFeedback, Task>)d)(feedback).ConfigureAwait(false);
+            }
         }
     }
 
@@ -88,6 +95,17 @@ public sealed class InMemoryEquipmentTriggerPort : IEquipmentTriggerPort
         lock (_lock)
         {
             DispatchedDestinations.Add(cmd);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task RejectDestinationAsync(RejectDestinationCommand cmd, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        lock (_lock)
+        {
+            RejectedDestinations.Add(cmd);
         }
 
         return Task.CompletedTask;

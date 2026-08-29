@@ -9,7 +9,11 @@ public record TransportLegDto(
     string ToCode,
     string ContainerCode,
     string? HandoverIn,
-    string? HandoverOut);
+    string? HandoverOut,
+    string? RefType = null,
+    string? RefId = null,
+    string? WcsGroupNo = null,
+    int? WcsPri = null);
 
 public enum LegEventType
 {
@@ -40,6 +44,13 @@ public record DispatchDestinationCommand(
     string DestinationPointCode,
     Guid? LegId = null);
 
+/// <summary>SUDR 拒收（外形 NG / 无任务 / 分配失败等）。</summary>
+public record RejectDestinationCommand(
+    string ContainerCode,
+    string Reason,
+    string? SourcePointCode = null,
+    Guid? LegId = null);
+
 public record DispatchMoveCommand(
     string ContainerCode,
     string FromPointCode,
@@ -57,7 +68,9 @@ public record CreateTransportOrderRequest(
     string FromLocationCode,
     string ToLocationCode,
     string? RefType = null,
-    string? RefId = null);
+    string? RefId = null,
+    string? WcsGroupNo = null,
+    int? WcsPri = null);
 
 public record LegStatusDto(
     Guid LegId,

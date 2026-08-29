@@ -57,7 +57,7 @@
             <el-input v-model="form.url" placeholder="/Sys_User" />
           </el-form-item>
           <el-form-item :label="t('sysMenu.colTable')">
-            <el-input v-model="form.tableName" placeholder="Sys_User 或 . /" />
+            <el-input v-model="form.tableName" :placeholder="t('sysMenu.tableNamePh')" />
           </el-form-item>
           <el-form-item :label="t('sysMenu.colIcon')">
             <el-input v-model="form.icon" />
@@ -198,10 +198,13 @@ async function loadTree() {
 /** 同步左侧导航菜单顺序（不重建动态路由） */
 async function refreshSidebarMenus() {
   try {
+    const { useFeatureStore } = await import('../../stores/features')
+    const featureStore = useFeatureStore()
+    await featureStore.load()
     const res = await getMenu()
     if (res.status && res.data) {
       const flat = (res.data as unknown as Record<string, unknown>[]).map(normalizeMenuRow)
-      menuStore.setMenus(buildMenuTree(flat))
+      menuStore.setMenus(featureStore.filterMenus(buildMenuTree(flat)))
     }
   } catch {
     /* 忽略：侧栏刷新失败不影响管理页 */

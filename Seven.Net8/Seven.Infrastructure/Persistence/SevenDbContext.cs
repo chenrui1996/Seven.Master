@@ -124,6 +124,12 @@ public class SevenDbContext : DbContext
     /// <summary>WMS 库区</summary>
     public DbSet<WmsZone> WmsZones => Set<WmsZone>();
 
+    /// <summary>WMS 楼层（四向等）</summary>
+    public DbSet<WmsLayer> WmsLayers => Set<WmsLayer>();
+
+    /// <summary>WMS 巷道</summary>
+    public DbSet<WmsAisle> WmsAisles => Set<WmsAisle>();
+
     /// <summary>WMS 库位</summary>
     public DbSet<WmsLocation> WmsLocations => Set<WmsLocation>();
 
@@ -144,6 +150,9 @@ public class SevenDbContext : DbContext
 
     /// <summary>WMS 入库单行</summary>
     public DbSet<WmsInboundOrderLine> WmsInboundOrderLines => Set<WmsInboundOrderLine>();
+
+    /// <summary>WMS 入库组盘明细</summary>
+    public DbSet<WmsInboundDetail> WmsInboundDetails => Set<WmsInboundDetail>();
 
     /// <summary>WMS 出库单</summary>
     public DbSet<WmsOutboundOrder> WmsOutboundOrders => Set<WmsOutboundOrder>();
@@ -178,8 +187,23 @@ public class SevenDbContext : DbContext
     /// <summary>堆垛机上架任务</summary>
     public DbSet<StkPutAwayTask> StkPutAwayTasks => Set<StkPutAwayTask>();
 
+    /// <summary>堆垛机出库取货任务</summary>
+    public DbSet<StkRetrievalTask> StkRetrievalTasks => Set<StkRetrievalTask>();
+
     /// <summary>堆垛机设备段任务</summary>
     public DbSet<StkDeviceTask> StkDeviceTasks => Set<StkDeviceTask>();
+
+    /// <summary>堆垛机路网边</summary>
+    public DbSet<StkRoute> StkRoutes => Set<StkRoute>();
+
+    /// <summary>堆垛机边占用</summary>
+    public DbSet<StkRouteFlow> StkRouteFlows => Set<StkRouteFlow>();
+
+    /// <summary>堆垛机设备点编码映射</summary>
+    public DbSet<StkDeviceCoder> StkDeviceCoders => Set<StkDeviceCoder>();
+
+    /// <summary>堆垛机货位扩展（双深组 / LockBin）</summary>
+    public DbSet<StkLocationProfile> StkLocationProfiles => Set<StkLocationProfile>();
 
     /// <summary>四向车地图版本</summary>
     public DbSet<FwMapVersion> FwMapVersions => Set<FwMapVersion>();
@@ -198,6 +222,39 @@ public class SevenDbContext : DbContext
 
     /// <summary>四向车任务路径</summary>
     public DbSet<FwShuttleTaskPath> FwShuttleTaskPaths => Set<FwShuttleTaskPath>();
+
+    /// <summary>四向层分配策略</summary>
+    public DbSet<FwLayerPolicy> FwLayerPolicies => Set<FwLayerPolicy>();
+
+    /// <summary>四向巷分配策略</summary>
+    public DbSet<FwAislePolicy> FwAislePolicies => Set<FwAislePolicy>();
+
+    /// <summary>四向层/巷轮转记录</summary>
+    public DbSet<FwAssignmentRecord> FwAssignmentRecords => Set<FwAssignmentRecord>();
+
+    /// <summary>四向入库上架任务</summary>
+    public DbSet<FwPutAwayTask> FwPutAwayTasks => Set<FwPutAwayTask>();
+
+    /// <summary>四向目的地申请点</summary>
+    public DbSet<FwRequestPoint> FwRequestPoints => Set<FwRequestPoint>();
+
+    /// <summary>四向出库取货任务</summary>
+    public DbSet<FwRetrievalTask> FwRetrievalTasks => Set<FwRetrievalTask>();
+
+    /// <summary>四向停车账本</summary>
+    public DbSet<FwParkingLedger> FwParkingLedgers => Set<FwParkingLedger>();
+
+    /// <summary>四向提升机台账</summary>
+    public DbSet<FwHoistDevice> FwHoistDevices => Set<FwHoistDevice>();
+
+    /// <summary>四向提升机层口</summary>
+    public DbSet<FwHoistLayerPoint> FwHoistLayerPoints => Set<FwHoistLayerPoint>();
+
+    /// <summary>四向提升机业务任务</summary>
+    public DbSet<FwHoistTask> FwHoistTasks => Set<FwHoistTask>();
+
+    /// <summary>四向提升机执行任务</summary>
+    public DbSet<FwHoistExecTask> FwHoistExecTasks => Set<FwHoistExecTask>();
 
     /// <summary>外部 WCS 系统实例</summary>
     public DbSet<ExtSystem> ExtSystems => Set<ExtSystem>();

@@ -89,7 +89,8 @@ public class WmsOrderServiceTests
         var hook = transport.Requests.Single();
         hook.FromLocationCode.Should().Be("RECV-01");
         hook.ToLocationCode.Should().Be("LOC-A");
-        hook.RefType.Should().Be("InboundOrder");
+        hook.RefType.Should().Be("InboundDetail");
+        (await db.WmsInboundDetails.CountAsync()).Should().Be(1);
     }
 
     [Fact]
@@ -227,10 +228,10 @@ public class WmsOrderServiceTests
         public bool IsEnabled => true;
         public List<TransportOrderHookRequest> Requests { get; } = [];
 
-        public Task RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default)
+        public Task<Guid> RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default)
         {
             Requests.Add(request);
-            return Task.CompletedTask;
+            return Task.FromResult(Guid.NewGuid());
         }
     }
 }

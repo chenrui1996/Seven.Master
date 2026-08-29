@@ -24,7 +24,9 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 | [16-设备通讯DeviceComm](./16-设备通讯DeviceComm.md) | Step7 / Modbus TCP：**实现思路**、连接与规则、配置与使用、API（需 `Features.DeviceComm`） |
 | [17-健康检查看板](./17-健康检查看板.md) | HealthChecks.UI：`/health-ui` 用法、检查项、与 K8s `/health` 关系 |
 | [18-指标与监控](./18-指标与监控.md) | Prometheus `/metrics` + Grafana / cAdvisor / node-exporter |
-| [19-WMS与WCS包](./19-WMS与WCS包.md) | WMS 账本 + 编排总线 + 可插拔 WCS 包：开关、表前缀、仿真触发（需 `Features.Wms` 等） |
+| [19-WMS与WCS包](./19-WMS与WCS包.md) | WMS 账本 + 编排总线 + 可插拔 WCS 包：开关、表前缀、仿真触发 |
+| [20-WMS与WCS实现说明](./20-WMS与WCS实现说明.md) | **实现逻辑合集**：WMS / 立库堆垛 WCS / 四向车 WCS |
+| [keypoint/](./keypoint/README.md) | **面试要点全集**：技术栈、难点亮点、讲述稿与问答 |
 
 ## 仓库布局
 
@@ -32,9 +34,11 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 Seven.Master/
 ├── Seven.Net8/          # 后端解决方案（见 Seven.Net8/README.md）
 ├── Seven.Vue3/          # 前端（见 Seven.Vue3/README.md）
+├── Seven.App/           # WMS PDA（uni-app；见 Seven.App/README.md、doc/20 第一部分）
 ├── deploy/              # Nginx、K8s 样例清单
 ├── docker-compose.yml   # 本地/一体机编排
-├── scripts/             # 辅助脚本
+├── scripts/             # 辅助脚本（含 les-migrate）
+├── design/              # 架构与迁移设计原稿
 └── doc/                 # 本目录
 ```
 

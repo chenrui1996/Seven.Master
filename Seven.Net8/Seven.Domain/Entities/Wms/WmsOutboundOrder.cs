@@ -10,5 +10,7 @@ public class WmsOutboundOrder : BaseEntity
     public string OrderNo { get; set; } = string.Empty;
     public WmsOrderType OrderType { get; set; }
     public WmsOrderStatus Status { get; set; }
+    /// <summary>WCS 组批号；空则审核时用 OrderNo。</summary>
+    public string? WcsGroupNo { get; set; }
     public ICollection<WmsOutboundOrderLine> Lines { get; set; } = new List<WmsOutboundOrderLine>();
 }

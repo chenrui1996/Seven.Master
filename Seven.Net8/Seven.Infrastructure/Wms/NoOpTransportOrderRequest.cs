@@ -7,6 +7,6 @@ public sealed class NoOpTransportOrderRequest : ITransportOrderRequest
 {
     public bool IsEnabled => false;
 
-    public Task RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default)
-        => Task.CompletedTask;
+    public Task<Guid> RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default)
+        => Task.FromResult(Guid.Empty);
 }

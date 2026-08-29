@@ -15,4 +15,15 @@ public sealed class BusTransportOrderQuery : IBusTransportOrderQuery
 
     public Task<PageGridData<BusTransportOrder>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
         CrudHelper.PaginateAsync(_db.BusTransportOrders.AsNoTracking(), options, ct);
+
+    public Task<BusTransportOrder?> GetWithLegsAsync(Guid orderId, CancellationToken ct = default) =>
+        _db.BusTransportOrders.AsNoTracking()
+            .Include(x => x.Legs)
+            .FirstOrDefaultAsync(x => x.Id == orderId, ct);
+
+    public Task<PageGridData<BusTransportLeg>> GetLegsPageAsync(PageDataOptions options, CancellationToken ct = default) =>
+        CrudHelper.PaginateAsync(
+            _db.BusTransportLegs.AsNoTracking().OrderBy(x => x.Seq),
+            options,
+            ct);
 }

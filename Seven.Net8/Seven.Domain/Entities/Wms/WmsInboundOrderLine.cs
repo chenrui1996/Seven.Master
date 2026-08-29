@@ -15,4 +15,5 @@ public class WmsInboundOrderLine : BaseEntity
     public string? FromLocation { get; set; }
     public string? ToLocation { get; set; }
     public WmsInboundOrder? Order { get; set; }
+    public ICollection<WmsInboundDetail> Details { get; set; } = new List<WmsInboundDetail>();
 }

@@ -70,6 +70,7 @@ public static class DependencyInjection
         services.AddSevenPlatform();
         services.AddSevenWcs(configuration);
         services.AddSevenWms(configuration);
+        services.AddScoped(typeof(Seven.Infrastructure.Crud.EntityCrudService<>));
         services.AddSevenScada();
         services.AddSevenSimulator(configuration);
         AddAuthentication(services, configuration);

@@ -7,6 +7,7 @@ public class WmsZone : BaseEntity
 {
     public int Id { get; set; }
     public int WarehouseId { get; set; }
+    public string PackId { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
 }

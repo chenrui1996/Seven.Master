@@ -137,4 +137,9 @@ public sealed class CycleCountService : ICycleCountService
             throw new WmsDomainException("盘点单不存在");
         return order;
     }
+
+    public async Task<WmsCycleCount?> GetAsync(int orderId, CancellationToken ct = default) =>
+        await _db.WmsCycleCounts.AsNoTracking()
+            .Include(x => x.Lines)
+            .FirstOrDefaultAsync(x => x.Id == orderId, ct);
 }

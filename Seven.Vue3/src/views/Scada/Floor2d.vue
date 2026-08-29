@@ -1,11 +1,10 @@
 <template>
   <div class="seven-page scada-floor2d">
     <div class="toolbar">
-      <el-select v-model="selectedViewId" placeholder="选择视图" style="width: 220px" @change="loadStatus">
+      <el-select v-model="selectedViewId" :placeholder="t('scada.selectView')" style="width: 220px" @change="loadStatus">
         <el-option v-for="v in views" :key="v.id" :label="v.name" :value="v.id" />
       </el-select>
-      <el-button type="primary" :disabled="!featureStore.flags.wms" @click="loadStatus">刷新</el-button>
-      <el-tag type="warning" v-if="!featureStore.flags.wms">Features.Wms=false</el-tag>
+      <el-button type="primary" @click="loadStatus">{{ t('scada.refresh') }}</el-button>
     </div>
 
     <div
@@ -24,14 +23,16 @@
         {{ node.label || node.locationCode }}
       </div>
     </div>
-    <el-empty v-else description="请选择 SCADA 视图" />
+    <el-empty v-else :description="t('scada.empty')" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import http from '../../api/http'
-import { useFeatureStore } from '../../stores/features'
+
+const { t } = useI18n()
 
 interface ScdViewRow {
   id: number
@@ -59,14 +60,12 @@ interface ScdViewStatus {
   nodes: ScdNodeStatus[]
 }
 
-const featureStore = useFeatureStore()
 const views = ref<ScdViewRow[]>([])
 const selectedViewId = ref<number | null>(null)
 const status = ref<ScdViewStatus | null>(null)
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 async function loadViews() {
-  if (!featureStore.flags.wms) return
   const res = await http.post<{ status: boolean; data?: { rows?: ScdViewRow[] } }>('/api/ScdView/getPageData', {
     page: 1,
     rows: 100,
@@ -81,7 +80,7 @@ async function loadViews() {
 }
 
 async function loadStatus() {
-  if (!featureStore.flags.wms || !selectedViewId.value) return
+  if (!selectedViewId.value) return
   const res = await http.get<{ status: boolean; data?: ScdViewStatus }>(`/api/ScdView/${selectedViewId.value}/status`)
   if (res.status) status.value = res.data ?? null
 }

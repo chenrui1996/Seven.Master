@@ -1,62 +1,71 @@
 <template>
-  <div class="seven-page stacker-trigger">
-    <div class="toolbar">
-      <el-tag type="warning" v-if="!simEnabled">仿真未启用（需 Stacker 或 OrchestrationBus）</el-tag>
+  <div class="wcs-ops seven-page">
+    <h1 class="ops-title">{{ t('wcsOps.stackerTrigger.title') }}</h1>
+    <p class="ops-sub">{{ t('wcsOps.stackerTrigger.subtitle') }}</p>
+
+    <div class="ops-grid">
+      <div class="ops-panel">
+        <h3>{{ t('wcsOps.stackerTrigger.destTitle') }}</h3>
+        <el-form label-width="120px">
+          <el-form-item :label="t('wcsOps.stackerTrigger.container')">
+            <el-input v-model="destForm.containerCode" class="ops-mono" />
+          </el-form-item>
+          <el-form-item :label="t('wcsOps.stackerTrigger.sourcePoint')">
+            <el-input
+              v-model="destForm.sourcePointCode"
+              class="ops-mono"
+              :placeholder="t('wcsOps.stackerTrigger.sourcePlaceholder')"
+            />
+          </el-form-item>
+          <el-form-item :label="t('wcsOps.stackerTrigger.height')"><el-input-number v-model="destForm.height" :min="0" /></el-form-item>
+          <el-form-item :label="t('wcsOps.stackerTrigger.weight')"><el-input-number v-model="destForm.weight" :min="0" /></el-form-item>
+          <el-form-item :label="t('wcsOps.stackerTrigger.checkResult')">
+            <el-select v-model="destForm.checkResult" style="width: 160px">
+              <el-option label="OK" value="OK" />
+              <el-option label="NG" value="NG" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="destBusy" @click="submitDest">{{ t('wcsOps.stackerTrigger.submitDest') }}</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <div class="ops-panel">
+        <h3>{{ t('wcsOps.stackerTrigger.segTitle') }}</h3>
+        <el-form label-width="120px">
+          <el-form-item :label="t('wcsOps.stackerTrigger.container')">
+            <el-input v-model="segForm.containerCode" class="ops-mono" />
+          </el-form-item>
+          <el-form-item :label="t('wcsOps.stackerTrigger.segmentPoint')">
+            <el-input v-model="segForm.segmentPointCode" class="ops-mono" />
+          </el-form-item>
+          <el-form-item :label="t('wcsOps.stackerTrigger.feedback')">
+            <el-select v-model="segForm.feedbackCode" style="width: 160px">
+              <el-option label="DONE / OK" value="DONE" />
+              <el-option label="NG" value="NG" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="segBusy" @click="submitSeg">{{ t('wcsOps.stackerTrigger.submitSeg') }}</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
     </div>
-
-    <el-card header="目的地申请 (SUDR)" style="max-width: 640px; margin-bottom: 16px">
-      <el-form label-width="120px">
-        <el-form-item label="容器编码">
-          <el-input v-model="destForm.containerCode" />
-        </el-form-item>
-        <el-form-item label="源点位">
-          <el-input v-model="destForm.sourcePointCode" />
-        </el-form-item>
-        <el-form-item label="高度">
-          <el-input-number v-model="destForm.height" :min="0" />
-        </el-form-item>
-        <el-form-item label="重量">
-          <el-input-number v-model="destForm.weight" :min="0" />
-        </el-form-item>
-        <el-form-item label="校验结果">
-          <el-input v-model="destForm.checkResult" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :disabled="!simEnabled" @click="submitDest">提交目的地申请</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card header="段反馈 (SUMR/SUPR)" style="max-width: 640px">
-      <el-form label-width="120px">
-        <el-form-item label="容器编码">
-          <el-input v-model="segForm.containerCode" />
-        </el-form-item>
-        <el-form-item label="段点位">
-          <el-input v-model="segForm.segmentPointCode" />
-        </el-form-item>
-        <el-form-item label="反馈码">
-          <el-input v-model="segForm.feedbackCode" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :disabled="!simEnabled" @click="submitSeg">提交段反馈</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import http from '../../../api/http'
-import { useFeatureStore } from '../../../stores/features'
+import '../../../styles/wcs-ops.css'
 
-const featureStore = useFeatureStore()
+const { t } = useI18n()
 
-const simEnabled = computed(
-  () => !!featureStore.flags.wcsPacks.stacker || !!featureStore.flags.orchestrationBus,
-)
+const destBusy = ref(false)
+const segBusy = ref(false)
 
 const destForm = ref({
   containerCode: '',
@@ -73,31 +82,30 @@ const segForm = ref({
 })
 
 async function submitDest() {
-  if (!simEnabled.value) return
-  const res = await http.post<{ status: boolean; message?: string }>(
-    '/api/Wcs/Triggers/destination-request',
-    destForm.value,
-  )
-  if (res.status) ElMessage.success(res.message || '已提交')
-  else ElMessage.error(res.message || '提交失败')
+  destBusy.value = true
+  try {
+    const res = await http.post<{ status: boolean; message?: string }>(
+      '/api/Wcs/Triggers/destination-request',
+      destForm.value,
+    )
+    if (res.status) ElMessage.success(res.message || t('wcsOps.stackerTrigger.submitted'))
+    else ElMessage.error(res.message || t('wcsOps.stackerTrigger.failed'))
+  } finally {
+    destBusy.value = false
+  }
 }
 
 async function submitSeg() {
-  if (!simEnabled.value) return
-  const res = await http.post<{ status: boolean; message?: string }>(
-    '/api/Wcs/Triggers/segment-feedback',
-    segForm.value,
-  )
-  if (res.status) ElMessage.success(res.message || '已提交')
-  else ElMessage.error(res.message || '提交失败')
+  segBusy.value = true
+  try {
+    const res = await http.post<{ status: boolean; message?: string }>(
+      '/api/Wcs/Triggers/segment-feedback',
+      segForm.value,
+    )
+    if (res.status) ElMessage.success(res.message || t('wcsOps.stackerTrigger.submitted'))
+    else ElMessage.error(res.message || t('wcsOps.stackerTrigger.failed'))
+  } finally {
+    segBusy.value = false
+  }
 }
 </script>
-
-<style scoped>
-.stacker-trigger .toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-</style>

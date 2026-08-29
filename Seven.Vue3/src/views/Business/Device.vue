@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import pageExtension from '../../extension/Business/Device'
 import type { DetailTableConfig, FormFieldDef, SearchFieldConfig } from '../../extension/types'
@@ -34,6 +35,7 @@ import { mergeDetailTables, mergeSearchFields } from '../../components/crud/merg
 import type { ColumnDef } from '../../composables/useTableColumns'
 
 const route = useRoute()
+const { t } = useI18n()
 
 const allColumns: ColumnDef[] = [
   { prop: 'deviceId', kind: 'number', sortable: false },
@@ -64,16 +66,16 @@ const generatedDetailTables: DetailTableConfig[] = []
 
 const queryFilterKeys: string[] = []
 
-const statusOptions = [
-  { value: 0, label: '离线' },
-  { value: 1, label: '在线' },
-  { value: 2, label: '故障' },
-  { value: 3, label: '维护中' },
-]
+const statusOptions = computed(() => [
+  { value: 0, label: t('generated.Device.enum_status_0') },
+  { value: 1, label: t('generated.Device.enum_status_1') },
+  { value: 2, label: t('generated.Device.enum_status_2') },
+  { value: 3, label: t('generated.Device.enum_status_3') },
+])
 
-const enumOptionsMap: Record<string, { value: number | string; label: string }[]> = {
-  status: statusOptions,
-}
+const enumOptionsMap = computed(() => ({
+  status: statusOptions.value,
+}))
 
 const mergedSearchFields = computed(() =>
   mergeSearchFields(generatedSearchFields, pageExtension.searchFields),

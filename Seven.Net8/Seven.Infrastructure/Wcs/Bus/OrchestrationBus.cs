@@ -44,6 +44,8 @@ public sealed class OrchestrationBus : IOrchestrationBus
             Status = BusOrderStatus.Planning,
             RefType = req.RefType,
             RefId = req.RefId,
+            WcsGroupNo = req.WcsGroupNo,
+            WcsPri = req.WcsPri,
             CreateDate = DateTime.UtcNow
         };
 
@@ -171,7 +173,11 @@ public sealed class OrchestrationBus : IOrchestrationBus
             leg.ToCode,
             leg.ContainerCode,
             leg.HandoverIn,
-            leg.HandoverOut);
+            leg.HandoverOut,
+            order.RefType,
+            order.RefId,
+            order.WcsGroupNo,
+            order.WcsPri);
         var result = await pack.AcceptLegAsync(dto, ct);
         if (!result.Accepted)
         {

@@ -18,7 +18,7 @@
       :title="hintText"
     />
 
-    <el-empty v-if="!deviceCustomState.rows.length" description="未传入设备数据" />
+    <el-empty v-if="!deviceCustomState.rows.length" :description="t('deviceCustom.empty')" />
 
     <el-table v-else :data="deviceCustomState.rows" border max-height="420">
       <el-table-column prop="deviceId" :label="t('generated.Device.deviceId')" width="90" />
@@ -33,12 +33,12 @@
       </el-table-column>
       <el-table-column prop="location" :label="t('generated.Device.location')" min-width="140">
         <template #default="{ row }">
-          <el-input v-model="row.location" clearable placeholder="可修改位置后提交" />
+          <el-input v-model="row.location" clearable :placeholder="t('deviceCustom.locPh')" />
         </template>
       </el-table-column>
-      <el-table-column label="处理说明" min-width="160">
+      <el-table-column :label="t('deviceCustom.remark')" min-width="160">
         <template #default="{ row }">
-          <el-input v-model="row._remark" clearable placeholder="仅前端演示，不落库" />
+          <el-input v-model="row._remark" clearable :placeholder="t('deviceCustom.remarkPh')" />
         </template>
       </el-table-column>
     </el-table>
@@ -68,21 +68,19 @@ import {
 const { t } = useI18n()
 const saving = ref(false)
 
-const statusOptions = [
-  { value: 0, label: '离线' },
-  { value: 1, label: '在线' },
-  { value: 2, label: '故障' },
-  { value: 3, label: '维护中' },
-]
+const statusOptions = computed(() => [
+  { value: 0, label: t('generated.Device.enum_status_0') },
+  { value: 1, label: t('generated.Device.enum_status_1') },
+  { value: 2, label: t('generated.Device.enum_status_2') },
+  { value: 3, label: t('generated.Device.enum_status_3') },
+])
 
 const pageTitle = computed(() =>
-  deviceCustomState.mode === 'row' ? '设备行内处理（Demo）' : '设备批量处理（Demo）',
+  deviceCustomState.mode === 'row' ? t('deviceCustom.titleRow') : t('deviceCustom.titleBatch'),
 )
 
 const hintText = computed(() =>
-  deviceCustomState.mode === 'row'
-    ? '由行内按钮打开：展示单行数据，修改后点确定调用 update 提交。'
-    : '由工具栏按钮打开：展示勾选行，修改后点确定逐条 update 提交。',
+  deviceCustomState.mode === 'row' ? t('deviceCustom.hintRow') : t('deviceCustom.hintBatch'),
 )
 
 function onClosed() {

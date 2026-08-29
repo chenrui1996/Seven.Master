@@ -203,12 +203,12 @@ async function sendBroadcast() {
 }
 
 /** 库存 Demo 数据（尚无独立库存 API） */
-const inventoryRows = [
-  { zone: 'A-01', sku: 'MAT-1001', qty: 320, uom: '箱' },
-  { zone: 'A-02', sku: 'MAT-2048', qty: 86, uom: '托' },
-  { zone: 'B-03', sku: 'MAT-3102', qty: 1540, uom: '件' },
-  { zone: 'C-01', sku: 'MAT-4410', qty: 42, uom: '托' },
-]
+const inventoryRows = computed(() => [
+  { zone: 'A-01', sku: 'MAT-1001', qty: 320, uom: t('home.uomBox') },
+  { zone: 'A-02', sku: 'MAT-2048', qty: 86, uom: t('home.uomPallet') },
+  { zone: 'B-03', sku: 'MAT-3102', qty: 1540, uom: t('home.uomPcs') },
+  { zone: 'C-01', sku: 'MAT-4410', qty: 42, uom: t('home.uomPallet') },
+])
 
 const occupancyZones = [
   { key: 'zoneA', used: 720, total: 1000 },
@@ -224,12 +224,13 @@ const occupancyPercent = computed(() => {
 })
 
 const inventorySummary = computed(() => {
-  const skuCount = new Set(inventoryRows.map((r) => r.sku)).size
-  const qtySum = inventoryRows.reduce((s, r) => s + r.qty, 0)
+  const rows = inventoryRows.value
+  const skuCount = new Set(rows.map((r) => r.sku)).size
+  const qtySum = rows.reduce((s, r) => s + r.qty, 0)
   return [
     { label: t('home.invSkuCount'), value: String(skuCount) },
     { label: t('home.invQtyTotal'), value: qtySum.toLocaleString() },
-    { label: t('home.invZoneCount'), value: String(new Set(inventoryRows.map((r) => r.zone)).size) },
+    { label: t('home.invZoneCount'), value: String(new Set(rows.map((r) => r.zone)).size) },
   ]
 })
 

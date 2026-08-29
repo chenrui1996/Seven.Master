@@ -4,7 +4,7 @@ namespace Seven.Application.Wms;
 public interface ITransportOrderRequest
 {
     bool IsEnabled { get; }
-    Task RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default);
+    Task<Guid> RequestAsync(TransportOrderHookRequest request, CancellationToken ct = default);
 }
 
 public record TransportOrderHookRequest(
@@ -12,4 +12,6 @@ public record TransportOrderHookRequest(
     string? ToLocationCode,
     string? ContainerCode,
     string RefType,
-    string RefId);
+    string RefId,
+    string? WcsGroupNo = null,
+    int? WcsPri = null);

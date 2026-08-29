@@ -11,4 +11,5 @@ public class WmsInboundOrder : BaseEntity
     public WmsOrderType OrderType { get; set; }
     public WmsOrderStatus Status { get; set; }
     public ICollection<WmsInboundOrderLine> Lines { get; set; } = new List<WmsInboundOrderLine>();
+    public ICollection<WmsInboundDetail> Details { get; set; } = new List<WmsInboundDetail>();
 }

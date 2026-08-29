@@ -6,6 +6,8 @@ using Seven.Domain.Entities.Wcs.FourWay;
 using Seven.Domain.Entities.Wcs.Stacker;
 using Seven.Domain.Entities.Wms;
 using Seven.Domain.Enums;
+using Seven.Domain.Wcs;
+using Seven.Domain.Wms;
 using Seven.Infrastructure.Persistence;
 
 namespace Seven.Infrastructure.Simulator;
@@ -25,7 +27,7 @@ public sealed class SimulationDeployService : ISimulationDeployService
         var warnings = new List<string>();
 
         if (!features.Wms)
-            errors.Add("Deploy 需要 Features.Wms=true（库位权威在 Wms_Location）");
+            warnings.Add("工程未勾选 Wms：Deploy 仍会写 Wms_Location（Features 仅影响前端菜单）");
 
         if (!features.WcsPacks.Stacker && !features.WcsPacks.FourWay && !features.WcsPacks.BoxSort)
             warnings.Add("未启用任何 WCS 包：仅部署库位主数据");
@@ -34,12 +36,12 @@ public sealed class SimulationDeployService : ISimulationDeployService
             warnings.Add("四向车建议同时开启 HotStore");
 
         if (features.OrchestrationBus && !features.Wms)
-            errors.Add("OrchestrationBus 需要 Wms=true");
+            warnings.Add("OrchestrationBus 建议同时勾选 Wms（前端菜单组合）");
 
         if (!features.Simulator)
-            warnings.Add("工程 meta 未勾选 Simulator；API 仍受服务器 Features.Simulator 门控");
+            warnings.Add("工程 meta 未勾选 Simulator");
 
-        return new ValidateFeaturesResult(errors.Count == 0, errors, warnings);
+        return new ValidateFeaturesResult(true, errors, warnings);
     }
 
     public async Task<DeployResult> DeployAsync(SimProjectDto project, CancellationToken ct = default)
@@ -54,7 +56,12 @@ public sealed class SimulationDeployService : ISimulationDeployService
         if (!validation.Ok)
             throw new InvalidOperationException(string.Join("; ", validation.Errors));
 
-        var packId = string.IsNullOrWhiteSpace(project.Map.PackId) ? "stacker" : project.Map.PackId.Trim().ToLowerInvariant();
+        var packId = string.IsNullOrWhiteSpace(project.Map.PackId)
+            ? WcsPackIds.Stacker
+            : project.Map.PackId.Trim().ToLowerInvariant();
+        if (!WcsPackIds.IsKnown(packId))
+            throw new InvalidOperationException($"未知 PackId: {packId}");
+
         var warehouseCode = SimWarehousePrefix + SanitizeCode(project.Meta.Name);
 
         var warehouse = await _db.WmsWarehouses.FirstOrDefaultAsync(x => x.Code == warehouseCode, ct);
@@ -64,44 +71,59 @@ public sealed class SimulationDeployService : ISimulationDeployService
             {
                 Code = warehouseCode,
                 Name = $"仿真仓-{project.Meta.Name}",
+                EnabledPackIds = packId,
                 CreateDate = DateTime.UtcNow
             };
             _db.WmsWarehouses.Add(warehouse);
             await _db.SaveChangesAsync(ct);
         }
+        else
+        {
+            warehouse.EnabledPackIds = WarehousePackRules.EnsureContains(warehouse.EnabledPackIds, packId);
+            warehouse.ModifyDate = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
+
+        int? defaultLayerId = null;
+        if (packId == WcsPackIds.FourWay)
+            defaultLayerId = await EnsureDefaultFourWayLayerAsync(warehouse.Id, ct);
 
         var locationCount = 0;
         foreach (var node in project.Map.Nodes)
         {
             if (string.IsNullOrWhiteSpace(node.Code)) continue;
-            var code = node.Code.Trim();
+            var code = PackCodeRules.EnsurePrefix(node.Code.Trim(), packId);
             var loc = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == code, ct);
             if (loc == null)
             {
                 loc = new WmsLocation
                 {
                     WarehouseId = warehouse.Id,
+                    PackId = packId,
                     Code = code,
+                    LayerId = defaultLayerId,
                     CreateDate = DateTime.UtcNow
                 };
                 _db.WmsLocations.Add(loc);
                 locationCount++;
             }
-            else if (loc.WarehouseId != warehouse.Id)
+            else
             {
-                // 已存在于其他仓：不改归属，仅计数为已就绪
+                if (string.IsNullOrEmpty(loc.PackId))
+                    loc.PackId = packId;
+                if (loc.LayerId == null && defaultLayerId != null)
+                    loc.LayerId = defaultLayerId;
             }
         }
 
         await _db.SaveChangesAsync(ct);
 
         var edgeCount = 0;
-        if (packId is "stacker")
-            await EnsureStackerSeedAsync(project, ct);
-        else if (packId is "fourway")
-            edgeCount = await EnsureFourWayMapAsync(project, ct);
+        if (packId == WcsPackIds.Stacker)
+            await EnsureStackerSeedAsync(project, packId, ct);
+        else if (packId == WcsPackIds.FourWay)
+            edgeCount = await EnsureFourWayMapAsync(project, packId, ct);
 
-        // 同名工程若已 Deployed，先标记 Undeployed（不删库位）
         var active = await _db.SimDeployments
             .Where(x => x.ProjectName == project.Meta.Name && x.Status == "Deployed")
             .ToListAsync(ct);
@@ -157,12 +179,14 @@ public sealed class SimulationDeployService : ISimulationDeployService
             if (removeLocations && !string.IsNullOrWhiteSpace(row.ProjectJson))
             {
                 var project = JsonSerializer.Deserialize<SimProjectDto>(row.ProjectJson, JsonOptions);
+                var packId = string.IsNullOrWhiteSpace(row.PackId) ? WcsPackIds.Stacker : row.PackId;
                 if (project?.Map.Nodes != null)
                 {
                     foreach (var node in project.Map.Nodes)
                     {
-                        var code = node.Code?.Trim();
-                        if (string.IsNullOrEmpty(code)) continue;
+                        var raw = node.Code?.Trim();
+                        if (string.IsNullOrEmpty(raw)) continue;
+                        var code = PackCodeRules.EnsurePrefix(raw, packId);
                         var hasStock = await _db.WmsStocks.AnyAsync(s => s.LocationCode == code && s.Qty > 0, ct);
                         if (hasStock) continue;
                         var loc = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == code, ct);
@@ -186,13 +210,50 @@ public sealed class SimulationDeployService : ISimulationDeployService
             .ToListAsync(ct);
     }
 
-    private async Task EnsureStackerSeedAsync(SimProjectDto project, CancellationToken ct)
+    private async Task<int> EnsureDefaultFourWayLayerAsync(int warehouseId, CancellationToken ct)
     {
-        // 若工程未带申请点，为每个节点补一个 AisleRequest 入口（Code=节点码），便于仿真 SUDR
+        var code = PackCodeRules.EnsurePrefix("L01", WcsPackIds.FourWay);
+        var layer = await _db.WmsLayers.FirstOrDefaultAsync(x => x.Code == code && x.WarehouseId == warehouseId, ct);
+        if (layer != null) return layer.Id;
+
+        var zoneCode = PackCodeRules.EnsurePrefix("Z-SIM", WcsPackIds.FourWay);
+        var zone = await _db.WmsZones.FirstOrDefaultAsync(x => x.Code == zoneCode && x.WarehouseId == warehouseId, ct);
+        if (zone == null)
+        {
+            zone = new WmsZone
+            {
+                WarehouseId = warehouseId,
+                PackId = WcsPackIds.FourWay,
+                Code = zoneCode,
+                Name = "仿真四向库区",
+                CreateDate = DateTime.UtcNow
+            };
+            _db.WmsZones.Add(zone);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        layer = new WmsLayer
+        {
+            WarehouseId = warehouseId,
+            ZoneId = zone.Id,
+            PackId = WcsPackIds.FourWay,
+            Code = code,
+            Name = "仿真一层",
+            IsAvailable = true,
+            CreateDate = DateTime.UtcNow
+        };
+        _db.WmsLayers.Add(layer);
+        await _db.SaveChangesAsync(ct);
+        return layer.Id;
+    }
+
+    private async Task EnsureStackerSeedAsync(SimProjectDto project, string packId, CancellationToken ct)
+    {
         foreach (var node in project.Map.Nodes)
         {
-            var code = node.Code?.Trim();
-            if (string.IsNullOrEmpty(code)) continue;
+            var raw = node.Code?.Trim();
+            if (string.IsNullOrEmpty(raw)) continue;
+            var code = PackCodeRules.EnsurePrefix(raw, packId);
             var exists = await _db.StkRequestPoints.AnyAsync(x => x.Code == code, ct);
             if (exists) continue;
             _db.StkRequestPoints.Add(new StkRequestPoint
@@ -209,8 +270,9 @@ public sealed class SimulationDeployService : ISimulationDeployService
         {
             foreach (var node in project.Map.Nodes.Take(3))
             {
-                var code = node.Code?.Trim();
-                if (string.IsNullOrEmpty(code)) continue;
+                var raw = node.Code?.Trim();
+                if (string.IsNullOrEmpty(raw)) continue;
+                var code = PackCodeRules.EnsurePrefix(raw, packId);
                 _db.StkAssignmentPolicies.Add(new StkAssignmentPolicy
                 {
                     AisleCode = code,
@@ -226,7 +288,7 @@ public sealed class SimulationDeployService : ISimulationDeployService
         await _db.SaveChangesAsync(ct);
     }
 
-    private async Task<int> EnsureFourWayMapAsync(SimProjectDto project, CancellationToken ct)
+    private async Task<int> EnsureFourWayMapAsync(SimProjectDto project, string packId, CancellationToken ct)
     {
         var mapCode = $"SIM_{SanitizeCode(project.Meta.Name)}";
         var existingMaps = await _db.FwMapVersions.Where(x => x.Code == mapCode).ToListAsync(ct);
@@ -246,7 +308,7 @@ public sealed class SimulationDeployService : ISimulationDeployService
         var nodeIds = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var node in project.Map.Nodes)
         {
-            var code = node.Code.Trim();
+            var code = PackCodeRules.EnsurePrefix(node.Code.Trim(), packId);
             var fw = new FwNode
             {
                 MapVersionId = map.Id,
@@ -262,15 +324,17 @@ public sealed class SimulationDeployService : ISimulationDeployService
         var edgeCount = 0;
         foreach (var edge in project.Map.Edges ?? [])
         {
-            if (!nodeIds.TryGetValue(edge.From, out var fromId) || !nodeIds.TryGetValue(edge.To, out var toId))
+            var fromCode = PackCodeRules.EnsurePrefix(edge.From, packId);
+            var toCode = PackCodeRules.EnsurePrefix(edge.To, packId);
+            if (!nodeIds.TryGetValue(fromCode, out var fromId) || !nodeIds.TryGetValue(toCode, out var toId))
                 continue;
             _db.FwRoutes.Add(new FwRoute
             {
                 MapVersionId = map.Id,
                 FromNodeId = fromId,
                 ToNodeId = toId,
-                FromCode = edge.From,
-                ToCode = edge.To,
+                FromCode = fromCode,
+                ToCode = toCode,
                 Weight = 1,
                 Capacity = 1,
                 CreateDate = DateTime.UtcNow

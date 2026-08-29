@@ -51,14 +51,23 @@ public static class DbSeeder
         await SeedAlarmCodesAsync(db, alarmOptions, logger);
         await MigrateBoardToBusinessMetadataAsync(db, logger);
         await SeedDeviceDetailDemoAsync(db, logger);
+        await SeedDefaultTenantAsync(db, logger);
+
+        // 先确保有管理员角色，再种子业务菜单并补 RoleAuth。
+        // 旧顺序会在「尚无角色」时创建 WMS/WCS 菜单，导致 getMenu 永远看不到这些项。
+        if (!await db.Sys_Users.AnyAsync())
+        {
+            await SeedAdminUserAndSystemMenusAsync(db, hasher, logger);
+        }
+
         await SeedExtraMenusAndJobsAsync(db, logger);
         await SeedDeviceCommMenusAsync(db, logger);
         await SeedWmsWcsMenusAsync(db, logger);
-        await SeedDefaultTenantAsync(db, logger);
+    }
 
-        if (await db.Sys_Users.AnyAsync())
-            return;
-
+    /// <summary>首次安装：超级管理员 + 系统管理菜单树</summary>
+    static async Task SeedAdminUserAndSystemMenusAsync(SevenDbContext db, IPasswordHasher hasher, ILogger logger)
+    {
         logger.LogInformation("正在初始化 Seven 种子数据...");
 
         var adminRole = new Sys_Role
@@ -135,21 +144,32 @@ public static class DbSeeder
         db.Sys_Menus.AddRange(menus);
         await db.SaveChangesAsync();
 
-        foreach (var menu in menus.Where(m => !string.IsNullOrEmpty(m.TableName)))
+        foreach (var menu in menus)
         {
-            db.Sys_RoleAuths.Add(
-                new Sys_RoleAuth
-                {
-                    Role_Id = adminRole.Role_Id,
-                    Menu_Id = menu.Menu_Id,
-                    AuthValue = menu.Auth,
-                    TenantId = DefaultTenantId,
-                }
-            );
+            db.Sys_RoleAuths.Add(new Sys_RoleAuth
+            {
+                Role_Id = adminRole.Role_Id,
+                Menu_Id = menu.Menu_Id,
+                AuthValue = menu.Auth,
+            });
         }
-
         await db.SaveChangesAsync();
-        logger.LogInformation("Seven 种子数据初始化完成。默认账号 admin / 123456");
+        logger.LogInformation("已初始化管理员账号 admin / 123456 与系统菜单");
+    }
+
+    /// <summary>给首个角色补菜单授权（已存在则跳过）</summary>
+    static async Task EnsureRoleAuthAsync(SevenDbContext db, Sys_Role? adminRole, int menuId, string? authValue)
+    {
+        if (adminRole == null || menuId <= 0) return;
+        var exists = await db.Sys_RoleAuths.AnyAsync(a => a.Role_Id == adminRole.Role_Id && a.Menu_Id == menuId);
+        if (exists) return;
+        db.Sys_RoleAuths.Add(new Sys_RoleAuth
+        {
+            Role_Id = adminRole.Role_Id,
+            Menu_Id = menuId,
+            AuthValue = authValue,
+        });
+        await db.SaveChangesAsync();
     }
 
     /// <summary>写入默认租户（幂等）</summary>
@@ -350,8 +370,12 @@ public static class DbSeeder
         var added = 0;
         foreach (var m in extras)
         {
-            if (await db.Sys_Menus.AnyAsync(x => x.Url == m.Url || x.TableName == m.TableName))
+            var existing = await db.Sys_Menus.FirstOrDefaultAsync(x => x.Url == m.Url || x.TableName == m.TableName);
+            if (existing != null)
+            {
+                await EnsureRoleAuthAsync(db, adminRole, existing.Menu_Id, m.Auth);
                 continue;
+            }
             var menu = new Sys_Menu
             {
                 ParentId = parent.Menu_Id,
@@ -365,16 +389,7 @@ public static class DbSeeder
             };
             db.Sys_Menus.Add(menu);
             await db.SaveChangesAsync();
-            if (adminRole != null)
-            {
-                db.Sys_RoleAuths.Add(new Sys_RoleAuth
-                {
-                    Role_Id = adminRole.Role_Id,
-                    Menu_Id = menu.Menu_Id,
-                    AuthValue = m.Auth,
-                });
-                await db.SaveChangesAsync();
-            }
+            await EnsureRoleAuthAsync(db, adminRole, menu.Menu_Id, m.Auth);
             added++;
         }
 
@@ -463,6 +478,7 @@ public static class DbSeeder
                 }
                 if (dirty)
                     await db.SaveChangesAsync();
+                await EnsureRoleAuthAsync(db, adminRole, existing.Menu_Id, m.Auth);
                 continue;
             }
 
@@ -479,16 +495,7 @@ public static class DbSeeder
             };
             db.Sys_Menus.Add(menu);
             await db.SaveChangesAsync();
-            if (adminRole != null)
-            {
-                db.Sys_RoleAuths.Add(new Sys_RoleAuth
-                {
-                    Role_Id = adminRole.Role_Id,
-                    Menu_Id = menu.Menu_Id,
-                    AuthValue = m.Auth,
-                });
-                await db.SaveChangesAsync();
-            }
+            await EnsureRoleAuthAsync(db, adminRole, menu.Menu_Id, m.Auth);
             added++;
         }
 
@@ -535,24 +542,64 @@ public static class DbSeeder
 
         var wms = await EnsureFolderAsync("仓储WMS", "WmsFolder", "Box", 6);
         var wcs = await EnsureFolderAsync("立库WCS", "WcsFolder", "Cpu", 7);
-        var plat = await EnsureFolderAsync("执行运维", "WcsOpsFolder", "Tools", 8);
+        var fw = await EnsureFolderAsync("四向车WCS", "FourWayFolder", "Van", 8);
+        var plat = await EnsureFolderAsync("执行运维", "WcsOpsFolder", "Tools", 9);
+
+        const string AuthCrud = "Search,Add,Update,Delete";
+        const string AuthRu = "Search,Update";
+        const string AuthR = "Search";
 
         var items = new (Sys_Menu Parent, string MenuName, string Url, string TableName, string Auth, int OrderNo)[]
         {
-            (wms, "库位", "/Wms/Location", "WmsLocation", "Search,Add,Update", 1),
-            (wms, "库存", "/Wms/Stock", "WmsStock", "Search,Update", 2),
-            (wms, "入库单", "/Wms/InboundOrder", "WmsInboundOrder", "Search,Add,Update", 3),
-            (wms, "出库单", "/Wms/OutboundOrder", "WmsOutboundOrder", "Search,Add,Update", 4),
-            (wms, "盘点单", "/Wms/CycleCount", "WmsCycleCount", "Search,Add,Update", 5),
-            (wcs, "堆垛机仿真触发", "/Wcs/Stacker/Trigger", "StackerTrigger", "Search,Update", 1),
-            (wcs, "运输单监控", "/Wcs/Bus/TransportOrder", "BusTransportOrder", "Search", 2),
-            (plat, "运行模式/联锁", "/Platform/ControlMode", "CtlMode", "Search,Update", 1),
-            (plat, "接口日志", "/Platform/InterfaceLog", "IfcApiLog", "Search", 2),
-            (plat, "2D看板", "/Scada/Floor2d", "ScadaFolder", "Search", 3),
+            (wms, "仓库", "/Wms/WmsWarehouse", "WmsWarehouse", AuthCrud, 1),
+            (wms, "库区", "/Wms/WmsZone", "WmsZone", AuthCrud, 2),
+            (wms, "层", "/Wms/WmsLayer", "WmsLayer", AuthCrud, 3),
+            (wms, "巷道", "/Wms/WmsAisle", "WmsAisle", AuthCrud, 4),
+            (wms, "库位", "/Wms/Location", "WmsLocation", "Search,Add,Update,Delete", 5),
+            (wms, "容器类型", "/Wms/WmsContainerType", "WmsContainerType", AuthCrud, 6),
+            (wms, "容器", "/Wms/WmsContainer", "WmsContainer", AuthCrud, 7),
+            (wms, "交接位", "/Wms/WmsHandoverLink", "WmsHandoverLink", AuthCrud, 8),
+            (wms, "库存", "/Wms/Stock", "WmsStock", "Search,Update", 9),
+            (wms, "库存流水", "/Wms/WmsStockLedger", "WmsStockLedger", AuthR, 10),
+            (wms, "入库单", "/Wms/InboundOrder", "WmsInboundOrder", "Search,Add,Update", 11),
+            (wms, "出库单", "/Wms/OutboundOrder", "WmsOutboundOrder", "Search,Add,Update", 12),
+            (wms, "盘点单", "/Wms/CycleCount", "WmsCycleCount", "Search,Add,Update", 13),
+
+            (wcs, "堆垛仿真触发", "/Wcs/Stacker/Trigger", "StackerTrigger", AuthRu, 1),
+            (wcs, "运输单监控", "/Wcs/Bus/TransportOrder", "BusTransportOrder", AuthR, 2),
+            (wcs, "申请点", "/Wcs/Stacker/StkRequestPoint", "StkRequestPoint", AuthCrud, 3),
+            (wcs, "巷道策略", "/Wcs/Stacker/StkAssignmentPolicy", "StkAssignmentPolicy", AuthCrud, 4),
+            (wcs, "双深配置", "/Wcs/Stacker/StkLocationProfile", "StkLocationProfile", AuthCrud, 5),
+            (wcs, "路网", "/Wcs/Stacker/StkRoute", "StkRoute", AuthCrud, 6),
+            (wcs, "点码映射", "/Wcs/Stacker/StkDeviceCoder", "StkDeviceCoder", AuthCrud, 7),
+            (wcs, "上架任务", "/Wcs/Stacker/StkPutAwayTask", "StkPutAwayTask", AuthRu, 8),
+            (wcs, "取货任务", "/Wcs/Stacker/StkRetrievalTask", "StkRetrievalTask", AuthRu, 9),
+            (wcs, "设备段任务", "/Wcs/Stacker/StkDeviceTask", "StkDeviceTask", AuthRu, 10),
+
+            (fw, "四向仿真触发", "/Wcs/FourWay/Trigger", "FourWayTrigger", AuthRu, 1),
+            (fw, "层策略", "/Wcs/FourWay/FwLayerPolicy", "FwLayerPolicy", AuthCrud, 2),
+            (fw, "巷策略", "/Wcs/FourWay/FwAislePolicy", "FwAislePolicy", AuthCrud, 3),
+            (fw, "申请点", "/Wcs/FourWay/FwRequestPoint", "FwRequestPoint", AuthCrud, 4),
+            (fw, "地图版本", "/Wcs/FourWay/FwMapVersion", "FwMapVersion", AuthCrud, 5),
+            (fw, "节点", "/Wcs/FourWay/FwNode", "FwNode", AuthCrud, 6),
+            (fw, "路网边", "/Wcs/FourWay/FwRoute", "FwRoute", AuthCrud, 7),
+            (fw, "停车账本", "/Wcs/FourWay/FwParkingLedger", "FwParkingLedger", AuthCrud, 8),
+            (fw, "提升机", "/Wcs/FourWay/FwHoistDevice", "FwHoistDevice", AuthCrud, 9),
+            (fw, "提升机层口", "/Wcs/FourWay/FwHoistLayerPoint", "FwHoistLayerPoint", AuthCrud, 10),
+            (fw, "上架任务", "/Wcs/FourWay/FwPutAwayTask", "FwPutAwayTask", AuthRu, 11),
+            (fw, "取货任务", "/Wcs/FourWay/FwRetrievalTask", "FwRetrievalTask", AuthRu, 12),
+            (fw, "穿梭任务", "/Wcs/FourWay/FwShuttleTask", "FwShuttleTask", AuthRu, 13),
+            (fw, "提升任务", "/Wcs/FourWay/FwHoistTask", "FwHoistTask", AuthRu, 14),
+            (fw, "提升执行段", "/Wcs/FourWay/FwHoistExecTask", "FwHoistExecTask", AuthRu, 15),
+
+            (plat, "运行模式/联锁", "/Platform/ControlMode", "CtlMode", AuthRu, 1),
+            (plat, "接口日志", "/Platform/InterfaceLog", "IfcApiLog", AuthR, 2),
+            (plat, "2D看板", "/Scada/Floor2d", "ScadaFolder", AuthR, 3),
         };
 
         var adminRole = await db.Sys_Roles.OrderBy(r => r.Role_Id).FirstOrDefaultAsync();
         var added = 0;
+        var authFixed = 0;
         foreach (var m in items)
         {
             var existing = await db.Sys_Menus.FirstOrDefaultAsync(x =>
@@ -565,6 +612,11 @@ public static class DbSeeder
                     existing.OrderNo = m.OrderNo;
                     await db.SaveChangesAsync();
                 }
+
+                var before = await db.Sys_RoleAuths.CountAsync(a =>
+                    adminRole != null && a.Role_Id == adminRole.Role_Id && a.Menu_Id == existing.Menu_Id);
+                await EnsureRoleAuthAsync(db, adminRole, existing.Menu_Id, m.Auth);
+                if (before == 0 && adminRole != null) authFixed++;
                 continue;
             }
 
@@ -581,20 +633,11 @@ public static class DbSeeder
             };
             db.Sys_Menus.Add(menu);
             await db.SaveChangesAsync();
-            if (adminRole != null)
-            {
-                db.Sys_RoleAuths.Add(new Sys_RoleAuth
-                {
-                    Role_Id = adminRole.Role_Id,
-                    Menu_Id = menu.Menu_Id,
-                    AuthValue = m.Auth,
-                });
-                await db.SaveChangesAsync();
-            }
+            await EnsureRoleAuthAsync(db, adminRole, menu.Menu_Id, m.Auth);
             added++;
         }
 
-        if (added > 0)
-            logger.LogInformation("WMS/WCS 菜单：新增 {Added}", added);
+        if (added > 0 || authFixed > 0)
+            logger.LogInformation("WMS/WCS 菜单：新增 {Added}，补授权 {AuthFixed}", added, authFixed);
     }
 }

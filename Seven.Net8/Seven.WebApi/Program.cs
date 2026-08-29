@@ -74,6 +74,12 @@ builder.Services.AddSwaggerGen(c =>
         Version = apiVersion,
         Description = "告警、消息队列、文件、邮件、通知、健康检查",
     });
+    c.SwaggerDoc("pda", new OpenApiInfo
+    {
+        Title = "Seven PDA API",
+        Version = apiVersion,
+        Description = "WMS PDA：平库收货/上架等扫码契约",
+    });
 
     c.TagActionsBy(api =>
     {
@@ -161,6 +167,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/workflow/swagger.json", "Workflow v1");
         c.SwaggerEndpoint("/swagger/builder/swagger.json", "Builder v1");
         c.SwaggerEndpoint("/swagger/ops/swagger.json", "Ops v1");
+        c.SwaggerEndpoint("/swagger/pda/swagger.json", "PDA v1");
     });
 }
 

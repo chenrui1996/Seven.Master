@@ -1,45 +1,47 @@
 <template>
   <div class="seven-page devicecomm-runtime">
     <div class="toolbar">
-      <el-button type="primary" :disabled="!featureStore.flags.deviceComm" @click="refresh">刷新状态</el-button>
-      <el-button :disabled="!featureStore.flags.deviceComm" @click="reload">重载连接/规则</el-button>
-      <el-tag :type="hubOk ? 'success' : 'info'">Hub {{ hubOk ? '已连接' : '未连接' }}</el-tag>
+      <el-button type="primary" :disabled="!featureStore.flags.deviceComm" @click="refresh">{{ t('deviceComm.refresh') }}</el-button>
+      <el-button :disabled="!featureStore.flags.deviceComm" @click="reload">{{ t('deviceComm.reload') }}</el-button>
+      <el-tag :type="hubOk ? 'success' : 'info'">
+        Hub {{ hubOk ? t('deviceComm.hubConnected') : t('deviceComm.hubDisconnected') }}
+      </el-tag>
       <el-tag type="warning" v-if="!featureStore.flags.deviceComm">Features.DeviceComm=false</el-tag>
     </div>
 
     <el-table :data="statuses" stripe border style="width: 100%; margin-top: 12px">
       <el-table-column prop="commConnectionId" label="Id" width="80" />
-      <el-table-column prop="name" label="名称" min-width="120" />
-      <el-table-column prop="protocol" label="协议" width="100">
+      <el-table-column prop="name" :label="t('deviceComm.name')" min-width="120" />
+      <el-table-column prop="protocol" :label="t('deviceComm.protocol')" width="100">
         <template #default="{ row }">{{ row.protocol === 2 ? 'ModbusTcp' : 'Step7' }}</template>
       </el-table-column>
-      <el-table-column prop="state" label="状态" width="120">
+      <el-table-column prop="state" :label="t('deviceComm.status')" width="120">
         <template #default="{ row }">
           <el-tag :type="stateType(row.state)">{{ stateLabel(row.state) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="reconnectCount" label="重连次数" width="100" />
-      <el-table-column prop="ioFailCount" label="IO失败" width="90" />
-      <el-table-column prop="lastError" label="最近错误" min-width="180" show-overflow-tooltip />
-      <el-table-column label="操作" width="260" fixed="right">
+      <el-table-column prop="reconnectCount" :label="t('deviceComm.reconnectCount')" width="100" />
+      <el-table-column prop="ioFailCount" :label="t('deviceComm.ioFail')" width="90" />
+      <el-table-column prop="lastError" :label="t('deviceComm.lastError')" min-width="180" show-overflow-tooltip />
+      <el-table-column :label="t('deviceComm.actions')" width="260" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="act('connect', row.commConnectionId)">连接</el-button>
-          <el-button link @click="act('disconnect', row.commConnectionId)">断开</el-button>
-          <el-button link type="warning" @click="act('reconnect', row.commConnectionId)">重连</el-button>
+          <el-button link type="primary" @click="act('connect', row.commConnectionId)">{{ t('deviceComm.connect') }}</el-button>
+          <el-button link @click="act('disconnect', row.commConnectionId)">{{ t('deviceComm.disconnect') }}</el-button>
+          <el-button link type="warning" @click="act('reconnect', row.commConnectionId)">{{ t('deviceComm.reconnect') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <h3 style="margin-top: 24px">最近规则事件</h3>
+    <h3 style="margin-top: 24px">{{ t('deviceComm.recentEvents') }}</h3>
     <el-table :data="events" stripe border style="width: 100%">
-      <el-table-column prop="timestamp" label="时间" width="200" />
-      <el-table-column prop="ruleName" label="规则" min-width="120" />
-      <el-table-column prop="eventName" label="事件" min-width="120" />
-      <el-table-column prop="success" label="成功" width="80">
-        <template #default="{ row }">{{ row.success ? '是' : '否' }}</template>
+      <el-table-column prop="timestamp" :label="t('deviceComm.time')" width="200" />
+      <el-table-column prop="ruleName" :label="t('deviceComm.rule')" min-width="120" />
+      <el-table-column prop="eventName" :label="t('deviceComm.event')" min-width="120" />
+      <el-table-column prop="success" :label="t('deviceComm.success')" width="80">
+        <template #default="{ row }">{{ row.success ? t('deviceComm.yes') : t('deviceComm.no') }}</template>
       </el-table-column>
-      <el-table-column prop="message" label="消息" min-width="160" show-overflow-tooltip />
-      <el-table-column label="值" min-width="220">
+      <el-table-column prop="message" :label="t('deviceComm.message')" min-width="160" show-overflow-tooltip />
+      <el-table-column :label="t('deviceComm.values')" min-width="220">
         <template #default="{ row }">{{ JSON.stringify(row.values || {}) }}</template>
       </el-table-column>
     </el-table>
@@ -48,11 +50,14 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { HubConnectionBuilder, LogLevel, type HubConnection } from '@microsoft/signalr'
 import http from '../../api/http'
 import { useUserStore } from '../../stores/user'
 import { useFeatureStore } from '../../stores/features'
+
+const { t } = useI18n()
 
 interface StatusRow {
   commConnectionId: number
@@ -82,7 +87,13 @@ const hubOk = ref(false)
 let connection: HubConnection | null = null
 
 function stateLabel(s: number) {
-  return ['断开', '连接中', '已连接', '故障', '重连中'][s] ?? String(s)
+  return [
+    t('deviceComm.stateDisconnected'),
+    t('deviceComm.stateConnecting'),
+    t('deviceComm.stateConnected'),
+    t('deviceComm.stateFault'),
+    t('deviceComm.stateReconnecting'),
+  ][s] ?? String(s)
 }
 function stateType(s: number) {
   if (s === 2) return 'success'
@@ -100,7 +111,7 @@ async function refresh() {
 async function reload() {
   const res = await http.post<{ status: boolean; message?: string }>('/api/DeviceComm/reload')
   if (res.status) {
-    ElMessage.success(res.message || '已重载')
+    ElMessage.success(res.message || t('deviceComm.reloaded'))
     await refresh()
   }
 }
@@ -108,7 +119,7 @@ async function reload() {
 async function act(kind: 'connect' | 'disconnect' | 'reconnect', id: number) {
   const res = await http.post<{ status: boolean; message?: string }>(`/api/DeviceComm/${kind}/${id}`)
   if (res.status) {
-    ElMessage.success(res.message || '完成')
+    ElMessage.success(res.message || t('deviceComm.done'))
     await refresh()
   }
 }
