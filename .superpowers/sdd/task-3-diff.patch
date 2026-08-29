@@ -1,0 +1,796 @@
+﻿Task 3 WT diff
+ .../Seven.Application/Wms/IContainerService.cs     |  12 +
+ .../Seven.Application/Wms/ILocationService.cs      |  12 +
+ Seven.Net8/Seven.Application/Wms/IStockService.cs  |  11 +
+ Seven.Net8/Seven.Application/Wms/WmsModels.cs      |  21 +
+ .../Seven.Domain/Entities/Wms/WmsContainer.cs      |  14 +
+ .../Seven.Domain/Entities/Wms/WmsContainerType.cs  |  11 +
+ .../Seven.Domain/Entities/Wms/WmsLocation.cs       |  20 +
+ Seven.Net8/Seven.Domain/Entities/Wms/WmsStock.cs   |  15 +
+ .../Seven.Domain/Entities/Wms/WmsStockLedger.cs    |  17 +
+ .../Seven.Domain/Entities/Wms/WmsWarehouse.cs      |  11 +
+ Seven.Net8/Seven.Domain/Entities/Wms/WmsZone.cs    |  12 +
+ .../Migrations/SevenDbContextModelSnapshot.cs      | 473 +++++++++++++++++++++
+ .../Configurations/Wms/WmsConfigurations.cs        | 125 ++++++
+ .../Persistence/SevenDbContext.cs                  |  22 +
+ .../Seven.Infrastructure/Wms/ContainerService.cs   |  41 ++
+ .../Seven.Infrastructure/Wms/LocationService.cs    |  41 ++
+ .../Seven.Infrastructure/Wms/StockService.cs       | 147 +++++++
+ .../Wms/WmsServiceCollectionExtensions.cs          |  18 +
+ Seven.Net8/Seven.Tests/Wms/StockServiceTests.cs    |  83 ++++
+ 19 files changed, 1106 insertions(+)
+diff --git a/Seven.Net8/Seven.Application/Wms/IContainerService.cs b/Seven.Net8/Seven.Application/Wms/IContainerService.cs
+new file mode 100644
+index 0000000..4fa30e9
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wms/IContainerService.cs
+@@ -0,0 +1,12 @@
++using Seven.Domain.Common;
++using Seven.Domain.Entities.Wms;
++
++namespace Seven.Application.Wms;
++
++public interface IContainerService
++{
++    Task<WmsContainer?> GetByCodeAsync(string code, CancellationToken ct = default);
++    Task<PageGridData<WmsContainer>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default);
++    Task<WebResponseContent> AddAsync(WmsContainer entity, CancellationToken ct = default);
++    Task<WebResponseContent> UpdateAsync(WmsContainer entity, CancellationToken ct = default);
++}
+diff --git a/Seven.Net8/Seven.Application/Wms/ILocationService.cs b/Seven.Net8/Seven.Application/Wms/ILocationService.cs
+new file mode 100644
+index 0000000..23ae3e0
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wms/ILocationService.cs
+@@ -0,0 +1,12 @@
++using Seven.Domain.Common;
++using Seven.Domain.Entities.Wms;
++
++namespace Seven.Application.Wms;
++
++public interface ILocationService
++{
++    Task<WmsLocation?> GetByCodeAsync(string code, CancellationToken ct = default);
++    Task<PageGridData<WmsLocation>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default);
++    Task<WebResponseContent> AddAsync(WmsLocation entity, CancellationToken ct = default);
++    Task<WebResponseContent> UpdateAsync(WmsLocation entity, CancellationToken ct = default);
++}
+diff --git a/Seven.Net8/Seven.Application/Wms/IStockService.cs b/Seven.Net8/Seven.Application/Wms/IStockService.cs
+new file mode 100644
+index 0000000..46f6dd1
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wms/IStockService.cs
+@@ -0,0 +1,11 @@
++using Seven.Domain.Common;
++using Seven.Domain.Entities.Wms;
++
++namespace Seven.Application.Wms;
++
++public interface IStockService
++{
++    Task<WmsStock> ReceiveAsync(ReceiveStockRequest request, CancellationToken ct = default);
++    Task<WmsStock> ShipAsync(ShipStockRequest request, CancellationToken ct = default);
++    Task<PageGridData<WmsStock>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default);
++}
+diff --git a/Seven.Net8/Seven.Application/Wms/WmsModels.cs b/Seven.Net8/Seven.Application/Wms/WmsModels.cs
+new file mode 100644
+index 0000000..f4b70ea
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wms/WmsModels.cs
+@@ -0,0 +1,21 @@
++namespace Seven.Application.Wms;
++
++public record ReceiveStockRequest(
++    string LocationCode,
++    string MaterialCode,
++    decimal Qty,
++    string? ContainerCode = null,
++    string? Lot = null,
++    string? Reason = null,
++    string? RefType = null,
++    string? RefId = null);
++
++public record ShipStockRequest(
++    string LocationCode,
++    string MaterialCode,
++    decimal Qty,
++    string? ContainerCode = null,
++    string? Lot = null,
++    string? Reason = null,
++    string? RefType = null,
++    string? RefId = null);
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsContainer.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsContainer.cs
+new file mode 100644
+index 0000000..83da674
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsContainer.cs
+@@ -0,0 +1,14 @@
++using Seven.Domain.Common;
++using Seven.Domain.Enums;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>容器（托盘/料箱）</summary>
++public class WmsContainer : BaseEntity
++{
++    public int Id { get; set; }
++    public string Code { get; set; } = string.Empty;
++    public int? ContainerTypeId { get; set; }
++    public string? LocationCode { get; set; }
++    public WmsContainerStatus Status { get; set; }
++}
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsContainerType.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsContainerType.cs
+new file mode 100644
+index 0000000..edcc048
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsContainerType.cs
+@@ -0,0 +1,11 @@
++using Seven.Domain.Common;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>容器类型</summary>
++public class WmsContainerType : BaseEntity
++{
++    public int Id { get; set; }
++    public string Code { get; set; } = string.Empty;
++    public string Name { get; set; } = string.Empty;
++}
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsLocation.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsLocation.cs
+new file mode 100644
+index 0000000..2bbb2fc
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsLocation.cs
+@@ -0,0 +1,20 @@
++using Seven.Domain.Common;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>库位主数据（全局权威，含交接位）</summary>
++public class WmsLocation : BaseEntity
++{
++    public int Id { get; set; }
++    public int WarehouseId { get; set; }
++    public int? ZoneId { get; set; }
++    public string Code { get; set; } = string.Empty;
++    public string? Aisle { get; set; }
++    public string? Row { get; set; }
++    public string? Column { get; set; }
++    public string? Layer { get; set; }
++    public bool IsOccupied { get; set; }
++    public bool IsLocked { get; set; }
++    public bool IsHandover { get; set; }
++    public string? CurrentContainerCode { get; set; }
++}
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsStock.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsStock.cs
+new file mode 100644
+index 0000000..5d4e1fb
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsStock.cs
+@@ -0,0 +1,15 @@
++using Seven.Domain.Common;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>库位级库存账本</summary>
++public class WmsStock : BaseEntity
++{
++    public int Id { get; set; }
++    public string LocationCode { get; set; } = string.Empty;
++    public string? ContainerCode { get; set; }
++    public string MaterialCode { get; set; } = string.Empty;
++    public decimal Qty { get; set; }
++    public decimal AvailableQty { get; set; }
++    public string? Lot { get; set; }
++}
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsStockLedger.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsStockLedger.cs
+new file mode 100644
+index 0000000..029f3c7
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsStockLedger.cs
+@@ -0,0 +1,17 @@
++using Seven.Domain.Common;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>库存流水</summary>
++public class WmsStockLedger : BaseEntity
++{
++    public int Id { get; set; }
++    public int? StockId { get; set; }
++    public string MaterialCode { get; set; } = string.Empty;
++    public string LocationCode { get; set; } = string.Empty;
++    public string? ContainerCode { get; set; }
++    public decimal DeltaQty { get; set; }
++    public string Reason { get; set; } = string.Empty;
++    public string? RefType { get; set; }
++    public string? RefId { get; set; }
++}
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsWarehouse.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsWarehouse.cs
+new file mode 100644
+index 0000000..409a0bb
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsWarehouse.cs
+@@ -0,0 +1,11 @@
++using Seven.Domain.Common;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>仓库主数据</summary>
++public class WmsWarehouse : BaseEntity
++{
++    public int Id { get; set; }
++    public string Code { get; set; } = string.Empty;
++    public string Name { get; set; } = string.Empty;
++}
+diff --git a/Seven.Net8/Seven.Domain/Entities/Wms/WmsZone.cs b/Seven.Net8/Seven.Domain/Entities/Wms/WmsZone.cs
+new file mode 100644
+index 0000000..6b6f7d5
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Entities/Wms/WmsZone.cs
+@@ -0,0 +1,12 @@
++using Seven.Domain.Common;
++
++namespace Seven.Domain.Entities.Wms;
++
++/// <summary>库区主数据</summary>
++public class WmsZone : BaseEntity
++{
++    public int Id { get; set; }
++    public int WarehouseId { get; set; }
++    public string Code { get; set; } = string.Empty;
++    public string Name { get; set; } = string.Empty;
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs b/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs
+index 17f5a15..ef318fa 100644
+--- a/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs
++++ b/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs
+@@ -19,6 +19,8 @@ using Seven.Infrastructure.Caching;
+ using Seven.Infrastructure.Configuration;
+ using Seven.Infrastructure.DeviceComm;
+ using Seven.Infrastructure.HotStore;
++using Seven.Infrastructure.Wcs;
++using Seven.Infrastructure.Wms;
+ using Seven.Infrastructure.Mail;
+ using Seven.Infrastructure.Messaging;
+ using Seven.Infrastructure.Messaging.Outbox;
+@@ -62,6 +64,8 @@ public static class DependencyInjection
+         AddCache(services, configuration);
+         services.AddSevenHotStore(configuration);
+         services.AddSevenDeviceComm(configuration);
++        services.AddSevenWcs(configuration);
++        services.AddSevenWms(configuration);
+         AddAuthentication(services, configuration);
+         services.AddSevenMessageQueue(configuration);
+         if (features.Quartz)
+diff --git a/Seven.Net8/Seven.Infrastructure/Persistence/Configurations/Wms/WmsConfigurations.cs b/Seven.Net8/Seven.Infrastructure/Persistence/Configurations/Wms/WmsConfigurations.cs
+new file mode 100644
+index 0000000..7a7c18f
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Persistence/Configurations/Wms/WmsConfigurations.cs
+@@ -0,0 +1,125 @@
++using Microsoft.EntityFrameworkCore;
++using Microsoft.EntityFrameworkCore.Metadata.Builders;
++using Seven.Domain.Entities.Wms;
++using Seven.Domain.Wcs;
++
++namespace Seven.Infrastructure.Persistence.Configurations.Wms;
++
++public class WmsWarehouseConfiguration : IEntityTypeConfiguration<WmsWarehouse>
++{
++    public void Configure(EntityTypeBuilder<WmsWarehouse> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "Warehouse");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
++        builder.HasIndex(x => x.Code).IsUnique();
++    }
++}
++
++public class WmsZoneConfiguration : IEntityTypeConfiguration<WmsZone>
++{
++    public void Configure(EntityTypeBuilder<WmsZone> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "Zone");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
++        builder.HasIndex(x => new { x.WarehouseId, x.Code }).IsUnique();
++        builder.HasOne<WmsWarehouse>()
++            .WithMany()
++            .HasForeignKey(x => x.WarehouseId)
++            .OnDelete(DeleteBehavior.Restrict);
++    }
++}
++
++public class WmsLocationConfiguration : IEntityTypeConfiguration<WmsLocation>
++{
++    public void Configure(EntityTypeBuilder<WmsLocation> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "Location");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.Aisle).HasMaxLength(32);
++        builder.Property(x => x.Row).HasMaxLength(32);
++        builder.Property(x => x.Column).HasMaxLength(32);
++        builder.Property(x => x.Layer).HasMaxLength(32);
++        builder.Property(x => x.CurrentContainerCode).HasMaxLength(64);
++        builder.HasIndex(x => x.Code).IsUnique();
++        builder.HasIndex(x => x.WarehouseId);
++        builder.HasOne<WmsWarehouse>()
++            .WithMany()
++            .HasForeignKey(x => x.WarehouseId)
++            .OnDelete(DeleteBehavior.Restrict);
++        builder.HasOne<WmsZone>()
++            .WithMany()
++            .HasForeignKey(x => x.ZoneId)
++            .OnDelete(DeleteBehavior.Restrict);
++    }
++}
++
++public class WmsContainerTypeConfiguration : IEntityTypeConfiguration<WmsContainerType>
++{
++    public void Configure(EntityTypeBuilder<WmsContainerType> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "ContainerType");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
++        builder.HasIndex(x => x.Code).IsUnique();
++    }
++}
++
++public class WmsContainerConfiguration : IEntityTypeConfiguration<WmsContainer>
++{
++    public void Configure(EntityTypeBuilder<WmsContainer> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "Container");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.LocationCode).HasMaxLength(64);
++        builder.HasIndex(x => x.Code).IsUnique();
++        builder.HasOne<WmsContainerType>()
++            .WithMany()
++            .HasForeignKey(x => x.ContainerTypeId)
++            .OnDelete(DeleteBehavior.Restrict);
++    }
++}
++
++public class WmsStockConfiguration : IEntityTypeConfiguration<WmsStock>
++{
++    public void Configure(EntityTypeBuilder<WmsStock> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "Stock");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.LocationCode).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.ContainerCode).HasMaxLength(64);
++        builder.Property(x => x.MaterialCode).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.Qty).HasPrecision(18, 4);
++        builder.Property(x => x.AvailableQty).HasPrecision(18, 4);
++        builder.Property(x => x.Lot).HasMaxLength(64);
++        builder.HasIndex(x => new { x.LocationCode, x.MaterialCode, x.ContainerCode, x.Lot });
++    }
++}
++
++public class WmsStockLedgerConfiguration : IEntityTypeConfiguration<WmsStockLedger>
++{
++    public void Configure(EntityTypeBuilder<WmsStockLedger> builder)
++    {
++        builder.ToTable(TablePrefixes.Wms + "StockLedger");
++        builder.HasKey(x => x.Id);
++        builder.Property(x => x.MaterialCode).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.LocationCode).HasMaxLength(64).IsRequired();
++        builder.Property(x => x.ContainerCode).HasMaxLength(64);
++        builder.Property(x => x.DeltaQty).HasPrecision(18, 4);
++        builder.Property(x => x.Reason).HasMaxLength(128).IsRequired();
++        builder.Property(x => x.RefType).HasMaxLength(64);
++        builder.Property(x => x.RefId).HasMaxLength(64);
++        builder.HasIndex(x => x.StockId);
++        builder.HasIndex(x => x.CreateDate);
++        builder.HasOne<WmsStock>()
++            .WithMany()
++            .HasForeignKey(x => x.StockId)
++            .OnDelete(DeleteBehavior.Restrict);
++    }
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/Persistence/SevenDbContext.cs b/Seven.Net8/Seven.Infrastructure/Persistence/SevenDbContext.cs
+index b04965a..601fdcb 100644
+--- a/Seven.Net8/Seven.Infrastructure/Persistence/SevenDbContext.cs
++++ b/Seven.Net8/Seven.Infrastructure/Persistence/SevenDbContext.cs
+@@ -4,6 +4,7 @@ using Seven.Domain.Entities.Alarm;
+ using Seven.Domain.Entities.Business;
+ using Seven.Domain.Entities.Core;
+ using Seven.Domain.Entities.DeviceComm;
++using Seven.Domain.Entities.Wms;
+ using Seven.Domain.Entities.Flow;
+ using Seven.Domain.Entities.Form;
+ using Seven.Domain.Entities.News;
+@@ -111,6 +112,27 @@ public class SevenDbContext : DbContext
+     /// <summary>设备通讯事件日志</summary>
+     public DbSet<CommEventLog> CommEventLogs => Set<CommEventLog>();
+ 
++    /// <summary>WMS 仓库</summary>
++    public DbSet<WmsWarehouse> WmsWarehouses => Set<WmsWarehouse>();
++
++    /// <summary>WMS 库区</summary>
++    public DbSet<WmsZone> WmsZones => Set<WmsZone>();
++
++    /// <summary>WMS 库位</summary>
++    public DbSet<WmsLocation> WmsLocations => Set<WmsLocation>();
++
++    /// <summary>WMS 容器类型</summary>
++    public DbSet<WmsContainerType> WmsContainerTypes => Set<WmsContainerType>();
++
++    /// <summary>WMS 容器</summary>
++    public DbSet<WmsContainer> WmsContainers => Set<WmsContainer>();
++
++    /// <summary>WMS 库存</summary>
++    public DbSet<WmsStock> WmsStocks => Set<WmsStock>();
++
++    /// <summary>WMS 库存流水</summary>
++    public DbSet<WmsStockLedger> WmsStockLedgers => Set<WmsStockLedger>();
++
+     /// <summary>新闻</summary>
+     public DbSet<App_News> App_News => Set<App_News>();
+ 
+diff --git a/Seven.Net8/Seven.Infrastructure/Wms/ContainerService.cs b/Seven.Net8/Seven.Infrastructure/Wms/ContainerService.cs
+new file mode 100644
+index 0000000..d29c49e
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wms/ContainerService.cs
+@@ -0,0 +1,41 @@
++using Microsoft.EntityFrameworkCore;
++using Seven.Application.Wms;
++using Seven.Domain.Common;
++using Seven.Domain.Entities.Wms;
++using Seven.Infrastructure.Persistence;
++using Seven.Infrastructure.Services;
++
++namespace Seven.Infrastructure.Wms;
++
++public sealed class ContainerService : IContainerService
++{
++    private readonly SevenDbContext _db;
++
++    public ContainerService(SevenDbContext db) => _db = db;
++
++    public Task<WmsContainer?> GetByCodeAsync(string code, CancellationToken ct = default) =>
++        _db.WmsContainers.AsNoTracking().FirstOrDefaultAsync(x => x.Code == code, ct);
++
++    public Task<PageGridData<WmsContainer>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
++        CrudHelper.PaginateAsync(_db.WmsContainers.AsNoTracking(), options, ct);
++
++    public async Task<WebResponseContent> AddAsync(WmsContainer entity, CancellationToken ct = default)
++    {
++        entity.CreateDate = DateTime.UtcNow;
++        entity.IsDeleted = false;
++        _db.WmsContainers.Add(entity);
++        await _db.SaveChangesAsync(ct);
++        return WebResponseContent.Ok("添加成功", entity);
++    }
++
++    public async Task<WebResponseContent> UpdateAsync(WmsContainer entity, CancellationToken ct = default)
++    {
++        var existing = await _db.WmsContainers.FirstOrDefaultAsync(x => x.Id == entity.Id, ct);
++        if (existing == null) return WebResponseContent.Error("数据不存在");
++        _db.Entry(existing).CurrentValues.SetValues(entity);
++        existing.ModifyDate = DateTime.UtcNow;
++        existing.IsDeleted = false;
++        await _db.SaveChangesAsync(ct);
++        return WebResponseContent.Ok("更新成功");
++    }
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/Wms/LocationService.cs b/Seven.Net8/Seven.Infrastructure/Wms/LocationService.cs
+new file mode 100644
+index 0000000..00ba0cf
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wms/LocationService.cs
+@@ -0,0 +1,41 @@
++using Microsoft.EntityFrameworkCore;
++using Seven.Application.Wms;
++using Seven.Domain.Common;
++using Seven.Domain.Entities.Wms;
++using Seven.Infrastructure.Persistence;
++using Seven.Infrastructure.Services;
++
++namespace Seven.Infrastructure.Wms;
++
++public sealed class LocationService : ILocationService
++{
++    private readonly SevenDbContext _db;
++
++    public LocationService(SevenDbContext db) => _db = db;
++
++    public Task<WmsLocation?> GetByCodeAsync(string code, CancellationToken ct = default) =>
++        _db.WmsLocations.AsNoTracking().FirstOrDefaultAsync(x => x.Code == code, ct);
++
++    public Task<PageGridData<WmsLocation>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
++        CrudHelper.PaginateAsync(_db.WmsLocations.AsNoTracking(), options, ct);
++
++    public async Task<WebResponseContent> AddAsync(WmsLocation entity, CancellationToken ct = default)
++    {
++        entity.CreateDate = DateTime.UtcNow;
++        entity.IsDeleted = false;
++        _db.WmsLocations.Add(entity);
++        await _db.SaveChangesAsync(ct);
++        return WebResponseContent.Ok("添加成功", entity);
++    }
++
++    public async Task<WebResponseContent> UpdateAsync(WmsLocation entity, CancellationToken ct = default)
++    {
++        var existing = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Id == entity.Id, ct);
++        if (existing == null) return WebResponseContent.Error("数据不存在");
++        _db.Entry(existing).CurrentValues.SetValues(entity);
++        existing.ModifyDate = DateTime.UtcNow;
++        existing.IsDeleted = false;
++        await _db.SaveChangesAsync(ct);
++        return WebResponseContent.Ok("更新成功");
++    }
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/Wms/StockService.cs b/Seven.Net8/Seven.Infrastructure/Wms/StockService.cs
+new file mode 100644
+index 0000000..4edea71
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wms/StockService.cs
+@@ -0,0 +1,147 @@
++using Microsoft.EntityFrameworkCore;
++using Seven.Application.Wms;
++using Seven.Domain.Common;
++using Seven.Domain.Entities.Wms;
++using Seven.Domain.Enums;
++using Seven.Domain.Wms;
++using Seven.Infrastructure.Persistence;
++using Seven.Infrastructure.Services;
++
++namespace Seven.Infrastructure.Wms;
++
++public sealed class StockService : IStockService
++{
++    private readonly SevenDbContext _db;
++
++    public StockService(SevenDbContext db) => _db = db;
++
++    public async Task<WmsStock> ReceiveAsync(ReceiveStockRequest request, CancellationToken ct = default)
++    {
++        ArgumentNullException.ThrowIfNull(request);
++        ValidateQty(request.Qty);
++        var location = await RequireLocationAsync(request.LocationCode, ct);
++        var stock = await FindOrCreateStockAsync(
++            request.LocationCode, request.MaterialCode, request.ContainerCode, request.Lot, ct);
++
++        stock.Qty += request.Qty;
++        stock.AvailableQty += request.Qty;
++        location.IsOccupied = true;
++        if (!string.IsNullOrWhiteSpace(request.ContainerCode))
++        {
++            location.CurrentContainerCode = request.ContainerCode;
++            await BindContainerAsync(request.ContainerCode, location.Code, ct);
++        }
++
++        await _db.SaveChangesAsync(ct);
++        AddLedger(stock, request.Qty, request.Reason ?? "Receive", request.RefType, request.RefId);
++        await _db.SaveChangesAsync(ct);
++        return stock;
++    }
++
++    public async Task<WmsStock> ShipAsync(ShipStockRequest request, CancellationToken ct = default)
++    {
++        ArgumentNullException.ThrowIfNull(request);
++        ValidateQty(request.Qty);
++        var stock = await FindStockAsync(
++            request.LocationCode, request.MaterialCode, request.ContainerCode, request.Lot, ct);
++        if (stock == null || stock.AvailableQty < request.Qty)
++            throw new WmsDomainException("库存不足");
++
++        stock.Qty -= request.Qty;
++        stock.AvailableQty -= request.Qty;
++        AddLedger(stock, -request.Qty, request.Reason ?? "Ship", request.RefType, request.RefId);
++
++        if (stock.Qty <= 0)
++            await ReleaseLocationIfEmptyAsync(request.LocationCode, stock.Id, ct);
++
++        await _db.SaveChangesAsync(ct);
++        return stock;
++    }
++
++    public Task<PageGridData<WmsStock>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
++        CrudHelper.PaginateAsync(_db.WmsStocks.AsNoTracking(), options, ct);
++
++    private static void ValidateQty(decimal qty)
++    {
++        if (qty <= 0)
++            throw new WmsDomainException("数量必须大于 0");
++    }
++
++    private async Task<WmsLocation> RequireLocationAsync(string locationCode, CancellationToken ct)
++    {
++        if (string.IsNullOrWhiteSpace(locationCode))
++            throw new WmsDomainException("库位编码不能为空");
++        var location = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == locationCode, ct);
++        if (location == null)
++            throw new WmsDomainException($"库位不存在: {locationCode}");
++        if (location.IsLocked)
++            throw new WmsDomainException($"库位已锁定: {locationCode}");
++        return location;
++    }
++
++    private Task<WmsStock?> FindStockAsync(
++        string locationCode, string materialCode, string? containerCode, string? lot, CancellationToken ct) =>
++        _db.WmsStocks.FirstOrDefaultAsync(s =>
++            s.LocationCode == locationCode
++            && s.MaterialCode == materialCode
++            && s.ContainerCode == containerCode
++            && s.Lot == lot, ct);
++
++    private async Task<WmsStock> FindOrCreateStockAsync(
++        string locationCode, string materialCode, string? containerCode, string? lot, CancellationToken ct)
++    {
++        if (string.IsNullOrWhiteSpace(materialCode))
++            throw new WmsDomainException("物料编码不能为空");
++
++        var existing = await FindStockAsync(locationCode, materialCode, containerCode, lot, ct);
++        if (existing != null) return existing;
++
++        var created = new WmsStock
++        {
++            LocationCode = locationCode,
++            MaterialCode = materialCode,
++            ContainerCode = containerCode,
++            Lot = lot,
++            Qty = 0,
++            AvailableQty = 0
++        };
++        _db.WmsStocks.Add(created);
++        return created;
++    }
++
++    private async Task BindContainerAsync(string containerCode, string locationCode, CancellationToken ct)
++    {
++        var container = await _db.WmsContainers.FirstOrDefaultAsync(x => x.Code == containerCode, ct);
++        if (container == null) return;
++        container.LocationCode = locationCode;
++        if (container.Status == WmsContainerStatus.Empty)
++            container.Status = WmsContainerStatus.Occupied;
++    }
++
++    private async Task ReleaseLocationIfEmptyAsync(string locationCode, int currentStockId, CancellationToken ct)
++    {
++        var remaining = await _db.WmsStocks.AnyAsync(
++            s => s.LocationCode == locationCode && s.Id != currentStockId && s.Qty > 0, ct);
++        if (remaining) return;
++        var location = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == locationCode, ct);
++        if (location == null) return;
++        location.IsOccupied = false;
++        location.CurrentContainerCode = null;
++    }
++
++    private void AddLedger(WmsStock stock, decimal deltaQty, string reason, string? refType, string? refId)
++    {
++        _db.WmsStockLedgers.Add(new WmsStockLedger
++        {
++            StockId = stock.Id,
++            MaterialCode = stock.MaterialCode,
++            LocationCode = stock.LocationCode,
++            ContainerCode = stock.ContainerCode,
++            DeltaQty = deltaQty,
++            Reason = reason,
++            RefType = refType,
++            RefId = refId,
++            CreateDate = DateTime.UtcNow
++        });
++    }
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/Wms/WmsServiceCollectionExtensions.cs b/Seven.Net8/Seven.Infrastructure/Wms/WmsServiceCollectionExtensions.cs
+new file mode 100644
+index 0000000..da0e5c2
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wms/WmsServiceCollectionExtensions.cs
+@@ -0,0 +1,18 @@
++using Microsoft.Extensions.Configuration;
++using Microsoft.Extensions.DependencyInjection;
++using Seven.Application.Wms;
++
++namespace Seven.Infrastructure.Wms;
++
++/// <summary>WMS 主数据与账本服务注册。始终注册实现；API 用 Features.Wms 门控。</summary>
++public static class WmsServiceCollectionExtensions
++{
++    public static IServiceCollection AddSevenWms(this IServiceCollection services, IConfiguration configuration)
++    {
++        _ = configuration;
++        services.AddScoped<IStockService, StockService>();
++        services.AddScoped<ILocationService, LocationService>();
++        services.AddScoped<IContainerService, ContainerService>();
++        return services;
++    }
++}
+diff --git a/Seven.Net8/Seven.Tests/Wms/StockServiceTests.cs b/Seven.Net8/Seven.Tests/Wms/StockServiceTests.cs
+new file mode 100644
+index 0000000..c0464a3
+--- /dev/null
++++ b/Seven.Net8/Seven.Tests/Wms/StockServiceTests.cs
+@@ -0,0 +1,83 @@
++using FluentAssertions;
++using Microsoft.EntityFrameworkCore;
++using Seven.Application.Wms;
++using Seven.Domain.Entities.Wms;
++using Seven.Domain.Wms;
++using Seven.Infrastructure.Persistence;
++using Seven.Infrastructure.Wms;
++
++namespace Seven.Tests.Wms;
++
++public class StockServiceTests
++{
++    private static async Task<(SevenDbContext Db, IStockService Stock)> CreateAsync()
++    {
++        var options = new DbContextOptionsBuilder<SevenDbContext>()
++            .UseInMemoryDatabase($"WmsStock_{Guid.NewGuid():N}")
++            .Options;
++        var db = new SevenDbContext(options);
++        db.Database.EnsureCreated();
++
++        var warehouse = new WmsWarehouse { Code = "WH1", Name = "主仓" };
++        db.WmsWarehouses.Add(warehouse);
++        await db.SaveChangesAsync();
++
++        db.WmsLocations.Add(new WmsLocation
++        {
++            WarehouseId = warehouse.Id,
++            Code = "LOC-A",
++            IsOccupied = false
++        });
++        await db.SaveChangesAsync();
++
++        return (db, new StockService(db));
++    }
++
++    [Fact]
++    public async Task ReceiveAsync_ShouldIncreaseQty_AndOccupyLocation()
++    {
++        var (db, stock) = await CreateAsync();
++
++        await stock.ReceiveAsync(new ReceiveStockRequest("LOC-A", "MAT-01", 10m));
++
++        var row = await db.WmsStocks.SingleAsync();
++        row.Qty.Should().Be(10m);
++        row.AvailableQty.Should().Be(10m);
++        row.MaterialCode.Should().Be("MAT-01");
++        row.LocationCode.Should().Be("LOC-A");
++
++        var loc = await db.WmsLocations.SingleAsync(x => x.Code == "LOC-A");
++        loc.IsOccupied.Should().BeTrue();
++
++        var ledger = await db.WmsStockLedgers.SingleAsync();
++        ledger.DeltaQty.Should().Be(10m);
++        ledger.Reason.Should().NotBeNullOrWhiteSpace();
++    }
++
++    [Fact]
++    public async Task ShipAsync_WhenInsufficient_ShouldThrow()
++    {
++        var (_, stock) = await CreateAsync();
++
++        var act = async () => await stock.ShipAsync(new ShipStockRequest("LOC-A", "MAT-01", 1m));
++
++        await act.Should().ThrowAsync<WmsDomainException>();
++    }
++
++    [Fact]
++    public async Task ReceiveThenShip_ShouldConserveQuantity()
++    {
++        var (db, stock) = await CreateAsync();
++
++        await stock.ReceiveAsync(new ReceiveStockRequest("LOC-A", "MAT-01", 10m));
++        await stock.ShipAsync(new ShipStockRequest("LOC-A", "MAT-01", 10m));
++
++        var row = await db.WmsStocks.SingleAsync();
++        row.Qty.Should().Be(0m);
++        row.AvailableQty.Should().Be(0m);
++
++        var ledgers = await db.WmsStockLedgers.OrderBy(x => x.Id).ToListAsync();
++        ledgers.Should().HaveCount(2);
++        ledgers.Sum(x => x.DeltaQty).Should().Be(0m);
++    }
++}

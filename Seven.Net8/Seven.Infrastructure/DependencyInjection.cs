@@ -19,6 +19,11 @@ using Seven.Infrastructure.Caching;
 using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.DeviceComm;
 using Seven.Infrastructure.HotStore;
+using Seven.Infrastructure.Platform;
+using Seven.Infrastructure.Scada;
+using Seven.Infrastructure.Simulator;
+using Seven.Infrastructure.Wcs;
+using Seven.Infrastructure.Wms;
 using Seven.Infrastructure.Mail;
 using Seven.Infrastructure.Messaging;
 using Seven.Infrastructure.Messaging.Outbox;
@@ -62,6 +67,11 @@ public static class DependencyInjection
         AddCache(services, configuration);
         services.AddSevenHotStore(configuration);
         services.AddSevenDeviceComm(configuration);
+        services.AddSevenPlatform();
+        services.AddSevenWcs(configuration);
+        services.AddSevenWms(configuration);
+        services.AddSevenScada();
+        services.AddSevenSimulator(configuration);
         AddAuthentication(services, configuration);
         services.AddSevenMessageQueue(configuration);
         if (features.Quartz)

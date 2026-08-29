@@ -1,52 +1,52 @@
-### Task 3: 同步前端开发指南 §3.3
+### Task 3: WMS 主数据与账本（Stock / Location / Container）
 
 **Files:**
-- Modify: `Seven.Master/doc/03-前端开发指南.md`（约 §3.3）
+- Create: `Seven.Net8/Seven.Domain/Entities/Wms/` — entities below
+- Create: `Seven.Net8/Seven.Infrastructure/Persistence/Configurations/Wms/*.cs` — all `ToTable(TablePrefixes.Wms + "Name")`
+- Create: `Seven.Net8/Seven.Application/Wms/IStockService.cs`, `ILocationService.cs`, `IContainerService.cs`
+- Create: `Seven.Net8/Seven.Infrastructure/Wms/*Service.cs`
+- Modify: `Seven.Net8/Seven.Infrastructure/Persistence/SevenDbContext.cs` — DbSets
+- Modify: `Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs` OR new `WmsServiceCollectionExtensions.cs` — register WMS services when `Features.Wms`；推荐独立 `AddSevenWms` 并在 `AddSevenInfrastructure` 中调用
+- Migration: `dotnet ef migrations add AddWmsMasterAndStock --project Seven.Infrastructure --startup-project Seven.WebApi` → 输出须在 `Seven.Infrastructure/Migrations/`
+- Optional API: 基础查询 Controllers under `WebApi/Controllers/Wms/` with feature check on `Features.Wms`
+- Test: `Seven.Net8/Seven.Tests/Wms/StockServiceTests.cs`
 
-**Interfaces:**
-- Consumes: Task 2 最终行为
-- Produces: 文档与实现一致
+**实体最小集与表名：**
 
-- [ ] **Step 1: 更新 §3.3 条目**
+| 实体类 | 表名 |
+|--------|------|
+| `WmsWarehouse` | `Wms_Warehouse` |
+| `WmsZone` | `Wms_Zone` |
+| `WmsLocation` | `Wms_Location` |
+| `WmsContainer` | `Wms_Container` |
+| `WmsContainerType` | `Wms_ContainerType` |
+| `WmsStock` | `Wms_Stock` |
+| `WmsStockLedger` | `Wms_StockLedger` |
 
-将：
+**字段指导（精简，继承 `BaseEntity`）：**
+- Warehouse: Id (int PK), Code, Name
+- Zone: Id, WarehouseId, Code, Name
+- Location: Id, WarehouseId, ZoneId?, Code (unique), Aisle?, Row?, Column?, Layer?, IsOccupied, IsLocked, IsHandover, CurrentContainerCode?
+- ContainerType: Id, Code, Name
+- Container: Id, Code (unique), ContainerTypeId?, LocationCode?, Status
+- Stock: Id, LocationCode, ContainerCode?, MaterialCode, Qty, AvailableQty, Lot?
+- StockLedger: Id, StockId?, MaterialCode, LocationCode, ContainerCode?, DeltaQty, Reason, RefType?, RefId?
 
-```markdown
-1. 请求拦截器附加 `Authorization: Bearer {token}`
-2. 收到 **HTTP 401**：
-   - 无 refresh → `logout` + `/login`
-   - 有 refresh → 单飞刷新：`POST /api/Auth/refresh`，成功则 `setToken` 并重放队列中的请求
-   - 刷新失败 → 登出
-3. 登出：清 Token/权限，并 `clearDynamicRoutes()`；布局侧通常再清空 `menuStore`
-```
+**服务最小 API：**
+- `IStockService.ReceiveAsync` — 在指定库位增加库存并写流水；可同时占用库位/绑定容器
+- `IStockService.ShipAsync` — 扣减 Available/Qty，写流水；数量不足抛领域异常
+- 可选 `MoveAsync` 或仅用 Receive+Ship 测试守恒
 
-替换为：
+**测试（EF InMemory 或 SQLite in-memory 均可）：**
+1. Receive 后 Qty/Available 正确，Location.IsOccupied 合理
+2. Ship 不足失败
+3. Receive 再 Ship 后数量守恒（或库存为 0）
 
-```markdown
-1. 请求拦截器附加 `Authorization: Bearer {token}`
-2. 收到 **HTTP 401**：
-   - 无 refresh → 提示 `login.expired` → `logout` → `router.replace('/login')`（防重入，只提示/跳转一次）
-   - 有 refresh → 单飞刷新：`POST /api/Auth/refresh`，成功则 `setToken` 并重放队列中的请求
-   - 刷新失败（抛错或 `status === false`）→ 同上提示并登出跳转，同时 reject 排队请求
-3. 登出：清 Token/权限，并 `clearDynamicRoutes()`；布局侧通常再清空 `menuStore`
-```
+**硬规则：**
+- 只用 `TablePrefixes.Wms`
+- 不要实现入库/出库单据（Task 4）
+- 不要实现总线（Task 5）
+- 不要 commit
+- 不要引用 LES2 程序集；字段不要照搬预留客户/销售组织等
 
-- [ ] **Step 2: 目视核对文档与 `http.ts` 行为一致**
-
-对照设计文档：`docs/superpowers/specs/2026-08-05-token-expired-redirect-login-design.md`
-
----
-
-## Spec Coverage Checklist
-
-| 规格要求 | Task |
-|----------|------|
-| 无 refresh → 提示 + logout + 登录页 | Task 2 |
-| refresh 成功 → 静默重放 | Task 2（保留） |
-| refresh 抛错 / `status === false` → 提示 + 跳转 | Task 2 |
-| reject 排队请求 | Task 2 |
-| 防重入只弹一次 | Task 2 `isRedirectingToLogin` |
-| `login.expired` 三语言 | Task 1 |
-| `replace` 非硬跳转 | Task 2 |
-| 不改后端 / 守卫 / download | 全局约束 |
-| 文档 §3.3 | Task 3 |
+**DI：** `Features.Wms==false` 时可仍注册实现（简单）或注册 NoOp；推荐始终注册服务，API 用 feature 门控即可。

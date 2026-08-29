@@ -1,58 +1,138 @@
-# Task 1 Report: 增加 `login.expired` 三语文案
+# Task 1 Report: Features、表前缀常量与 DI 骨架
 
-## Status
+**Branch:** `feature/wms-wcs-pack`  
+**Date:** 2026-08-29  
+**Status:** DONE  
+**Commits:** none (per user rule)
 
-**DONE**
+---
 
-## Scope
+## Summary
 
-为 Token 失效跳转登录页功能预备 i18n 键 `login.expired`（嵌套于 `login` 对象下的 `expired` 字段）。本任务仅修改 locale JSON，不涉及 `http.ts` 或其它文件。
+Implemented Phase A scaffolding for WMS/WCS packs:
 
-## Changes
+- Extended `FeatureOptions` with `Wms`, `OrchestrationBus`, nested `WcsPacks`, and `IsWcsPackEnabled(string)`
+- Added `TablePrefixes` constants in `Seven.Domain.Wcs`
+- Added `AddSevenWcs` DI shell and wired it in `AddSevenInfrastructure` after `AddSevenDeviceComm`
+- Updated `appsettings.json` / `appsettings.Development.json` with default-false WCS feature flags
+- Updated frontend `features.ts` with nested `wcsPacks` aligned to backend camelCase JSON
 
-| 文件 | 变更 |
-|------|------|
-| `Seven.Vue3/src/locales/lang/zh-CN.json` | 在 `login.requestFailed` 后新增 `login.expired` |
-| `Seven.Vue3/src/locales/lang/en-US.json` | 同上 |
-| `Seven.Vue3/src/locales/lang/ja-JP.json` | 同上 |
+No `IWcsPack` or hosted services were added (Task 2+ scope).
 
-### 文案（与设计文档 / 任务简报一致）
+---
 
-| 语言 | Key 路径 | 值 |
-|------|----------|-----|
-| zh-CN | `login.expired` | 登录已过期，请重新登录 |
-| en-US | `login.expired` | Session expired. Please sign in again |
-| ja-JP | `login.expired` | ログインの有効期限が切れました。再度ログインしてください |
+## TDD Evidence
 
-插入位置：各语言 `login` 对象末尾，`requestFailed` 条目之后，与简报 Step 1–3 一致。
+### RED — Step 1–2
 
-## Verification
+**Action:** Created `Seven.Tests/Wcs/FeatureOptionsWcsTests.cs` with two tests from the brief.
 
-在 `Seven.Vue3` 目录执行：
-
+**Command:**
 ```powershell
-node -e "JSON.parse(require('fs').readFileSync('src/locales/lang/zh-CN.json','utf8')); JSON.parse(require('fs').readFileSync('src/locales/lang/en-US.json','utf8')); JSON.parse(require('fs').readFileSync('src/locales/lang/ja-JP.json','utf8')); console.log('ok')"
+dotnet test Seven.Net8/Seven.Tests/Seven.Tests.csproj --filter "FullyQualifiedName~FeatureOptionsWcsTests" --no-restore
 ```
 
-**结果：** 退出码 0，输出 `ok`，无 SyntaxError。
+**Outcome:** Exit code **1** — compile errors (expected):
+- `FeatureOptions` missing `Wms`, `OrchestrationBus`, `WcsPacks`
+- Type `WcsPackFeatureOptions` not found
+- Method `IsWcsPackEnabled` not found
+
+### GREEN — Step 7
+
+**Action:** Implemented all Task 1 production changes (see Files Changed below).
+
+**Command:**
+```powershell
+dotnet test Seven.Net8/Seven.Tests/Seven.Tests.csproj --filter "FullyQualifiedName~FeatureOptionsWcsTests"
+```
+
+**Outcome:** Exit code **0**
+```
+已通过! - 失败: 0，通过: 2，已跳过: 0，总计: 2
+```
+
+---
+
+## Files Changed
+
+| Action | Path |
+|--------|------|
+| Modify | `Seven.Net8/Seven.Infrastructure/Configuration/AppOptions.cs` |
+| Create | `Seven.Net8/Seven.Domain/Wcs/TablePrefixes.cs` |
+| Create | `Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs` |
+| Modify | `Seven.Net8/Seven.Infrastructure/DependencyInjection.cs` |
+| Modify | `Seven.Net8/Seven.WebApi/appsettings.json` |
+| Modify | `Seven.Net8/Seven.WebApi/appsettings.Development.json` |
+| Modify | `Seven.Vue3/src/stores/features.ts` |
+| Create | `Seven.Net8/Seven.Tests/Wcs/FeatureOptionsWcsTests.cs` |
+
+---
+
+## Implementation Notes
+
+### FeatureOptions
+
+Added verbatim from brief:
+- `Wms`, `OrchestrationBus` bool properties
+- `WcsPacks` nested object (`WcsPackFeatureOptions`: Stacker / FourWay / BoxSort)
+- `IsWcsPackEnabled(string packName)` via reflection on `WcsPackFeatureOptions` (case-insensitive)
+
+Existing `IsEnabled(string)` unchanged — only reads top-level bool properties; nested pack switches use `IsWcsPackEnabled`.
+
+### TablePrefixes
+
+Constants: `Wms_`, `Bus_`, `Stk_`, `Fw_`, `Ext_`, `Ifc_`, `Ctl_`, `Scd_`.
+
+### AddSevenWcs
+
+Minimal Phase A shell aligned with `AddSevenHotStore` / `AddSevenDeviceComm` pattern:
+- Reads `Features` section from `IConfiguration`
+- Does not register HostedService or `IWcsPack` (deferred to Task 2+)
+- Called in `AddSevenInfrastructure` immediately after `AddSevenDeviceComm`
+
+### appsettings
+
+`Features` section extended with defaults `false`:
+```json
+"Wms": false,
+"OrchestrationBus": false,
+"WcsPacks": {
+  "Stacker": false,
+  "FourWay": false,
+  "BoxSort": false
+}
+```
+
+### Frontend features.ts
+
+- Added `WcsPackFeatureFlags` interface and nested `wcsPacks` on `FeatureFlags`
+- Defaults all false; `load()` deep-merges `wcsPacks` from API response
+- Placeholder `menuFeatureMap` entry: `WmsFolder: 'wms'`
+
+`GetFeatures` (`SevenControllers.cs`) already returns `IOptions<FeatureOptions>.Value` directly — new properties serialize as camelCase JSON without controller changes.
+
+---
 
 ## Self-Review
 
-- [x] 仅修改任务指定的三个 JSON 文件
-- [x] 未修改 `http.ts`、文档或其它文件
-- [x] 三语字符串与 `docs/superpowers/specs/2026-08-05-token-expired-redirect-login-design.md` 及任务简报一致
-- [x] JSON 语法合法（逗号、引号、UTF-8 日文无转义问题）
-- [x] 键名 `expired` 位于 `login` 对象内，运行时等价于 `i18n.t('login.expired')`
+| Check | Result |
+|-------|--------|
+| TDD RED then GREEN | ✓ |
+| Exact code from brief for tests / TablePrefixes / FeatureOptions | ✓ |
+| No Task 2+ (`IWcsPack`, HostedService) | ✓ |
+| No git commit | ✓ |
+| `IsEnabled` not used for nested packs | ✓ |
+| DI call order: after DeviceComm | ✓ |
+| Frontend nested JSON alignment | ✓ |
 
-## Commits
+### Minor observations (non-blocking)
 
-无（按用户规则未提交）。
+1. **`appsettings.Testing.json`** was not in the brief file list; it lacks explicit `Wms`/`WcsPacks` keys — defaults bind to `false` via type defaults. Can add in a later task if test env needs explicit keys.
+2. **`isMenuEnabled`** does not yet map individual WCS pack menus (e.g. Stacker) — only `WmsFolder → wms` placeholder as specified; pack-level menu gating is future work.
+3. Pre-existing build warnings in DeviceComm drivers / WorkFlowService unchanged.
 
-## Concerns
+---
 
-- 任务简报文件 `task-1-brief.md` 本地编码显示为乱码；实现以设计规格与现有 locale 中 `requestFailed` 上下文为准，文案已与设计文档表格核对一致。
-- 本任务未做运行时 UI 验证；`login.expired` 将在后续任务接入 `http.ts` 后生效。
+## Test Summary
 
-## Next Steps (out of scope)
-
-后续任务应在 `forceLogoutToLogin()` 中使用 `ElMessage.error(i18n.t('login.expired'))`。
+2/2 tests passed in `FeatureOptionsWcsTests` (nested property access + `IsWcsPackEnabled` resolution).

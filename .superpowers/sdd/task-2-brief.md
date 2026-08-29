@@ -1,133 +1,72 @@
-### Task 2: 补全 `http.ts` 401 收口
+### Task 2: 包契约与通讯无关触发端口
 
 **Files:**
-- Modify: `Seven.Master/Seven.Vue3/src/api/http.ts`
+- Create: `Seven.Net8/Seven.Application/Wcs/IWcsPack.cs`
+- Create: `Seven.Net8/Seven.Application/Wcs/IOrchestrationBus.cs`
+- Create: `Seven.Net8/Seven.Application/Wcs/IEquipmentTriggerPort.cs`
+- Create: `Seven.Net8/Seven.Application/Wcs/WcsModels.cs`
+- Create: `Seven.Net8/Seven.Infrastructure/Wcs/Triggers/InMemoryEquipmentTriggerPort.cs`
+- Modify: `Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs` — 注册 Singleton `IEquipmentTriggerPort` → `InMemoryEquipmentTriggerPort`
+- Test: `Seven.Net8/Seven.Tests/Wcs/EquipmentTriggerPortTests.cs`
 
-**Interfaces:**
-- Consumes: `login.expired`（Task 1）；`useUserStore().logout` / `setToken`；`router.replace`
-- Produces: 模块内 `forceLogoutToLogin()`；401 失败路径统一调用它
+**Interfaces (exact):**
 
-- [ ] **Step 1: 增加 i18n 导入与防重入标志**
-
-在文件顶部现有 import 旁增加：
-
-```ts
-import i18n from '../locales'
-```
-
-在 `let isRefreshing = false` 旁增加：
-
-```ts
-let isRedirectingToLogin = false
-```
-
-- [ ] **Step 2: 改排队类型，实现 `forceLogoutToLogin`，替换错误拦截器**
-
-将：
-
-```ts
-let pendingRequests: Array<(token: string) => void> = []
-```
-
-改为：
-
-```ts
-type PendingHandler = {
-  resolve: (token: string) => void
-  reject: (err: unknown) => void
+```csharp
+public interface IWcsPack
+{
+    string PackId { get; }
+    Task<bool> CanHandleAsync(string fromLocationCode, string toLocationCode, CancellationToken ct = default);
+    Task<AcceptLegResult> AcceptLegAsync(TransportLegDto leg, CancellationToken ct = default);
+    Task CancelLegAsync(Guid legId, CancellationToken ct = default);
+    Task<LegStatusDto?> QueryLegAsync(Guid legId, CancellationToken ct = default);
+    Task<PackHealthDto> HealthAsync(CancellationToken ct = default);
 }
-let pendingRequests: PendingHandler[] = []
-```
 
-在拦截器之前增加：
+public interface IOrchestrationBus
+{
+    Task<Guid> CreateTransportOrderAsync(CreateTransportOrderRequest req, CancellationToken ct = default);
+    Task OnLegEventAsync(LegEvent evt, CancellationToken ct = default);
+}
 
-```ts
-function forceLogoutToLogin(error: unknown) {
-  if (isRedirectingToLogin) return Promise.reject(error)
-  isRedirectingToLogin = true
-  ElMessage.error(i18n.global.t('login.expired'))
-  useUserStore().logout()
-  if (router.currentRoute.value.path !== '/login') {
-    router.replace('/login')
-  }
-  return Promise.reject(error)
+/// <summary>通讯无关：映射 LES_v2 的 SUDR/SUDS/SUM* 语义，由未来通讯包调用。</summary>
+public interface IEquipmentTriggerPort
+{
+    event Func<DestinationRequestTrigger, Task>? DestinationRequested; // SUDR
+    Task DispatchDestinationAsync(DispatchDestinationCommand cmd, CancellationToken ct = default); // SUDS
+    Task DispatchMoveAsync(DispatchMoveCommand cmd, CancellationToken ct = default); // SUMT/SUMM/SUPM
+    event Func<DeviceSegmentFeedback, Task>? SegmentFeedback; // SUMR/SUPR/SULL…
 }
 ```
 
-将 `http.interceptors.response.use` 的第二个参数（错误处理器）整段替换为：
+**WcsModels.cs 至少包含：**
+- `TransportLegDto`：`LegId`,`OrderId`,`PackId`,`Seq`,`FromCode`,`ToCode`,`ContainerCode`,`HandoverIn`,`HandoverOut`
+- `LegEvent`（含 LegId、事件类型/状态）
+- `AcceptLegResult`
+- `DestinationRequestTrigger`：`ContainerCode`,`SourcePointCode`,`Height`,`Weight`,`CheckResult`（可用 record 位置参数构造以匹配测试）
+- `DispatchDestinationCommand`、`DispatchMoveCommand`、`DeviceSegmentFeedback`
+- `CreateTransportOrderRequest`、`LegStatusDto`、`PackHealthDto`
 
-```ts
-async (error) => {
-  const originalRequest = error.config
-  if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-    const userStore = useUserStore()
-    if (!userStore.refreshToken) {
-      return forceLogoutToLogin(error)
-    }
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        pendingRequests.push({
-          resolve: (token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            resolve(http(originalRequest))
-          },
-          reject,
-        })
-      })
-    }
-    originalRequest._retry = true
-    isRefreshing = true
-    try {
-      const res = await axios.post<ApiResponse>(
-        `${import.meta.env.VITE_API_BASE_URL}/api/Auth/refresh`,
-        { refreshToken: userStore.refreshToken }
-      )
-      if (res.data.status && res.data.data) {
-        const data = res.data.data as { token: string; refreshToken: string }
-        userStore.setToken(data.token, data.refreshToken)
-        const queued = pendingRequests
-        pendingRequests = []
-        queued.forEach((p) => p.resolve(data.token))
-        originalRequest.headers.Authorization = `Bearer ${data.token}`
-        return http(originalRequest)
-      }
-      const queued = pendingRequests
-      pendingRequests = []
-      queued.forEach((p) => p.reject(error))
-      return forceLogoutToLogin(error)
-    } catch (refreshError) {
-      const queued = pendingRequests
-      pendingRequests = []
-      queued.forEach((p) => p.reject(refreshError))
-      return forceLogoutToLogin(refreshError)
-    } finally {
-      isRefreshing = false
-    }
-  }
-  return Promise.reject(error)
+**InMemoryEquipmentTriggerPort：**
+- `SimulateDestinationRequestAsync` 触发 `DestinationRequested`
+- `SimulateSegmentFeedbackAsync` 触发 `SegmentFeedback`
+- `DispatchDestinationAsync` / `DispatchMoveAsync` 记录到可检查的列表（如 `DispatchedDestinations`）
+- 线程安全足够测试用即可
+
+**Test (required):**
+
+```csharp
+[Fact]
+public async Task DestinationRequested_ShouldInvoke_Subscriber()
+{
+    var port = new InMemoryEquipmentTriggerPort();
+    DestinationRequestTrigger? got = null;
+    port.DestinationRequested += t => { got = t; return Task.CompletedTask; };
+    await port.SimulateDestinationRequestAsync(new DestinationRequestTrigger(
+        "TP001", "RP_IN_01", 1, 1, "OK"));
+    got!.ContainerCode.Should().Be("TP001");
 }
 ```
 
-成功拦截器与 `responseErrorWhitelist` 保持不变。
+另加：`DispatchDestinationAsync` 后列表含该命令的测试。
 
-- [ ] **Step 3: TypeScript 检查**
-
-在 `Seven.Master/Seven.Vue3` 运行：
-
-```powershell
-npx vue-tsc --noEmit
-```
-
-Expected: 无与 `http.ts` / locales 相关的新增错误（若项目原本有无关错误，记录但不阻断，只要本改动不引入新错）
-
-- [ ] **Step 4: 手工验收（开发服务器已在跑则可直接测）**
-
-验收步骤：
-
-1. 正常登录后，在 DevTools Application 将 `token`（access）改成无效值，保留合法 `refreshToken`，触发任意需鉴权接口 → **应静默刷新成功**，无过期提示、不跳登录页
-2. 将 `token` 与 `refreshToken` 都改成无效值，再触发需鉴权接口 → **弹出一次**「登录已过期，请重新登录」，并进入 `/login`，localStorage 中 token/refreshToken 已清除
-3. 登录后删除 `refreshToken`，改坏 `token`，触发接口 → 同步骤 2
-4. 快速连续触发多个需鉴权请求（或 Network 里看并发）→ 只弹 **一次** 提示、只跳 **一次**
-
----
-
+**不要：** 实现真实 Bus/Pack；不要 commit；不要做 Task 3。

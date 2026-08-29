@@ -4,6 +4,13 @@ using Seven.Domain.Entities.Alarm;
 using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.DeviceComm;
+using Seven.Domain.Entities.Bus;
+using Seven.Domain.Entities.Wcs.External;
+using Seven.Domain.Entities.Wcs.FourWay;
+using Seven.Domain.Entities.Wcs.Stacker;
+using Seven.Domain.Entities.Platform;
+using Seven.Domain.Entities.Simulator;
+using Seven.Domain.Entities.Wms;
 using Seven.Domain.Entities.Flow;
 using Seven.Domain.Entities.Form;
 using Seven.Domain.Entities.News;
@@ -111,6 +118,93 @@ public class SevenDbContext : DbContext
     /// <summary>设备通讯事件日志</summary>
     public DbSet<CommEventLog> CommEventLogs => Set<CommEventLog>();
 
+    /// <summary>WMS 仓库</summary>
+    public DbSet<WmsWarehouse> WmsWarehouses => Set<WmsWarehouse>();
+
+    /// <summary>WMS 库区</summary>
+    public DbSet<WmsZone> WmsZones => Set<WmsZone>();
+
+    /// <summary>WMS 库位</summary>
+    public DbSet<WmsLocation> WmsLocations => Set<WmsLocation>();
+
+    /// <summary>WMS 容器类型</summary>
+    public DbSet<WmsContainerType> WmsContainerTypes => Set<WmsContainerType>();
+
+    /// <summary>WMS 容器</summary>
+    public DbSet<WmsContainer> WmsContainers => Set<WmsContainer>();
+
+    /// <summary>WMS 库存</summary>
+    public DbSet<WmsStock> WmsStocks => Set<WmsStock>();
+
+    /// <summary>WMS 库存流水</summary>
+    public DbSet<WmsStockLedger> WmsStockLedgers => Set<WmsStockLedger>();
+
+    /// <summary>WMS 入库单</summary>
+    public DbSet<WmsInboundOrder> WmsInboundOrders => Set<WmsInboundOrder>();
+
+    /// <summary>WMS 入库单行</summary>
+    public DbSet<WmsInboundOrderLine> WmsInboundOrderLines => Set<WmsInboundOrderLine>();
+
+    /// <summary>WMS 出库单</summary>
+    public DbSet<WmsOutboundOrder> WmsOutboundOrders => Set<WmsOutboundOrder>();
+
+    /// <summary>WMS 出库单行</summary>
+    public DbSet<WmsOutboundOrderLine> WmsOutboundOrderLines => Set<WmsOutboundOrderLine>();
+
+    /// <summary>WMS 盘点单</summary>
+    public DbSet<WmsCycleCount> WmsCycleCounts => Set<WmsCycleCount>();
+
+    /// <summary>WMS 盘点单行</summary>
+    public DbSet<WmsCycleCountLine> WmsCycleCountLines => Set<WmsCycleCountLine>();
+
+    /// <summary>WMS 跨包交接链</summary>
+    public DbSet<WmsHandoverLink> WmsHandoverLinks => Set<WmsHandoverLink>();
+
+    /// <summary>编排总线运输单</summary>
+    public DbSet<BusTransportOrder> BusTransportOrders => Set<BusTransportOrder>();
+
+    /// <summary>编排总线运输段</summary>
+    public DbSet<BusTransportLeg> BusTransportLegs => Set<BusTransportLeg>();
+
+    /// <summary>堆垛机申请点</summary>
+    public DbSet<StkRequestPoint> StkRequestPoints => Set<StkRequestPoint>();
+
+    /// <summary>堆垛机巷道分配策略</summary>
+    public DbSet<StkAssignmentPolicy> StkAssignmentPolicies => Set<StkAssignmentPolicy>();
+
+    /// <summary>堆垛机巷道轮转记录</summary>
+    public DbSet<StkAssignmentRecord> StkAssignmentRecords => Set<StkAssignmentRecord>();
+
+    /// <summary>堆垛机上架任务</summary>
+    public DbSet<StkPutAwayTask> StkPutAwayTasks => Set<StkPutAwayTask>();
+
+    /// <summary>堆垛机设备段任务</summary>
+    public DbSet<StkDeviceTask> StkDeviceTasks => Set<StkDeviceTask>();
+
+    /// <summary>四向车地图版本</summary>
+    public DbSet<FwMapVersion> FwMapVersions => Set<FwMapVersion>();
+
+    /// <summary>四向车路网节点</summary>
+    public DbSet<FwNode> FwNodes => Set<FwNode>();
+
+    /// <summary>四向车路网边分组</summary>
+    public DbSet<FwRouteGroup> FwRouteGroups => Set<FwRouteGroup>();
+
+    /// <summary>四向车路网边</summary>
+    public DbSet<FwRoute> FwRoutes => Set<FwRoute>();
+
+    /// <summary>四向车穿梭任务</summary>
+    public DbSet<FwShuttleTask> FwShuttleTasks => Set<FwShuttleTask>();
+
+    /// <summary>四向车任务路径</summary>
+    public DbSet<FwShuttleTaskPath> FwShuttleTaskPaths => Set<FwShuttleTaskPath>();
+
+    /// <summary>外部 WCS 系统实例</summary>
+    public DbSet<ExtSystem> ExtSystems => Set<ExtSystem>();
+
+    /// <summary>外部 WCS 报文日志</summary>
+    public DbSet<ExtMessageLog> ExtMessageLogs => Set<ExtMessageLog>();
+
     /// <summary>新闻</summary>
     public DbSet<App_News> App_News => Set<App_News>();
 
@@ -122,6 +216,21 @@ public class SevenDbContext : DbContext
 
     /// <summary>Outbox 出站消息</summary>
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    /// <summary>接口调用日志</summary>
+    public DbSet<IfcApiLog> IfcApiLogs => Set<IfcApiLog>();
+
+    /// <summary>联锁/运行模式</summary>
+    public DbSet<CtlMode> CtlModes => Set<CtlMode>();
+
+    /// <summary>2D SCADA 视图</summary>
+    public DbSet<ScdView> ScdViews => Set<ScdView>();
+
+    /// <summary>2D SCADA 节点绑定</summary>
+    public DbSet<ScdNodeBind> ScdNodeBinds => Set<ScdNodeBind>();
+
+    /// <summary>仿真部署记录</summary>
+    public DbSet<SimDeployment> SimDeployments => Set<SimDeployment>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

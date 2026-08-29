@@ -3,6 +3,12 @@ import { computed, ref } from 'vue'
 import http from '../api/http'
 
 /** 与后端 FeatureOptions 对齐（camelCase） */
+export interface WcsPackFeatureFlags {
+  stacker: boolean
+  fourWay: boolean
+  boxSort: boolean
+}
+
 export interface FeatureFlags {
   workFlow: boolean
   quartz: boolean
@@ -21,6 +27,10 @@ export interface FeatureFlags {
   builder: boolean
   hotStore: boolean
   deviceComm: boolean
+  simulator: boolean
+  wms: boolean
+  orchestrationBus: boolean
+  wcsPacks: WcsPackFeatureFlags
 }
 
 const defaults: FeatureFlags = {
@@ -41,9 +51,17 @@ const defaults: FeatureFlags = {
   builder: true,
   hotStore: false,
   deviceComm: false,
+  simulator: false,
+  wms: false,
+  orchestrationBus: false,
+  wcsPacks: {
+    stacker: false,
+    fourWay: false,
+    boxSort: false,
+  },
 }
 
-/** 菜单 TableName → 功能开关 */
+/** 菜单 TableName → 功能开关（顶层 bool）；嵌套包见 isMenuEnabled 特殊分支 */
 const menuFeatureMap: Record<string, keyof FeatureFlags> = {
   Sys_WorkFlow: 'workFlow',
   Sys_WorkFlowTable: 'workFlow',
@@ -56,6 +74,18 @@ const menuFeatureMap: Record<string, keyof FeatureFlags> = {
   CommRule: 'deviceComm',
   DeviceComm: 'deviceComm',
   DeviceCommFolder: 'deviceComm',
+  WmsFolder: 'wms',
+  WmsLocation: 'wms',
+  WmsStock: 'wms',
+  WmsInboundOrder: 'wms',
+  WmsOutboundOrder: 'wms',
+  WmsCycleCount: 'wms',
+  ScadaFolder: 'wms',
+  WcsFolder: 'orchestrationBus',
+  WcsOpsFolder: 'orchestrationBus',
+  BusTransportOrder: 'orchestrationBus',
+  CtlMode: 'orchestrationBus',
+  IfcApiLog: 'orchestrationBus',
 }
 
 export const useFeatureStore = defineStore('features', () => {
@@ -68,9 +98,13 @@ export const useFeatureStore = defineStore('features', () => {
 
   async function load() {
     try {
-      const res = await http.get<{ status: boolean; data?: Partial<FeatureFlags> }>('/api/config/features')
+      const res = await http.get<{ status: boolean; data?: Partial<FeatureFlags> & { wcsPacks?: Partial<WcsPackFeatureFlags> } }>('/api/config/features')
       if (res.status && res.data) {
-        flags.value = { ...defaults, ...res.data }
+        flags.value = {
+          ...defaults,
+          ...res.data,
+          wcsPacks: { ...defaults.wcsPacks, ...res.data.wcsPacks },
+        }
       }
     } catch {
       flags.value = { ...defaults }
@@ -81,15 +115,18 @@ export const useFeatureStore = defineStore('features', () => {
 
   function isMenuEnabled(tableName?: string | null, url?: string | null) {
     const key = tableName || ''
+    if (key === 'StackerTrigger' || url?.includes('/Wcs/Stacker'))
+      return !!flags.value.wcsPacks.stacker || !!flags.value.orchestrationBus
     const feature = menuFeatureMap[key]
     if (feature) return !!flags.value[feature]
-    // 兼容无 TableName 的 URL
     if (url?.includes('WorkFlow')) return flags.value.workFlow
     if (url?.includes('Quartz')) return flags.value.quartz
     if (url?.includes('Alarm')) return flags.value.alarm
     if (url?.includes('coder') || url?.includes('TableInfo')) return flags.value.builder
     if (url?.includes('DeviceComm') || url?.includes('CommConnection') || url?.includes('CommPoint') || url?.includes('CommRule'))
       return flags.value.deviceComm
+    if (url?.includes('/Wms/') || url?.includes('/Scada/')) return flags.value.wms
+    if (url?.includes('/Wcs/') || url?.includes('/Platform/')) return flags.value.orchestrationBus || flags.value.wms
     return true
   }
 

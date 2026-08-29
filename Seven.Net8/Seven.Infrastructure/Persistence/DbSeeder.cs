@@ -53,6 +53,7 @@ public static class DbSeeder
         await SeedDeviceDetailDemoAsync(db, logger);
         await SeedExtraMenusAndJobsAsync(db, logger);
         await SeedDeviceCommMenusAsync(db, logger);
+        await SeedWmsWcsMenusAsync(db, logger);
         await SeedDefaultTenantAsync(db, logger);
 
         if (await db.Sys_Users.AnyAsync())
@@ -493,5 +494,107 @@ public static class DbSeeder
 
         if (added > 0 || moved > 0)
             logger.LogInformation("设备通讯菜单：新增 {Added}，迁移归类 {Moved}", added, moved);
+    }
+
+    /// <summary>幂等：WMS / WCS / 平台 / SCADA 菜单目录（按 Features 过滤 TableName）</summary>
+    static async Task SeedWmsWcsMenusAsync(SevenDbContext db, ILogger logger)
+    {
+        async Task<Sys_Menu> EnsureFolderAsync(string name, string tableName, string icon, int orderNo)
+        {
+            var folder = await db.Sys_Menus.FirstOrDefaultAsync(m =>
+                m.ParentId == 0 && (m.MenuName == name || m.TableName == tableName));
+            if (folder == null)
+            {
+                folder = new Sys_Menu
+                {
+                    ParentId = 0,
+                    MenuName = name,
+                    Icon = icon,
+                    OrderNo = orderNo,
+                    Url = null,
+                    TableName = tableName,
+                    Auth = null,
+                    Enable = 1,
+                    CreateDate = DateTime.Now,
+                };
+                db.Sys_Menus.Add(folder);
+                await db.SaveChangesAsync();
+                logger.LogInformation("已创建顶级菜单目录「{Name}」", name);
+            }
+            else
+            {
+                folder.ParentId = 0;
+                folder.MenuName = name;
+                folder.TableName = tableName;
+                folder.Icon ??= icon;
+                if (folder.OrderNo == 0) folder.OrderNo = orderNo;
+                await db.SaveChangesAsync();
+            }
+            return folder;
+        }
+
+        var wms = await EnsureFolderAsync("仓储WMS", "WmsFolder", "Box", 6);
+        var wcs = await EnsureFolderAsync("立库WCS", "WcsFolder", "Cpu", 7);
+        var plat = await EnsureFolderAsync("执行运维", "WcsOpsFolder", "Tools", 8);
+
+        var items = new (Sys_Menu Parent, string MenuName, string Url, string TableName, string Auth, int OrderNo)[]
+        {
+            (wms, "库位", "/Wms/Location", "WmsLocation", "Search,Add,Update", 1),
+            (wms, "库存", "/Wms/Stock", "WmsStock", "Search,Update", 2),
+            (wms, "入库单", "/Wms/InboundOrder", "WmsInboundOrder", "Search,Add,Update", 3),
+            (wms, "出库单", "/Wms/OutboundOrder", "WmsOutboundOrder", "Search,Add,Update", 4),
+            (wms, "盘点单", "/Wms/CycleCount", "WmsCycleCount", "Search,Add,Update", 5),
+            (wcs, "堆垛机仿真触发", "/Wcs/Stacker/Trigger", "StackerTrigger", "Search,Update", 1),
+            (wcs, "运输单监控", "/Wcs/Bus/TransportOrder", "BusTransportOrder", "Search", 2),
+            (plat, "运行模式/联锁", "/Platform/ControlMode", "CtlMode", "Search,Update", 1),
+            (plat, "接口日志", "/Platform/InterfaceLog", "IfcApiLog", "Search", 2),
+            (plat, "2D看板", "/Scada/Floor2d", "ScadaFolder", "Search", 3),
+        };
+
+        var adminRole = await db.Sys_Roles.OrderBy(r => r.Role_Id).FirstOrDefaultAsync();
+        var added = 0;
+        foreach (var m in items)
+        {
+            var existing = await db.Sys_Menus.FirstOrDefaultAsync(x =>
+                x.Url == m.Url || x.TableName == m.TableName);
+            if (existing != null)
+            {
+                if (existing.ParentId != m.Parent.Menu_Id)
+                {
+                    existing.ParentId = m.Parent.Menu_Id;
+                    existing.OrderNo = m.OrderNo;
+                    await db.SaveChangesAsync();
+                }
+                continue;
+            }
+
+            var menu = new Sys_Menu
+            {
+                ParentId = m.Parent.Menu_Id,
+                MenuName = m.MenuName,
+                Url = m.Url,
+                TableName = m.TableName,
+                Auth = m.Auth,
+                OrderNo = m.OrderNo,
+                Enable = 1,
+                CreateDate = DateTime.Now,
+            };
+            db.Sys_Menus.Add(menu);
+            await db.SaveChangesAsync();
+            if (adminRole != null)
+            {
+                db.Sys_RoleAuths.Add(new Sys_RoleAuth
+                {
+                    Role_Id = adminRole.Role_Id,
+                    Menu_Id = menu.Menu_Id,
+                    AuthValue = m.Auth,
+                });
+                await db.SaveChangesAsync();
+            }
+            added++;
+        }
+
+        if (added > 0)
+            logger.LogInformation("WMS/WCS 菜单：新增 {Added}", added);
     }
 }
