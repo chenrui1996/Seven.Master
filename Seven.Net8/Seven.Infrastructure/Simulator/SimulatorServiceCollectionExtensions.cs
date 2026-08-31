@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Seven.Application.Simulator;
+using Seven.Infrastructure.Simulator.Gateway;
 
 namespace Seven.Infrastructure.Simulator;
 
@@ -9,8 +10,15 @@ public static class SimulatorServiceCollectionExtensions
 {
     public static IServiceCollection AddSevenSimulator(this IServiceCollection services, IConfiguration configuration)
     {
-        _ = configuration;
+        services.Configure<SimGatewayOptions>(configuration.GetSection(SimGatewayOptions.SectionName));
+        services.AddSingleton<ISimWcsProxyNotifier, SimWcsProxyNotifier>();
         services.AddScoped<ISimulationDeployService, SimulationDeployService>();
+        services.AddScoped<ISimulationImportService, SimulationImportService>();
+
+        var gateway = configuration.GetSection(SimGatewayOptions.SectionName).Get<SimGatewayOptions>() ?? new SimGatewayOptions();
+        if (gateway.Enabled)
+            services.AddHostedService<SimGatewayHostedService>();
+
         return services;
     }
 }

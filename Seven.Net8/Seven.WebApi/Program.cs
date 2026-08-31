@@ -10,6 +10,7 @@ using Seven.Infrastructure;
 using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.Middleware;
 using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Simulator.Gateway;
 using Seven.WebApi;
 using Seven.WebApi.Hubs;
 
@@ -200,6 +201,7 @@ if (features.SignalR)
         app.MapHub<AlarmHub>("/hub/alarm");
     if (features.DeviceComm)
         app.MapHub<DeviceCommHub>("/hub/devicecomm");
+    app.MapHub<SimWcsProxyHub>("/hubs/sim-wcs-proxy");
 }
 app.MapSevenHealthChecks();
 app.MapSevenMetrics();

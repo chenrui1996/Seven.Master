@@ -11,8 +11,13 @@ namespace Seven.WebApi.Controllers.Simulator;
 public class SimulationController : ControllerBase
 {
     private readonly ISimulationDeployService _deploy;
+    private readonly ISimulationImportService _import;
 
-    public SimulationController(ISimulationDeployService deploy) => _deploy = deploy;
+    public SimulationController(ISimulationDeployService deploy, ISimulationImportService import)
+    {
+        _deploy = deploy;
+        _import = import;
+    }
 
     [HttpPost("projects/validate-features")]
     public WebResponseContent ValidateFeatures([FromBody] SimFeaturesDto features)
@@ -51,9 +56,80 @@ public class SimulationController : ControllerBase
         }
     }
 
+    [HttpPost("reset")]
+    public async Task<WebResponseContent> Reset([FromBody] ResetRequest request, CancellationToken ct)
+    {
+        try
+        {
+            await _deploy.ResetAsync(request.ProjectName, ct);
+            return WebResponseContent.Ok("已 Reset");
+        }
+        catch (Exception ex)
+        {
+            return WebResponseContent.Error(ex.Message);
+        }
+    }
+
     [HttpGet("deployments")]
     public async Task<WebResponseContent> List(CancellationToken ct) =>
         WebResponseContent.Ok(data: await _deploy.ListDeploymentsAsync(ct));
+
+    [HttpPost("promote-preview")]
+    public async Task<WebResponseContent> PromotePreview([FromBody] SimPromoteRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _deploy.PromotePreviewAsync(request, ct);
+            return WebResponseContent.Ok(data: result);
+        }
+        catch (Exception ex)
+        {
+            return WebResponseContent.Error(ex.Message);
+        }
+    }
+
+    [HttpPost("promote")]
+    public async Task<WebResponseContent> Promote([FromBody] SimPromoteRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _deploy.PromoteAsync(request, ct);
+            return WebResponseContent.Ok(result.Message, result);
+        }
+        catch (Exception ex)
+        {
+            return WebResponseContent.Error(ex.Message);
+        }
+    }
+
+    [HttpPost("import-grid")]
+    public WebResponseContent ImportGrid([FromBody] ImportGridRequest request)
+    {
+        try
+        {
+            var result = _import.ImportGrid(request);
+            return WebResponseContent.Ok(data: result);
+        }
+        catch (Exception ex)
+        {
+            return WebResponseContent.Error(ex.Message);
+        }
+    }
+
+    [HttpPost("route-groups/preview")]
+    public WebResponseContent PreviewRouteGroups([FromBody] RouteGroupsPreviewRequest request)
+    {
+        try
+        {
+            var result = _import.PreviewRouteGroups(request);
+            return WebResponseContent.Ok(data: result);
+        }
+        catch (Exception ex)
+        {
+            return WebResponseContent.Error(ex.Message);
+        }
+    }
 }
 
 public record UndeployRequest(string ProjectName, bool RemoveLocations = false);
+public record ResetRequest(string ProjectName);

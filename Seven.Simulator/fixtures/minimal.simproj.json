@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "MinimalRCS",
+    "runtimeMode": "Simulation",
+    "simCommsMode": "Trigger"
+  },
+  "map": {
+    "packId": "stacker",
+    "nodes": [
+      { "id": "n1", "code": "Stk.A-01", "x": 40, "y": 40, "kind": "location" },
+      { "id": "n2", "code": "Stk.A-02", "x": 120, "y": 40, "kind": "location" }
+    ],
+    "edges": [
+      { "id": "e1", "from": "n1", "to": "n2" }
+    ],
+    "devices": [
+      { "id": "d1", "code": "SRM01", "type": "SRM", "x": 80, "y": 120 },
+      { "id": "d2", "code": "SH01", "type": "Shuttle", "x": 200, "y": 40 }
+    ],
+    "connections": [
+      { "id": "c1", "from": "d1.fork", "to": "n1.io" }
+    ],
+    "requestPoints": [
+      { "code": "Stk.RP_IN_01", "mappedLocationCode": "Stk.A-01" }
+    ]
+  }
+}

@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:hitTest": "npx --yes tsx src/components/map/hitTest.test.ts",
+    "test:topology": "npx --yes tsx src/lib/map/topologyValidator.test.ts",
+    "test:simproj": "npx --yes tsx src/lib/project/simproj-adapter.test.ts"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -15,11 +18,13 @@
     "element-plus": "^2.14.2",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
+    "three": "^0.185.1",
     "vue": "^3.5.39",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/tsconfig": "^0.9.1",
     "typescript": "~6.0.2",

@@ -1,0 +1,8 @@
+{
+  "packId": "fourway",
+  "cells": [
+    { "code": "Fw.A-01", "x": 0, "y": 0 },
+    { "code": "Fw.A-02", "x": 80, "y": 0 },
+    { "code": "Fw.A-03", "x": 160, "y": 0 }
+  ]
+}

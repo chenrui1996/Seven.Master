@@ -436,10 +436,10 @@ dotnet test --filter "FullyQualifiedName~FourWay|FullyQualifiedName~InboundToFou
 | `Stk_` | 堆垛 WCS |
 | `Fw_` | 四向 WCS |
 
-## B. 未纳入本文的后续能力
+## B. 未纳入本文运行时正文、另见专项文档的能力
 
-- F6：仿真 Promote / Seven.Simulator 产品化联调  
-- Phase H：真机 DeviceComm 替换 TriggerPort  
+- **仿真联调闭环（编辑地图→Deploy→Trigger/Gateway→Promote）**：[21-仿真器与联调闭环](./21-仿真器与联调闭环.md)、[`Seven.Simulator`](../Seven.Simulator/)
+- Phase H：真机 DeviceComm 替换 TriggerPort（见 [16](./16-设备通讯DeviceComm.md) 与 Promote）
 - 堆垛 SupperRoute 多种子与时间窗；OutLockBin 硬拒出  
 - PDA 拣选/发货/离线；ERP 全量接口产品化  
 
@@ -448,6 +448,7 @@ dotnet test --filter "FullyQualifiedName~FourWay|FullyQualifiedName~InboundToFou
 | 文档 | 用途 |
 |------|------|
 | [19-WMS与WCS包](./19-WMS与WCS包.md) | Features、前缀、仿真、上线清单 |
+| [21-仿真器与联调闭环](./21-仿真器与联调闭环.md) | Simulator 实施与开发四期 |
 | [14-功能开关](./14-功能开关.md) | Features 总控 |
 | [15-热数据HotStore](./15-热数据HotStore.md) | 四向 `fw:` 热路径 |
 | [`Seven.App/README.md`](../Seven.App/README.md) | PDA 运行 |

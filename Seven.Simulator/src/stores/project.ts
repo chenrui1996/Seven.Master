@@ -1,55 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import {
+  defaultSimProject,
+  mergeSimProject,
+  type SimProject,
+} from '../lib/project/schema'
+import { adaptSimProjJson } from '../lib/project/simproj-adapter'
 
-export interface SimFeatures {
-  wms: boolean
-  orchestrationBus: boolean
-  hotStore: boolean
-  deviceComm: boolean
-  simulator: boolean
-  wcsPacks: {
-    stacker: boolean
-    fourWay: boolean
-    boxSort: boolean
-  }
-}
-
-export interface SimProject {
-  version: number
-  meta: {
-    name: string
-    features: SimFeatures
-    runtimeMode: 'Simulation' | 'Production'
-  }
-  map: {
-    packId: string
-    nodes: { id: string; code: string; x: number; y: number }[]
-    edges: { id: string; from: string; to: string }[]
-    devices: { id: string; code: string; type: string; x: number; y: number }[]
-  }
-}
-
-const defaultFeatures = (): SimFeatures => ({
-  wms: true,
-  orchestrationBus: true,
-  hotStore: false,
-  deviceComm: false,
-  simulator: true,
-  wcsPacks: { stacker: true, fourWay: false, boxSort: false },
-})
+export type { SimFeatures, SimProject } from '../lib/project/schema'
 
 export const useProjectStore = defineStore(
   'simProject',
   () => {
-    const project = ref<SimProject>({
-      version: 1,
-      meta: {
-        name: 'Demo',
-        features: defaultFeatures(),
-        runtimeMode: 'Simulation',
-      },
-      map: { packId: 'stacker', nodes: [], edges: [], devices: [] },
-    })
+    const project = ref<SimProject>(defaultSimProject())
 
     function exportAppsettingsSnippet(): string {
       const f = project.value.meta.features
@@ -85,10 +48,36 @@ export const useProjectStore = defineStore(
 
     async function importProject(file: File) {
       const text = await file.text()
-      project.value = JSON.parse(text) as SimProject
+      project.value = mergeSimProject(JSON.parse(text) as Partial<SimProject>)
     }
 
-    return { project, exportAppsettingsSnippet, downloadProject, importProject }
+    async function importSimProj(file: File): Promise<string[]> {
+      const text = await file.text()
+      const { project: adapted, warnings } = adaptSimProjJson(text)
+      project.value = adapted
+      return warnings
+    }
+
+    function applyImportedMap(map: SimProject['map']) {
+      project.value.map = {
+        ...project.value.map,
+        packId: map.packId,
+        nodes: map.nodes,
+        edges: map.edges ?? [],
+        devices: map.devices ?? [],
+        connections: map.connections ?? [],
+        requestPoints: map.requestPoints ?? [],
+      }
+    }
+
+    return { project, exportAppsettingsSnippet, downloadProject, importProject, importSimProj, applyImportedMap }
   },
-  { persist: true },
+  {
+    persist: {
+      afterHydrate: (ctx) => {
+        const s = ctx.store as unknown as { project: SimProject }
+        s.project = mergeSimProject(s.project)
+      },
+    },
+  },
 )

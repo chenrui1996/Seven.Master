@@ -14,8 +14,11 @@
 |------|------|
 | [`design/2026-08-29-wms-wcs-pack-architecture.md`](../design/2026-08-29-wms-wcs-pack-architecture.md) | 架构决策与包边界 |
 | [`design/2026-08-29-wms-wcs-implementation-guide.md`](../design/2026-08-29-wms-wcs-implementation-guide.md) | 实现大纲、表前缀、主路径流程 |
-| [`design/2026-08-29-seven-simulator-design.md`](../design/2026-08-29-seven-simulator-design.md) | 模拟器：Features→地图→仿真→生产 |
-| [`docs/superpowers/plans/2026-08-29-wms-wcs-pack-implementation.md`](../docs/superpowers/plans/2026-08-29-wms-wcs-pack-implementation.md) | 任务级 TDD 计划 |
+| [`design/2026-08-29-seven-simulator-design.md`](../design/2026-08-29-seven-simulator-design.md) | 模拟器摘要：Features→地图→仿真→生产 |
+| [`docs/superpowers/specs/2026-08-29-seven-simulator-design.md`](../docs/superpowers/specs/2026-08-29-seven-simulator-design.md) | 模拟器**定稿规格**（四期） |
+| [`docs/superpowers/plans/2026-08-29-seven-simulator.md`](../docs/superpowers/plans/2026-08-29-seven-simulator.md) | 模拟器**任务级计划** |
+| [`doc/21-仿真器与联调闭环.md`](./21-仿真器与联调闭环.md) | **实施流程**（给人看的操作与开发说明） |
+| [`docs/superpowers/plans/2026-08-29-wms-wcs-pack-implementation.md`](../docs/superpowers/plans/2026-08-29-wms-wcs-pack-implementation.md) | WMS/WCS 包任务级 TDD 计划 |
 | [`Seven.Simulator/`](../Seven.Simulator/) | 联调 SPA（栈对齐 Vue3） |
 
 ---
