@@ -13,4 +13,5 @@ public class WmsOutboundOrder : BaseEntity
     /// <summary>WCS 组批号；空则审核时用 OrderNo。</summary>
     public string? WcsGroupNo { get; set; }
     public ICollection<WmsOutboundOrderLine> Lines { get; set; } = new List<WmsOutboundOrderLine>();
+    public ICollection<WmsPickingTask> PickingTasks { get; set; } = new List<WmsPickingTask>();
 }

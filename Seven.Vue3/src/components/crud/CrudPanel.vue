@@ -182,6 +182,12 @@
                   type="success"
                   @click="onSubmitAudit(row)"
                 >{{ t('common.submitAudit') }}</el-button>
+                <el-button
+                  v-if="featureStore.flags.workFlow && hasAuditStatus(row)"
+                  link
+                  type="primary"
+                  @click="openAudit(row)"
+                >{{ t('sysWorkFlow.viewAudit') }}</el-button>
               </template>
               <el-button
                 v-if="userStore.hasPermission(`${tableName}.Delete`)"
@@ -284,6 +290,10 @@
             controls-position="right"
             style="width:100%"
           />
+          <FileUploadField
+            v-else-if="f.kind === 'upload'"
+            v-model="form[f.prop] as string"
+          />
           <el-input v-else v-model="form[f.prop]" clearable />
         </el-form-item>
       </el-form>
@@ -349,6 +359,12 @@
       style="display:none"
       @change="onImportFile"
     />
+    <AuditFlowDrawer
+      v-model="auditVisible"
+      :table-name="tableName"
+      :table-key="auditTableKey"
+      @audited="loadData"
+    />
   </div>
 </template>
 
@@ -374,7 +390,10 @@ import { useUserStore } from '../../stores/user'
 import { useDictStore, useTabsStore } from '../../stores'
 import { ActionIcons } from '../../constants/actionIcons'
 import TableColumnSettings from '../TableColumnSettings.vue'
+import FileUploadField from '../FileUploadField.vue'
+import AuditFlowDrawer from '../workflow/AuditFlowDrawer.vue'
 import { useTableColumns, type ColumnDef } from '../../composables/useTableColumns'
+import { useFeatureStore } from '../../stores/features'
 
 defineOptions({ name: 'CrudPanel' })
 
@@ -418,6 +437,7 @@ const router = useRouter()
 const tabsStore = useTabsStore()
 const userStore = useUserStore()
 const dictStore = useDictStore()
+const featureStore = useFeatureStore()
 
 const loading = ref(false)
 const tableData = ref<Record<string, unknown>[]>([])
@@ -427,6 +447,8 @@ const sort = ref('')
 const order = ref('')
 const dialogVisible = ref(false)
 const selectedRows = ref<Record<string, unknown>[]>([])
+const auditVisible = ref(false)
+const auditTableKey = ref('')
 const importInput = ref<HTMLInputElement | null>(null)
 const activeMasterRow = ref<Record<string, unknown> | null>(null)
 const detailDialogVisible = ref(false)
@@ -706,6 +728,20 @@ async function onRowExtButton(btn: RowButton, row: Record<string, unknown>) {
 
 async function onSubmitAudit(row: Record<string, unknown>) {
   await props.extension?.hooks?.submitAudit?.({ row, tableName: props.tableName })
+}
+
+function hasAuditStatus(row: Record<string, unknown>) {
+  return row.auditStatus !== undefined && row.auditStatus !== null
+}
+
+function openAudit(row: Record<string, unknown>) {
+  const key = row[props.keyField]
+  if (key == null || key === '') {
+    ElMessage.warning(t('sysWorkFlow.noBizKey'))
+    return
+  }
+  auditTableKey.value = String(key)
+  auditVisible.value = true
 }
 
 function guessKeyField(dt: DetailTableConfig): string {
@@ -1027,6 +1063,7 @@ async function onImportFile(e: Event) {
 }
 
 async function doExport() {
+  const loading = ElMessage({ message: t('common.loading'), duration: 0 })
   try {
     await downloadFile(
       `/api/${props.apiRoute}/export`,
@@ -1039,8 +1076,11 @@ async function doExport() {
       },
       `${props.tableName}.xlsx`,
     )
+    ElMessage.success(t('common.success'))
   } catch {
     ElMessage.error(t('common.operationFailed'))
+  } finally {
+    loading.close()
   }
 }
 
@@ -1050,6 +1090,7 @@ async function downloadTemplate() {
       `/api/${props.apiRoute}/exportTemplate`,
       `${props.tableName}_template.xlsx`,
     )
+    ElMessage.success(t('common.success'))
   } catch {
     ElMessage.error(t('common.operationFailed'))
   }

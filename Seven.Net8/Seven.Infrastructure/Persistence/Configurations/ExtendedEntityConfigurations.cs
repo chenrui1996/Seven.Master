@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Seven.Domain.Entities.Alarm;
-using Seven.Domain.Entities.Business;
 using Seven.Domain.Entities.Core;
 using Seven.Domain.Entities.Flow;
 using Seven.Domain.Entities.Form;
 using Seven.Domain.Entities.News;
 using Seven.Domain.Entities.Quartz;
+using Seven.Domain.Wcs;
 
 namespace Seven.Infrastructure.Persistence.Configurations;
 
@@ -72,7 +72,7 @@ public class FormDesignOptionsConfiguration : IEntityTypeConfiguration<FormDesig
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<FormDesignOptions> builder)
     {
-        builder.ToTable("FormDesignOptions");
+        builder.ToTable(TablePrefixes.Form + "DesignOptions");
         builder.HasKey(x => x.FormId);
     }
 }
@@ -83,7 +83,7 @@ public class FormCollectionObjectConfiguration : IEntityTypeConfiguration<FormCo
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<FormCollectionObject> builder)
     {
-        builder.ToTable("FormCollectionObject");
+        builder.ToTable(TablePrefixes.Form + "CollectionObject");
         builder.HasKey(x => x.FormCollectionId);
     }
 }
@@ -148,39 +148,6 @@ public class SysTableDetailConfiguration : IEntityTypeConfiguration<Sys_TableDet
         builder.Property(x => x.DisplayMode).HasMaxLength(20).IsRequired();
         builder.Property(x => x.CnName).HasMaxLength(100);
         builder.HasIndex(x => new { x.ParentTable, x.ChildTable, x.ForeignKey }).IsUnique();
-    }
-}
-
-/// <summary>设备配置</summary>
-public class DeviceConfiguration : IEntityTypeConfiguration<Device>
-{
-    /// <inheritdoc />
-    public void Configure(EntityTypeBuilder<Device> builder)
-    {
-        builder.ToTable("Device");
-        builder.HasKey(x => x.DeviceId);
-        builder.Property(x => x.DeviceName).HasMaxLength(128).IsRequired();
-        builder.Property(x => x.DeviceCode).HasMaxLength(64);
-        builder.Property(x => x.Location).HasMaxLength(256);
-    }
-}
-
-/// <summary>子设备配置（Device 一对多 Demo）</summary>
-public class SubDeviceConfiguration : IEntityTypeConfiguration<SubDevice>
-{
-    /// <inheritdoc />
-    public void Configure(EntityTypeBuilder<SubDevice> builder)
-    {
-        builder.ToTable("SubDevice");
-        builder.HasKey(x => x.SubDeviceId);
-        builder.Property(x => x.SubDeviceName).HasMaxLength(128).IsRequired();
-        builder.Property(x => x.SubDeviceCode).HasMaxLength(64);
-        builder.Property(x => x.Remark).HasMaxLength(256);
-        builder.HasIndex(x => x.DeviceId);
-        builder.HasOne<Device>()
-            .WithMany()
-            .HasForeignKey(x => x.DeviceId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

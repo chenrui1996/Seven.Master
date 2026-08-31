@@ -151,6 +151,31 @@ public class Sys_UserController : ControllerBase
             request.NewPwd,
             cancellationToken
         );
+
+    /// <summary>当前登录用户资料</summary>
+    [HttpGet("getCurrentProfile")]
+    public Task<WebResponseContent> GetCurrentProfile(CancellationToken cancellationToken) =>
+        _service.GetCurrentProfileAsync(cancellationToken);
+
+    /// <summary>更新当前登录用户资料</summary>
+    [HttpPost("updateCurrentProfile")]
+    public Task<WebResponseContent> UpdateCurrentProfile(
+        [FromBody] UpdateCurrentProfileRequest request,
+        CancellationToken cancellationToken
+    ) => _service.UpdateCurrentProfileAsync(request, cancellationToken);
+
+    /// <summary>修改自己的密码</summary>
+    [HttpPost("modifyMyPwd")]
+    public Task<WebResponseContent> ModifyMyPwd(
+        [FromBody] ModifyMyPwdRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var uidClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(uidClaim, out var uid))
+            return Task.FromResult(WebResponseContent.Error("未登录"));
+        return _authService.ChangePasswordAsync(uid, request.OldPwd, request.NewPwd, cancellationToken);
+    }
 }
 
 /// <summary>改密请求</summary>
@@ -163,6 +188,12 @@ public class ModifyPwdRequest
     public string OldPwd { get; set; } = string.Empty;
 
     /// <summary>新密码</summary>
+    public string NewPwd { get; set; } = string.Empty;
+}
+
+public class ModifyMyPwdRequest
+{
+    public string OldPwd { get; set; } = string.Empty;
     public string NewPwd { get; set; } = string.Empty;
 }
 
@@ -512,6 +543,20 @@ public class Sys_WorkFlowController : ControllerBase
             cancellationToken
         );
 
+    /// <summary>审批进度（单据查看）</summary>
+    [HttpPost("getSteps")]
+    [Permission("Sys_WorkFlow.Search")]
+    public Task<WebResponseContent> GetSteps(
+        [FromBody] WorkFlowGetStepsRequest request,
+        CancellationToken cancellationToken
+    ) => _service.GetStepsAsync(request.TableName, request.Ids ?? [], cancellationToken);
+
+    /// <summary>节点审批人字典（用户/角色/部门）</summary>
+    [HttpGet("getNodeDic")]
+    [Permission("Sys_WorkFlow.Search")]
+    public Task<WebResponseContent> GetNodeDic(CancellationToken cancellationToken) =>
+        _service.GetNodeDicAsync(cancellationToken);
+
     /// <summary>分页查询实例</summary>
     [HttpPost("getPageData")]
     [Permission("Sys_WorkFlow.Search")]
@@ -572,6 +617,12 @@ public class WorkFlowAuditRequest
 
     /// <summary>审批意见</summary>
     public string? Remark { get; set; }
+}
+
+public class WorkFlowGetStepsRequest
+{
+    public string TableName { get; set; } = string.Empty;
+    public List<string>? Ids { get; set; }
 }
 
 /// <summary>代码生成器 API</summary>

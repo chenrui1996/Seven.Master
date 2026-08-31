@@ -27,7 +27,7 @@
 
 | 前缀 | 模块 | 示例表 |
 |------|------|--------|
-| `Wms_` | WMS 主数据与库存 | `Wms_Stock`、`Wms_Location` |
+| `Wms_` | WMS 主数据与库存 | `Wms_Stock`、`Wms_Location`、`Wms_PickingTask` |
 | `Bus_` | 编排总线 | `Bus_TransportOrder`、`Bus_TransportLeg` |
 | `Stk_` | 堆垛机 WCS | `Stk_PutAwayTask`、`Stk_DeviceTask` |
 | `Fw_` | 四向车 WCS | `Fw_ShuttleTask`、`Fw_Node` |
@@ -36,8 +36,14 @@
 | `Ctl_` | 联锁/运行模式 | `Ctl_Mode` |
 | `Scd_` | 2D SCADA | `Scd_View`、`Scd_NodeBind` |
 | `Sim_` | 仿真工程/部署元数据（可选） | `Sim_Project`、`Sim_Deployment` |
+| `Biz_` | 业务扩展（`Entities/Business`） | `Biz_TransferOrder`、`Biz_TransferOrderLine`；**新项目单据优先本前缀** |
+| `Dc_` | 设备通讯 DeviceComm | `Dc_CommConnection`、`Dc_CommPoint` |
+| `Form_` | 动态表单 | `Form_CollectionObject`、`Form_DesignOptions` |
+| `Mq_` | 消息 Outbox | `Mq_OutboxMessages` |
 
-常量定义：`Seven.Domain/Wcs/TablePrefixes.cs`。库位权威只有 `Wms_Location`；包内策略表用 Code 引用，禁止第二套货位主表。
+常量定义：`Seven.Domain/Wcs/TablePrefixes.cs`（权威）。已有 `Wms_`/`Bus_`/`Stk_`/`Fw_`/`Sys_`/`Sim_`/`Scd_`/`Ext_`/`Ifc_`/`Ctl_` **不改名**；仅无模块前缀表补齐。库位权威只有 `Wms_Location`；包内策略表用 Code 引用，禁止第二套货位主表。
+
+**扩展落点**（新出入库类型、在库处理等）：逻辑 → `Seven.Business`，实体 → `Entities/Business` + `Biz_`，见 [23-业务扩展规范](./23-业务扩展规范.md)。
 
 ---
 

@@ -35,7 +35,7 @@ public class WmsOrderServiceTests
         await db.SaveChangesAsync();
 
         var stock = new StockService(db);
-        return (db, stock, new InboundOrderService(db, stock, transport), new OutboundOrderService(db, stock, transport),
+        return (db, stock, new InboundOrderService(db, stock, transport), new OutboundOrderService(db, stock, new PickingService(db, stock, transport), transport),
             new CycleCountService(db, stock));
     }
 
@@ -161,6 +161,11 @@ public class WmsOrderServiceTests
         row.Qty.Should().Be(10m);
         row.AvailableQty.Should().Be(0m);
         row.LocationCode.Should().Be("LOC-A");
+        transport.Requests.Should().BeEmpty();
+        (await db.WmsPickingTasks.CountAsync()).Should().Be(1);
+
+        var picking = new PickingService(db, stock, transport);
+        await picking.ConfirmPickAsync(new ConfirmPickRequest((await db.WmsPickingTasks.SingleAsync()).Id));
 
         transport.Requests.Should().ContainSingle();
         var hook = transport.Requests.Single();
@@ -194,12 +199,15 @@ public class WmsOrderServiceTests
         var stock = new StockService(db);
         await stock.ReceiveAsync(new ReceiveStockRequest("LOC-A", "MAT-01", 10m, ContainerCode: "TP-OUT"));
 
-        var outbound = new OutboundOrderService(db, stock, new RecordingTransport());
+        var transport = new RecordingTransport();
+        var outbound = new OutboundOrderService(db, stock, new PickingService(db, stock, transport), transport);
         var order = await outbound.CreateAsync(new CreateOutboundOrderRequest(
             "OUT-003",
             WmsOrderType.Other,
             [new OutboundLineInput(1, "MAT-01", 10m, FromLocation: "LOC-A", ToLocation: "DOCK-01", ContainerCode: "TP-OUT")]));
         await outbound.ApproveAsync(order.Id);
+        await new PickingService(db, stock, transport).ConfirmPickAsync(
+            new ConfirmPickRequest((await db.WmsPickingTasks.SingleAsync()).Id));
 
         var busOrderId = Guid.NewGuid();
         db.BusTransportOrders.Add(new BusTransportOrder

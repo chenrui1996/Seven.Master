@@ -31,15 +31,20 @@ public class PdaServiceTests
         var stock = new StockService(db);
         var inbound = new InboundOrderService(db, stock, transport: null);
         var cycleCount = new CycleCountService(db, stock);
-        var pda = new PdaService(db, inbound, stock, cycleCount);
+        var picking = new PickingService(db, stock, transport: null);
+        var pda = new PdaService(
+            db, inbound, stock, cycleCount, picking,
+            menuContributors: [new Seven.Business.TransferOrderPdaMenuContributor()]);
         return (db, pda, inbound, cycleCount, stock);
     }
 
     [Fact]
-    public async Task Menu_ShouldExposeReceivePutawayAndCycleCount()
+    public async Task Menu_ShouldContainStandardItems_AndTransferExtension()
     {
         var (_, pda, _, _, _) = await CreateAsync();
-        pda.GetMenu().Select(x => x.Code).Should().BeEquivalentTo("receive", "putaway", "cyclecount");
+        var codes = pda.GetMenu().Select(x => x.Code).ToList();
+        codes.Should().Contain(["receive", "putaway", "picking", "cyclecount"]);
+        codes.Should().Contain("transfer");
     }
 
     [Fact]

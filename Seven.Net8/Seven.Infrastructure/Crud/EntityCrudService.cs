@@ -1,13 +1,16 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Seven.Domain.Common;
+using Seven.Infrastructure.Excel;
 using Seven.Infrastructure.Persistence;
 using Seven.Infrastructure.Services;
 
 namespace Seven.Infrastructure.Crud;
 
-/// <summary>通用实体 CRUD（软删；主键名约定为 Id，类型 int 或 Guid）。</summary>
-public sealed class EntityCrudService<TEntity> where TEntity : class
+/// <summary>通用实体 CRUD（软删 + Excel 导入导出）。主键约定 Id（int/Guid）。</summary>
+public sealed class EntityCrudService<TEntity> where TEntity : class, new()
 {
     private readonly SevenDbContext _db;
 
@@ -49,7 +52,6 @@ public sealed class EntityCrudService<TEntity> where TEntity : class
         return WebResponseContent.Ok("更新成功");
     }
 
-    /// <summary>删除：请求体为 int[] / Guid[] / string[]（Guid 字符串）。</summary>
     public async Task<WebResponseContent> DeleteAsync(JsonElement ids, CancellationToken ct = default)
     {
         if (ids.ValueKind != JsonValueKind.Array || ids.GetArrayLength() == 0)
@@ -87,6 +89,58 @@ public sealed class EntityCrudService<TEntity> where TEntity : class
         return WebResponseContent.Ok($"已删除 {deleted} 条");
     }
 
+    public async Task<byte[]> ExportAsync(PageDataOptions options, CancellationToken ct = default)
+    {
+        options.Page = 1;
+        options.Rows = CrudExcelHelper.MaxExportRows;
+        var page = await GetPageDataAsync(options, ct);
+        return CrudExcelHelper.Export(page.Rows ?? []);
+    }
+
+    public byte[] ExportTemplate() =>
+        CrudExcelHelper.BuildTemplate<TEntity>(GetKeyPropertyName());
+
+    public async Task<WebResponseContent> ImportAsync(IFormFile file, CancellationToken ct = default)
+    {
+        if (file == null || file.Length == 0)
+            return WebResponseContent.Error("请选择 Excel 文件");
+
+        await using var stream = file.OpenReadStream();
+        List<TEntity> rows;
+        try
+        {
+            rows = CrudExcelHelper.Import<TEntity>(stream, GetKeyPropertyName());
+        }
+        catch (Exception ex)
+        {
+            return WebResponseContent.Error($"解析失败: {ex.Message}");
+        }
+
+        if (rows.Count == 0)
+            return WebResponseContent.Error("未解析到有效数据行");
+
+        var now = DateTime.UtcNow;
+        foreach (var row in rows)
+        {
+            EnsureNewGuidKey(row);
+            if (row is BaseEntity be)
+            {
+                be.CreateDate ??= now;
+                be.IsDeleted = false;
+            }
+        }
+
+        _db.Set<TEntity>().AddRange(rows);
+        await _db.SaveChangesAsync(ct);
+        return WebResponseContent.Ok($"成功导入 {rows.Count} 条");
+    }
+
+    private string GetKeyPropertyName()
+    {
+        var et = _db.Model.FindEntityType(typeof(TEntity));
+        return et?.FindPrimaryKey()?.Properties.FirstOrDefault()?.Name ?? "Id";
+    }
+
     private async Task<TEntity?> FindByKeyAsync(object key, CancellationToken ct)
     {
         var et = _db.Model.FindEntityType(typeof(TEntity))
@@ -96,7 +150,6 @@ public sealed class EntityCrudService<TEntity> where TEntity : class
         var prop = typeof(TEntity).GetProperty(pk.Name)
             ?? throw new InvalidOperationException($"主键属性 {pk.Name} 不存在");
 
-        // 避免表达式树开销：按类型分支
         if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(int?))
         {
             var id = Convert.ToInt32(key);

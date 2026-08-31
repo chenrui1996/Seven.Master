@@ -222,6 +222,7 @@ public static class DependencyInjection
         services.AddScoped<ISysDictionaryService, SysDictionaryService>();
         services.AddScoped<ISysLogService, SysLogService>();
         services.AddScoped<IAlarmService, AlarmService>();
+        services.AddScoped<IFormDesignService, FormDesignService>();
         RegisterUnregisteredSysServices(services);
     }
 

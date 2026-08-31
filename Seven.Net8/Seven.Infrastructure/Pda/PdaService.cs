@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Seven.Application.Business;
 using Seven.Application.Pda;
 using Seven.Application.Wms;
 using Seven.Domain.Entities.Wms;
@@ -14,25 +15,41 @@ public sealed class PdaService : IPdaService
     private readonly IInboundOrderService _inbound;
     private readonly IStockService _stock;
     private readonly ICycleCountService _cycleCount;
+    private readonly IPickingService _picking;
+    private readonly IEnumerable<IPdaMenuContributor> _menuContributors;
+    private readonly IWmsExtensionHooks _hooks;
 
     public PdaService(
         SevenDbContext db,
         IInboundOrderService inbound,
         IStockService stock,
-        ICycleCountService cycleCount)
+        ICycleCountService cycleCount,
+        IPickingService picking,
+        IEnumerable<IPdaMenuContributor>? menuContributors = null,
+        IWmsExtensionHooks? hooks = null)
     {
         _db = db;
         _inbound = inbound;
         _stock = stock;
         _cycleCount = cycleCount;
+        _picking = picking;
+        _menuContributors = menuContributors ?? Array.Empty<IPdaMenuContributor>();
+        _hooks = hooks ?? NoOpWmsExtensionHooks.Instance;
     }
 
-    public IReadOnlyList<PdaMenuItemDto> GetMenu() =>
-    [
-        new("receive", "平库收货", "/pages/receive/index", "Pda.Receive"),
-        new("putaway", "平库上架", "/pages/putaway/index", "Pda.Putaway"),
-        new("cyclecount", "盘点录入", "/pages/cyclecount/index", "Pda.CycleCount")
-    ];
+    public IReadOnlyList<PdaMenuItemDto> GetMenu()
+    {
+        var items = new List<PdaMenuItemDto>
+        {
+            new("receive", "平库收货", "/pages/receive/index", "Pda.Receive"),
+            new("putaway", "平库上架", "/pages/putaway/index", "Pda.Putaway"),
+            new("picking", "出库拣选", "/pages/picking/index", "Pda.Picking"),
+            new("cyclecount", "盘点录入", "/pages/cyclecount/index", "Pda.CycleCount"),
+        };
+        foreach (var c in _menuContributors)
+            items.AddRange(c.GetExtraMenus());
+        return items;
+    }
 
     public async Task<IReadOnlyList<PdaInboundPendingDto>> GetPendingInboundAsync(CancellationToken ct = default)
     {
@@ -42,6 +59,11 @@ public sealed class PdaService : IPdaService
             .OrderByDescending(x => x.Id)
             .Take(50)
             .ToListAsync(ct);
+
+        var filteredIds = await _hooks.FilterPendingInboundOrderIdsAsync(
+            orders.Select(o => o.Id).ToList(), ct);
+        var idSet = filteredIds.ToHashSet();
+        orders = orders.Where(o => idSet.Contains(o.Id)).ToList();
 
         return orders
             .Select(o => new PdaInboundPendingDto(
@@ -298,6 +320,39 @@ public sealed class PdaService : IPdaService
         if (candidates.Count > 1)
             throw new WmsDomainException("同库位多行，请指定容器或行号");
         return candidates[0];
+    }
+
+    public async Task<IReadOnlyList<PdaPickingPendingDto>> GetPendingPickingAsync(CancellationToken ct = default)
+    {
+        var tasks = await _picking.ListPendingAsync(ct);
+        tasks = tasks.Take(50).ToList();
+        var orderIds = tasks.Select(t => t.OutboundOrderId).Distinct().ToList();
+        var orders = await _db.WmsOutboundOrders.AsNoTracking()
+            .Where(o => orderIds.Contains(o.Id))
+            .ToDictionaryAsync(o => o.Id, o => o.OrderNo, ct);
+
+        return tasks.Select(t => new PdaPickingPendingDto(
+            t.Id,
+            t.TaskNo,
+            t.OutboundOrderId,
+            orders.GetValueOrDefault(t.OutboundOrderId, ""),
+            t.MaterialCode,
+            t.BookQty,
+            t.PickQty,
+            t.FromLocation,
+            t.ToLocation,
+            t.ContainerCode,
+            (int)t.Status)).ToList();
+    }
+
+    public async Task ConfirmPickAsync(PdaConfirmPickRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        await _picking.ConfirmPickAsync(new ConfirmPickRequest(
+            request.PickingTaskId,
+            request.PickQty,
+            request.ContainerCode,
+            request.FromLocation), ct);
     }
 
     private static PdaCycleCountDetailDto ToDetailDto(WmsCycleCount order) =>

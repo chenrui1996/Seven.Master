@@ -83,18 +83,18 @@
 
         <div class="seven-panel" style="margin-top: 16px">
           <div class="seven-panel__header">
-            <h3 class="seven-panel__title">{{ t('home.deviceTitle') }}</h3>
-            <el-button link type="primary" @click="router.push('/Device')">{{ t('home.viewAll') }}</el-button>
+            <h3 class="seven-panel__title">{{ t('home.transferTitle') }}</h3>
+            <el-button link type="primary" @click="router.push('/Business/TransferOrder')">{{ t('home.viewAll') }}</el-button>
           </div>
-          <div class="seven-panel__body device-list" v-loading="deviceLoading">
-            <div v-if="!deviceRows.length" class="empty-hint">{{ t('home.deviceEmpty') }}</div>
-            <div v-for="dev in deviceRows" :key="dev.deviceId" class="device-row">
+          <div class="seven-panel__body device-list" v-loading="transferLoading">
+            <div v-if="!transferRows.length" class="empty-hint">{{ t('home.transferEmpty') }}</div>
+            <div v-for="row in transferRows" :key="row.id" class="device-row">
               <div class="device-info">
-                <span class="device-name">{{ dev.deviceName }}</span>
-                <span class="device-code">{{ dev.deviceCode || '-' }}</span>
+                <span class="device-name">{{ row.orderNo }}</span>
+                <span class="device-code">{{ row.remark || '-' }}</span>
               </div>
-              <el-tag :type="deviceStatusType(dev.status)" size="small" effect="plain">
-                {{ deviceStatusLabel(dev.status) }}
+              <el-tag :type="transferStatusType(row.status)" size="small" effect="plain">
+                {{ transferStatusLabel(row.status) }}
               </el-tag>
             </div>
           </div>
@@ -155,7 +155,7 @@ const occupancyChartRef = ref<HTMLElement | null>(null)
 let occupancyChart: ECharts | null = null
 
 const alarmLoading = ref(false)
-const deviceLoading = ref(false)
+const transferLoading = ref(false)
 
 interface AlarmRow {
   alarmId: number
@@ -166,16 +166,15 @@ interface AlarmRow {
   createDate?: string
 }
 
-interface DeviceRow {
-  deviceId: number
-  deviceName: string
-  deviceCode?: string
+interface TransferRow {
+  id: number
+  orderNo: string
   status: number
-  location?: string
+  remark?: string
 }
 
 const alarmRows = ref<AlarmRow[]>([])
-const deviceRows = ref<DeviceRow[]>([])
+const transferRows = ref<TransferRow[]>([])
 const notifyTitle = ref('')
 const notifyContent = ref('')
 const notifySending = ref(false)
@@ -234,7 +233,9 @@ const inventorySummary = computed(() => {
   ]
 })
 
-const onlineDeviceCount = computed(() => deviceRows.value.filter((d) => d.status === 1).length)
+const openTransferCount = computed(
+  () => transferRows.value.filter((d) => d.status === 0 || d.status === 1).length,
+)
 
 const kpiCards = computed(() => [
   {
@@ -250,9 +251,9 @@ const kpiCards = computed(() => [
     variant: 'seven-kpi-card--warning',
   },
   {
-    label: t('home.kpiOnlineDevices'),
-    value: String(onlineDeviceCount.value),
-    meta: t('home.kpiOnlineMeta'),
+    label: t('home.kpiOpenTransfers'),
+    value: String(openTransferCount.value),
+    meta: t('home.kpiOpenTransfersMeta'),
     variant: 'seven-kpi-card--success',
   },
   {
@@ -270,21 +271,15 @@ function levelTag(level: number) {
   return 'success'
 }
 
-function deviceStatusType(status: number) {
-  if (status === 1) return 'success'
-  if (status === 2) return 'danger'
-  if (status === 3) return 'warning'
-  return 'info'
+function transferStatusType(status: number) {
+  if (status === 3) return 'success'
+  if (status === 1) return 'warning'
+  if (status === 4) return 'info'
+  return 'primary'
 }
 
-function deviceStatusLabel(status: number) {
-  const map: Record<number, string> = {
-    0: t('home.deviceOffline'),
-    1: t('home.deviceOnline'),
-    2: t('home.deviceFault'),
-    3: t('home.deviceMaintenance'),
-  }
-  return map[status] ?? String(status)
+function transferStatusLabel(status: number) {
+  return t(`generated.TransferOrder.enum_status_${status}`)
 }
 
 function formatTime(v?: string) {
@@ -341,22 +336,21 @@ async function loadAlarms() {
   }
 }
 
-async function loadDevices() {
-  deviceLoading.value = true
+async function loadTransfers() {
+  transferLoading.value = true
   try {
-    const res = await getPageData('/api/Device/getPageData', { page: 1, rows: 12 })
+    const res = await getPageData('/api/TransferOrder/getPageData', { page: 1, rows: 12 })
     if (res.status && res.data) {
       const data = res.data as { rows: Record<string, unknown>[] }
-      deviceRows.value = (data.rows ?? []).map((r) => ({
-        deviceId: Number(r.deviceId ?? 0),
-        deviceName: String(r.deviceName ?? ''),
-        deviceCode: r.deviceCode != null ? String(r.deviceCode) : undefined,
+      transferRows.value = (data.rows ?? []).map((r) => ({
+        id: Number(r.id ?? 0),
+        orderNo: String(r.orderNo ?? ''),
         status: Number(r.status ?? 0),
-        location: r.location != null ? String(r.location) : undefined,
+        remark: r.remark != null ? String(r.remark) : undefined,
       }))
     }
   } finally {
-    deviceLoading.value = false
+    transferLoading.value = false
   }
 }
 
@@ -365,7 +359,7 @@ function onResize() {
 }
 
 onMounted(async () => {
-  const tasks: Promise<unknown>[] = [loadDevices()]
+  const tasks: Promise<unknown>[] = [loadTransfers()]
   if (featureStore.flags.alarm) {
     tasks.push(alarmStore.fetchActiveCount(), loadAlarms())
   }

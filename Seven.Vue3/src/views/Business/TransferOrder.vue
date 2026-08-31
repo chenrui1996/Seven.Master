@@ -1,14 +1,11 @@
-<!--
-  代码由框架生成，重新生成会覆盖本文件。
-  业务逻辑请写在：../../extension/Business/SubDevice.ts
--->
+<!-- 业务扩展样板：仓内调拨（对照 doc/23） -->
 <template>
   <div class="crud-page seven-page">
     <CrudPanel
-      api-route="SubDevice"
-      i18n-key="generated.SubDevice"
-      table-name="SubDevice"
-      key-field="subDeviceId"
+      api-route="TransferOrder"
+      i18n-key="generated.TransferOrder"
+      table-name="TransferOrder"
+      key-field="id"
       :columns="allColumns"
       :form-fields="formFields"
       :form-defaults="formDefaults"
@@ -18,7 +15,7 @@
       :detail-tables="mergedDetailTables"
       :extension="pageExtension"
       :depth="0"
-      :max-depth="3"
+      :max-depth="2"
     />
     <component :is="pageExtension.overlay" v-if="pageExtension.overlay" />
   </div>
@@ -26,63 +23,46 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import pageExtension from '../../extension/Business/SubDevice'
+import pageExtension from '../../extension/Business/TransferOrder'
 import type { DetailTableConfig, FormFieldDef, SearchFieldConfig } from '../../extension/types'
 import CrudPanel from '../../components/crud/CrudPanel.vue'
 import { mergeDetailTables, mergeSearchFields } from '../../components/crud/mergeExtension'
 import type { ColumnDef } from '../../composables/useTableColumns'
 
 const route = useRoute()
-const { t } = useI18n()
 
 const allColumns: ColumnDef[] = [
-  { prop: 'subDeviceId', kind: 'number', sortable: false },
-  { prop: 'deviceId', kind: 'number', sortable: false },
-  { prop: 'subDeviceName', kind: 'string', sortable: false },
-  { prop: 'subDeviceCode', kind: 'string', sortable: false },
+  { prop: 'id', kind: 'number', sortable: false },
+  { prop: 'orderNo', kind: 'string', sortable: false },
   { prop: 'status', kind: 'enum', sortable: false },
   { prop: 'remark', kind: 'string', sortable: false },
+  { prop: 'createDate', kind: 'date', sortable: false },
 ]
 
 const formFields: FormFieldDef[] = [
-  { prop: 'deviceId', kind: 'number' },
-  { prop: 'subDeviceName', kind: 'string' },
-  { prop: 'subDeviceCode', kind: 'string' },
-  { prop: 'status', kind: 'enum' },
+  { prop: 'orderNo', kind: 'string' },
   { prop: 'remark', kind: 'string' },
 ]
 
 const formDefaults: Record<string, unknown> = {
-  subDeviceId: 0,
-  deviceId: 0,
-  subDeviceName: '',
-  subDeviceCode: '',
+  id: 0,
+  orderNo: '',
   status: 0,
   remark: '',
 }
 
 const generatedSearchFields: SearchFieldConfig[] = [
-  { prop: 'subDeviceName', kind: 'string', operator: 'like', labelKey: 'generated.SubDevice.subDeviceName' },
-  { prop: 'subDeviceCode', kind: 'string', operator: 'like', labelKey: 'generated.SubDevice.subDeviceCode' },
+  { prop: 'orderNo', kind: 'string', operator: 'like' },
+  { prop: 'status', kind: 'enum', operator: 'equal' },
 ]
 
 const generatedDetailTables: DetailTableConfig[] = []
 
-/** Page 模式：主表跳转时携带 ?deviceId= */
-const queryFilterKeys: string[] = ['deviceId']
+const queryFilterKeys: string[] = []
 
-const statusOptions = computed(() => [
-  { value: 0, label: t('generated.SubDevice.enum_status_0') },
-  { value: 1, label: t('generated.SubDevice.enum_status_1') },
-  { value: 2, label: t('generated.SubDevice.enum_status_2') },
-  { value: 3, label: t('generated.SubDevice.enum_status_3') },
-])
-
-const enumOptionsMap = computed(() => ({
-  status: statusOptions.value,
-}))
+/** 枚举文案走 generated.TransferOrder.enum_status_* */
+const enumOptionsMap: Record<string, { value: number | string; label: string }[]> = {}
 
 const mergedSearchFields = computed(() =>
   mergeSearchFields(generatedSearchFields, pageExtension.searchFields),

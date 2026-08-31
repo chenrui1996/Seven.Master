@@ -54,7 +54,32 @@ public sealed class WmsTransportCompletionHandler : IWmsTransportCompletionHandl
         }
 
         if (string.Equals(order.RefType, "OutboundOrder", StringComparison.OrdinalIgnoreCase))
+        {
+            await CompletePickingTasksAsync(order.RefId!, ct);
             await CompleteOutboundIfReadyAsync(order.RefType!, order.RefId, orderId, ct);
+        }
+    }
+
+    private async Task CompletePickingTasksAsync(string orderNo, CancellationToken ct)
+    {
+        var outbound = await _db.WmsOutboundOrders
+            .Include(x => x.PickingTasks)
+            .Include(x => x.Lines)
+            .FirstOrDefaultAsync(x => x.OrderNo == orderNo, ct);
+        if (outbound == null) return;
+
+        foreach (var task in outbound.PickingTasks.Where(t =>
+                     t.Status is WmsPickingTaskStatus.Transporting or WmsPickingTaskStatus.Booked or WmsPickingTaskStatus.Confirmed))
+        {
+            if (task.PickQty <= 0) task.PickQty = task.BookQty;
+            task.Status = WmsPickingTaskStatus.Completed;
+            task.ModifyDate = DateTime.UtcNow;
+            var line = outbound.Lines.FirstOrDefault(l => l.Id == task.LineId);
+            if (line != null && line.CompletedQty < line.Qty)
+                line.CompletedQty = Math.Min(line.Qty, line.CompletedQty + task.PickQty);
+        }
+
+        await _db.SaveChangesAsync(ct);
     }
 
     private async Task CompleteInboundDetailAsync(string detailIdText, Guid completedOrderId, CancellationToken ct)

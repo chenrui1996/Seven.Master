@@ -16,6 +16,7 @@ const staticRoutes: RouteRecordRaw[] = [
     redirect: '/home',
     children: [
       { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '首页' } },
+      { path: 'UserInfo', name: 'UserInfo', component: () => import('../views/system/UserInfo.vue'), meta: { title: '个人中心' } },
       { path: '403', name: 'Forbidden', component: () => import('../views/Forbidden.vue'), meta: { title: '403' } },
     ]
   }
@@ -26,7 +27,7 @@ const router = createRouter({
   routes: staticRoutes
 })
 
-/** 动态路由组件映射（含各业务子目录，如 views/Business/Device.vue） */
+/** 动态路由组件映射（含各业务子目录，如 views/Business/TransferOrder.vue） */
 const viewModules = import.meta.glob('../views/**/*.vue')
 
 /** 已注册的动态路由 name，登出时移除 */

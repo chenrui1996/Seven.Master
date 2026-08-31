@@ -100,11 +100,11 @@ public class SevenDbContext : DbContext
     /// <summary>代码生成主子表关系</summary>
     public DbSet<Sys_TableDetail> Sys_TableDetails => Set<Sys_TableDetail>();
 
-    /// <summary>设备</summary>
-    public DbSet<Device> Devices => Set<Device>();
+    /// <summary>业务扩展：仓内调拨单</summary>
+    public DbSet<TransferOrder> TransferOrders => Set<TransferOrder>();
 
-    /// <summary>子设备</summary>
-    public DbSet<SubDevice> SubDevices => Set<SubDevice>();
+    /// <summary>业务扩展：仓内调拨单行</summary>
+    public DbSet<TransferOrderLine> TransferOrderLines => Set<TransferOrderLine>();
 
     /// <summary>设备通讯连接</summary>
     public DbSet<CommConnection> CommConnections => Set<CommConnection>();
@@ -159,6 +159,9 @@ public class SevenDbContext : DbContext
 
     /// <summary>WMS 出库单行</summary>
     public DbSet<WmsOutboundOrderLine> WmsOutboundOrderLines => Set<WmsOutboundOrderLine>();
+
+    /// <summary>WMS 拣选任务</summary>
+    public DbSet<WmsPickingTask> WmsPickingTasks => Set<WmsPickingTask>();
 
     /// <summary>WMS 盘点单</summary>
     public DbSet<WmsCycleCount> WmsCycleCounts => Set<WmsCycleCount>();

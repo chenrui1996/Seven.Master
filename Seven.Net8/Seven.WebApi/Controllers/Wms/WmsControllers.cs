@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Seven.Application.Wms;
@@ -6,6 +7,7 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Wms;
 using Seven.Domain.Wms;
 using Seven.Infrastructure.Security;
+using Seven.WebApi.Controllers.Crud;
 
 namespace Seven.WebApi.Controllers.Wms;
 
@@ -48,6 +50,28 @@ public class WmsLocationsController : ControllerBase
         [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsLocation> crud,
         CancellationToken ct) =>
         crud.DeleteAsync(ids, ct);
+
+    [HttpPost("export")]
+    [Permission("WmsLocation.Export")]
+    public Task<IActionResult> Export(
+        [FromBody] PageDataOptions options,
+        [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsLocation> crud,
+        CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("WmsLocation.Import")]
+    public IActionResult ExportTemplate([FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsLocation> crud) =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("WmsLocation.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(
+        IFormFile file,
+        [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsLocation> crud,
+        CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
 }
 
 [Route("api/WmsStock")]
@@ -132,6 +156,28 @@ public class WmsContainersController : ControllerBase
         [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsContainer> crud,
         CancellationToken ct) =>
         crud.DeleteAsync(ids, ct);
+
+    [HttpPost("export")]
+    [Permission("WmsContainer.Export")]
+    public Task<IActionResult> Export(
+        [FromBody] PageDataOptions options,
+        [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsContainer> crud,
+        CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("WmsContainer.Import")]
+    public IActionResult ExportTemplate([FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsContainer> crud) =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("WmsContainer.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(
+        IFormFile file,
+        [FromServices] Seven.Infrastructure.Crud.EntityCrudService<WmsContainer> crud,
+        CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
 }
 
 [Route("api/WmsInboundOrder")]
@@ -283,9 +329,70 @@ public class WmsOutboundOrdersController : ControllerBase
         }
         catch (WmsDomainException ex)
         {
-            return WebResponseContent.Error(ex.Message);
+            return WebResponseContent.Error(ex.Message, ex.Code);
         }
     }
+
+    [HttpPost("generatePicks/{id:int}")]
+    [Permission("WmsOutboundOrder.Update")]
+    public async Task<WebResponseContent> GeneratePicks(
+        int id,
+        [FromServices] IPickingService picking,
+        CancellationToken ct)
+    {
+        try
+        {
+            return WebResponseContent.Ok("操作成功", await picking.GenerateFromOutboundAsync(id, ct));
+        }
+        catch (WmsDomainException ex)
+        {
+            return WebResponseContent.Error(ex.Message, ex.Code);
+        }
+    }
+}
+
+[Route("api/WmsPickingTask")]
+[ApiController]
+[Authorize]
+public class WmsPickingTasksOpsController : ControllerBase
+{
+    private readonly IPickingService _picking;
+
+    public WmsPickingTasksOpsController(IPickingService picking) => _picking = picking;
+
+    [HttpPost("confirmPick")]
+    [Permission("WmsPickingTask.Update")]
+    public async Task<WebResponseContent> ConfirmPick([FromBody] ConfirmPickRequest request, CancellationToken ct)
+    {
+        try
+        {
+            return WebResponseContent.Ok("操作成功", await _picking.ConfirmPickAsync(request, ct));
+        }
+        catch (WmsDomainException ex)
+        {
+            return WebResponseContent.Error(ex.Message, ex.Code);
+        }
+    }
+
+    [HttpPost("cancel/{id:int}")]
+    [Permission("WmsPickingTask.Update")]
+    public async Task<WebResponseContent> Cancel(int id, CancellationToken ct)
+    {
+        try
+        {
+            await _picking.CancelAsync(id, ct);
+            return WebResponseContent.Ok("操作成功");
+        }
+        catch (WmsDomainException ex)
+        {
+            return WebResponseContent.Error(ex.Message, ex.Code);
+        }
+    }
+
+    [HttpGet("pending")]
+    [Permission("WmsPickingTask.Search")]
+    public async Task<WebResponseContent> Pending(CancellationToken ct) =>
+        WebResponseContent.Ok(data: await _picking.ListPendingAsync(ct));
 }
 
 [Route("api/WmsCycleCount")]

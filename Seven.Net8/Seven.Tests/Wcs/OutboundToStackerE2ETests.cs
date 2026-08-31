@@ -39,7 +39,9 @@ public class OutboundToStackerE2ETests
         loc.CurrentContainerCode = "TP-OUT";
         await db.SaveChangesAsync();
 
-        var outbound = new OutboundOrderService(db, stock, new BusTransportOrderRequest(bus));
+        var transportReq = new BusTransportOrderRequest(bus);
+        var picking = new PickingService(db, stock, transportReq);
+        var outbound = new OutboundOrderService(db, stock, picking, transportReq);
         var order = await outbound.CreateAsync(new CreateOutboundOrderRequest(
             "OUT-E2E-001",
             WmsOrderType.Other,
@@ -47,8 +49,13 @@ public class OutboundToStackerE2ETests
             WcsGroupNo: "G-OUT-1"));
 
         await outbound.ApproveAsync(order.Id);
-
         (await db.WmsStocks.SingleAsync(x => x.LocationCode == "Stk.LOC-A1-01")).AvailableQty.Should().Be(0m);
+        (await db.WmsPickingTasks.CountAsync()).Should().Be(1);
+        (await db.StkRetrievalTasks.CountAsync()).Should().Be(0);
+
+        var pick = await db.WmsPickingTasks.SingleAsync();
+        await picking.ConfirmPickAsync(new ConfirmPickRequest(pick.Id));
+
         (await db.StkRetrievalTasks.CountAsync()).Should().Be(1);
         (await db.StkPutAwayTasks.CountAsync()).Should().Be(0);
 
@@ -102,7 +109,9 @@ public class OutboundToStackerE2ETests
         await stock.ReceiveAsync(new ReceiveStockRequest("Stk.LOC-A1-01", "MAT-01", 5m, "TP-1"));
         await stock.ReceiveAsync(new ReceiveStockRequest("Stk.LOC-A1-02", "MAT-01", 5m, "TP-2"));
 
-        var outbound = new OutboundOrderService(db, stock, new BusTransportOrderRequest(bus));
+        var transportReq = new BusTransportOrderRequest(bus);
+        var picking = new PickingService(db, stock, transportReq);
+        var outbound = new OutboundOrderService(db, stock, picking, transportReq);
         // ???Line1 Pri=2?Line2 Pri=1 �???�?TP-2
         var order = await outbound.CreateAsync(new CreateOutboundOrderRequest(
             "OUT-GRP",
@@ -114,6 +123,8 @@ public class OutboundToStackerE2ETests
             WcsGroupNo: "G1"));
 
         await outbound.ApproveAsync(order.Id);
+        foreach (var pick in await db.WmsPickingTasks.OrderBy(x => x.WcsPri).ToListAsync())
+            await picking.ConfirmPickAsync(new ConfirmPickRequest(pick.Id));
 
         var tasks = await db.StkRetrievalTasks.OrderBy(x => x.WcsPri).ToListAsync();
         tasks.Should().HaveCount(2);

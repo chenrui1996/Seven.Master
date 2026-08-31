@@ -30,6 +30,18 @@
 			"style": {
 				"navigationBarTitleText": "盘点录入"
 			}
+		},
+		{
+			"path": "pages/picking/index",
+			"style": {
+				"navigationBarTitleText": "出库拣选"
+			}
+		},
+		{
+			"path": "pages/transfer/index",
+			"style": {
+				"navigationBarTitleText": "仓内调拨"
+			}
 		}
 	],
 	"globalStyle": {

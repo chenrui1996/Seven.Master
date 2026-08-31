@@ -27,6 +27,8 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 | [19-WMS与WCS包](./19-WMS与WCS包.md) | WMS 账本 + 编排总线 + 可插拔 WCS 包：开关、表前缀、仿真触发 |
 | [20-WMS与WCS实现说明](./20-WMS与WCS实现说明.md) | **实现逻辑合集**：WMS / 立库堆垛 WCS / 四向车 WCS |
 | [21-仿真器与联调闭环](./21-仿真器与联调闭环.md) | **Seven.Simulator**：编辑地图→Deploy→仿真→Promote 生产；一期～四期实施流程 |
+| [22-异常码规范](./22-异常码规范.md) | **业务异常码**：AppException、中间件、码表与生成约定 |
+| [23-业务扩展规范](./23-业务扩展规范.md) | **扩展落点**：新单据/逻辑 → `Seven.Business`；新表 → `Entities/Business` + `Biz_` |
 | [keypoint/](./keypoint/README.md) | **面试要点全集**：技术栈、难点亮点、讲述稿与问答 |
 
 ## 仓库布局

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Seven.Application.Business;
 using Seven.Application.Wcs;
 using Seven.Application.Wms;
 using Seven.Domain.Common;
@@ -17,17 +18,20 @@ public sealed class InboundOrderService : IInboundOrderService
     private readonly IStockService _stock;
     private readonly ITransportOrderRequest? _transport;
     private readonly IWcsLocationAllocatorResolver? _allocators;
+    private readonly IWmsExtensionHooks _hooks;
 
     public InboundOrderService(
         SevenDbContext db,
         IStockService stock,
         ITransportOrderRequest? transport = null,
-        IWcsLocationAllocatorResolver? allocators = null)
+        IWcsLocationAllocatorResolver? allocators = null,
+        IWmsExtensionHooks? hooks = null)
     {
         _db = db;
         _stock = stock;
         _transport = transport;
         _allocators = allocators;
+        _hooks = hooks ?? NoOpWmsExtensionHooks.Instance;
     }
 
     public Task<PageGridData<WmsInboundOrder>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
@@ -81,9 +85,14 @@ public sealed class InboundOrderService : IInboundOrderService
         var order = await LoadAsync(orderId, ct);
         if (order.Status != WmsOrderStatus.Draft)
             throw new WmsDomainException("仅草稿可审核");
+
+        await _hooks.BeforeInboundApproveAsync(order, ct);
+
         order.Status = WmsOrderStatus.Approved;
         order.ModifyDate = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        await _hooks.AfterInboundApproveAsync(order, ct);
     }
 
     public async Task ReceiveAndBuildPalletAsync(

@@ -15,14 +15,21 @@ public class SysUserService : ISysUserService
     private readonly IPasswordHasher _hasher;
     private readonly ICacheService _cache;
     private readonly IDataScopeService _dataScope;
+    private readonly ICurrentUserService _currentUser;
 
     /// <summary>构造函数</summary>
-    public SysUserService(SevenDbContext db, IPasswordHasher hasher, ICacheService cache, IDataScopeService dataScope)
+    public SysUserService(
+        SevenDbContext db,
+        IPasswordHasher hasher,
+        ICacheService cache,
+        IDataScopeService dataScope,
+        ICurrentUserService currentUser)
     {
         _db = db;
         _hasher = hasher;
         _cache = cache;
         _dataScope = dataScope;
+        _currentUser = currentUser;
     }
 
     /// <inheritdoc />
@@ -70,6 +77,45 @@ public class SysUserService : ISysUserService
         await _db.SaveChangesAsync(cancellationToken);
         await _cache.RemoveWithDelayedDoubleDeleteAsync($"user:{entity.User_Id}");
         return WebResponseContent.Ok("更新成功");
+    }
+
+    public async Task<WebResponseContent> GetCurrentProfileAsync(CancellationToken cancellationToken = default)
+    {
+        if (_currentUser.UserId is not int uid) return WebResponseContent.Error("未登录");
+        var user = await _db.Sys_Users.AsNoTracking().FirstOrDefaultAsync(u => u.User_Id == uid && !u.IsDeleted, cancellationToken);
+        if (user == null) return WebResponseContent.Error("用户不存在");
+        return WebResponseContent.Ok(data: new
+        {
+            user.User_Id,
+            user.UserName,
+            user.UserTrueName,
+            user.PhoneNo,
+            user.Email,
+            user.HeadImageUrl,
+            user.Gender,
+            user.Role_Id,
+            user.RoleName,
+        });
+    }
+
+    public async Task<WebResponseContent> UpdateCurrentProfileAsync(
+        UpdateCurrentProfileRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (_currentUser.UserId is not int uid) return WebResponseContent.Error("未登录");
+        var existing = await _db.Sys_Users.FirstOrDefaultAsync(u => u.User_Id == uid && !u.IsDeleted, cancellationToken);
+        if (existing == null) return WebResponseContent.Error("用户不存在");
+
+        if (!string.IsNullOrWhiteSpace(request.UserTrueName))
+            existing.UserTrueName = request.UserTrueName.Trim();
+        existing.PhoneNo = request.PhoneNo?.Trim();
+        existing.Email = request.Email?.Trim();
+        existing.HeadImageUrl = request.HeadImageUrl?.Trim();
+        if (request.Gender.HasValue) existing.Gender = request.Gender;
+        existing.ModifyDate = DateTime.Now;
+        await _db.SaveChangesAsync(cancellationToken);
+        await _cache.RemoveWithDelayedDoubleDeleteAsync($"user:{uid}");
+        return WebResponseContent.Ok("资料已更新");
     }
 
     /// <inheritdoc />

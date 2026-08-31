@@ -17,6 +17,7 @@ public static class WmsServiceCollectionExtensions
         services.AddScoped<ILocationService, LocationService>();
         services.AddScoped<IContainerService, ContainerService>();
         services.AddScoped<IInboundOrderService, InboundOrderService>();
+        services.AddScoped<IPickingService, PickingService>();
         services.AddScoped<IOutboundOrderService, OutboundOrderService>();
         services.AddScoped<ICycleCountService, CycleCountService>();
         services.AddScoped<ITransportOrderRequest, BusTransportOrderRequest>();

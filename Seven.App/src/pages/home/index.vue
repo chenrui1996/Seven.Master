@@ -18,6 +18,7 @@ onShow(async () => {
     menus.value = [
       { code: 'receive', title: '平库收货', path: '/pages/receive/index' },
       { code: 'putaway', title: '平库上架', path: '/pages/putaway/index' },
+      { code: 'picking', title: '出库拣选', path: '/pages/picking/index' },
       { code: 'cyclecount', title: '盘点录入', path: '/pages/cyclecount/index' },
     ]
 })

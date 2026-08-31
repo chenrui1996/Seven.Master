@@ -1,11 +1,11 @@
-/* 工业物流运维页局部 token（ui-ux-pro-max：Seven WCS Ops） */
+/* 工业物流运维页局部 token（对齐 Seven 金橙工业风） */
 .wcs-ops {
-  --ops-primary: #2563eb;
-  --ops-primary-soft: #eff6ff;
-  --ops-accent: #f97316;
-  --ops-text: #1e40af;
+  --ops-primary: var(--seven-accent, #f97316);
+  --ops-primary-soft: rgba(249, 115, 22, 0.08);
+  --ops-accent: var(--seven-accent-gold, #d4af37);
+  --ops-text: #0f172a;
   --ops-muted: #475569;
-  --ops-border: #bfdbfe;
+  --ops-border: #e2e8f0;
   --ops-bg: #f8fafc;
   font-family: 'Fira Sans', 'Segoe UI', system-ui, sans-serif;
   color: #0f172a;

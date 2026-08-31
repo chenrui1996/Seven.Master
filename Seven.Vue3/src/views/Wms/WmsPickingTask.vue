@@ -1,14 +1,11 @@
-<!--
-  代码由框架生成，重新生成会覆盖本文件。
-  业务逻辑请写在：../../extension/Business/Device.ts
--->
+<!-- 通用 CrudPanel：WmsPickingTask -->
 <template>
   <div class="crud-page seven-page">
     <CrudPanel
-      api-route="Device"
-      i18n-key="generated.Device"
-      table-name="Device"
-      key-field="deviceId"
+      api-route="WmsPickingTask"
+      i18n-key="generated.WmsPickingTask"
+      table-name="WmsPickingTask"
+      key-field="id"
       :columns="allColumns"
       :form-fields="formFields"
       :form-defaults="formDefaults"
@@ -20,71 +17,79 @@
       :depth="0"
       :max-depth="3"
     />
-    <component :is="pageExtension.overlay" v-if="pageExtension.overlay" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import pageExtension from '../../extension/Business/Device'
+import pageExtension from '../../extension/Wms/WmsPickingTask'
 import type { DetailTableConfig, FormFieldDef, SearchFieldConfig } from '../../extension/types'
 import CrudPanel from '../../components/crud/CrudPanel.vue'
 import { mergeDetailTables, mergeSearchFields } from '../../components/crud/mergeExtension'
 import type { ColumnDef } from '../../composables/useTableColumns'
 
 const route = useRoute()
-const { t } = useI18n()
 
 const allColumns: ColumnDef[] = [
-  { prop: 'deviceId', kind: 'number', sortable: false },
-  { prop: 'deviceName', kind: 'string', sortable: false },
-  { prop: 'deviceCode', kind: 'string', sortable: false },
+  { prop: 'id', kind: 'number', sortable: false },
+  { prop: 'taskNo', kind: 'string', sortable: false },
+  { prop: 'outboundOrderId', kind: 'number', sortable: false },
+  { prop: 'lineId', kind: 'number', sortable: false },
+  { prop: 'materialCode', kind: 'string', sortable: false },
+  { prop: 'bookQty', kind: 'number', sortable: false },
+  { prop: 'pickQty', kind: 'number', sortable: false },
+  { prop: 'fromLocation', kind: 'string', sortable: false },
+  { prop: 'toLocation', kind: 'string', sortable: false },
+  { prop: 'containerCode', kind: 'string', sortable: false },
+  { prop: 'wcsPri', kind: 'number', sortable: false },
   { prop: 'status', kind: 'enum', sortable: false },
-  { prop: 'location', kind: 'string', sortable: false },
 ]
 
 const formFields: FormFieldDef[] = [
-  { prop: 'deviceName', kind: 'string' },
-  { prop: 'deviceCode', kind: 'string' },
+  { prop: 'taskNo', kind: 'string' },
+  { prop: 'materialCode', kind: 'string' },
+  { prop: 'bookQty', kind: 'number', isDecimal: true },
+  { prop: 'fromLocation', kind: 'string' },
+  { prop: 'toLocation', kind: 'string' },
+  { prop: 'containerCode', kind: 'string' },
+  { prop: 'wcsPri', kind: 'number' },
   { prop: 'status', kind: 'enum' },
-  { prop: 'location', kind: 'string' },
 ]
 
 const formDefaults: Record<string, unknown> = {
-  deviceId: 0,
-  deviceName: '',
-  deviceCode: '',
-  status: 0,
-  location: '',
+  id: 0,
+  taskNo: '',
+  bookQty: 0,
+  pickQty: 0,
+  wcsPri: 1,
+  status: 10,
 }
 
-const generatedSearchFields: SearchFieldConfig[] = []
+const generatedSearchFields: SearchFieldConfig[] = [
+  { prop: 'taskNo', kind: 'string', operator: 'like' },
+  { prop: 'materialCode', kind: 'string', operator: 'like' },
+  { prop: 'status', kind: 'enum', operator: 'equal' },
+]
 
 const generatedDetailTables: DetailTableConfig[] = []
-
-const queryFilterKeys: string[] = []
-
-const statusOptions = computed(() => [
-  { value: 0, label: t('generated.Device.enum_status_0') },
-  { value: 1, label: t('generated.Device.enum_status_1') },
-  { value: 2, label: t('generated.Device.enum_status_2') },
-  { value: 3, label: t('generated.Device.enum_status_3') },
-])
-
-const enumOptionsMap = computed(() => ({
-  status: statusOptions.value,
-}))
+const queryFilterKeys: string[] = ['outboundOrderId', 'lineId']
+const enumOptionsMap: Record<string, { value: number | string; label: string }[]> = {
+  status: [
+    { value: 10, label: '已预约' },
+    { value: 20, label: '已确认' },
+    { value: 30, label: '运输中' },
+    { value: 40, label: '已完成' },
+    { value: 90, label: '已取消' },
+  ],
+}
 
 const mergedSearchFields = computed(() =>
   mergeSearchFields(generatedSearchFields, pageExtension.searchFields),
 )
-
 const mergedDetailTables = computed(() =>
   mergeDetailTables(generatedDetailTables, pageExtension.detailTables),
 )
-
 const fixedFilter = reactive<Record<string, unknown>>({})
 
 function applyQueryFilters() {

@@ -34,7 +34,9 @@ public class OutboundToFourWayE2ETests
         loc.CurrentContainerCode = "TP-OUT";
         await db.SaveChangesAsync();
 
-        var outbound = new OutboundOrderService(db, stock, new BusTransportOrderRequest(bus));
+        var transportReq = new BusTransportOrderRequest(bus);
+        var picking = new PickingService(db, stock, transportReq);
+        var outbound = new OutboundOrderService(db, stock, picking, transportReq);
         var order = await outbound.CreateAsync(new CreateOutboundOrderRequest(
             "OUT-FW-E2E-001",
             WmsOrderType.Other,
@@ -44,6 +46,10 @@ public class OutboundToFourWayE2ETests
         await outbound.ApproveAsync(order.Id);
 
         (await db.WmsStocks.SingleAsync(x => x.LocationCode == "Fw.LOC-A1-01")).AvailableQty.Should().Be(0m);
+        (await db.WmsPickingTasks.CountAsync()).Should().BeGreaterThan(0);
+        foreach (var pick in await db.WmsPickingTasks.OrderBy(x => x.WcsPri).ToListAsync())
+            await picking.ConfirmPickAsync(new ConfirmPickRequest(pick.Id));
+
         (await db.FwRetrievalTasks.CountAsync()).Should().Be(1);
         (await db.FwPutAwayTasks.CountAsync()).Should().Be(0);
 
@@ -109,7 +115,9 @@ public class OutboundToFourWayE2ETests
         await stock.ReceiveAsync(new ReceiveStockRequest("Fw.LOC-A1-01", "MAT-01", 5m, "TP-1"));
         await stock.ReceiveAsync(new ReceiveStockRequest("Fw.LOC-A1-02", "MAT-01", 5m, "TP-2"));
 
-        var outbound = new OutboundOrderService(db, stock, new BusTransportOrderRequest(bus));
+        var transportReq = new BusTransportOrderRequest(bus);
+        var picking = new PickingService(db, stock, transportReq);
+        var outbound = new OutboundOrderService(db, stock, picking, transportReq);
         var order = await outbound.CreateAsync(new CreateOutboundOrderRequest(
             "OUT-FW-GRP",
             WmsOrderType.Other,
@@ -120,6 +128,8 @@ public class OutboundToFourWayE2ETests
             WcsGroupNo: "G-FW-1"));
 
         await outbound.ApproveAsync(order.Id);
+        foreach (var pick in await db.WmsPickingTasks.OrderBy(x => x.WcsPri).ToListAsync())
+            await picking.ConfirmPickAsync(new ConfirmPickRequest(pick.Id));
 
         var tasks = await db.FwRetrievalTasks.OrderBy(x => x.WcsPri).ToListAsync();
         tasks.Should().HaveCount(2);
@@ -169,7 +179,9 @@ public class OutboundToFourWayE2ETests
         loc.CurrentContainerCode = "TP-NP";
         await db.SaveChangesAsync();
 
-        var outbound = new OutboundOrderService(db, stock, new BusTransportOrderRequest(bus));
+        var transportReq = new BusTransportOrderRequest(bus);
+        var picking = new PickingService(db, stock, transportReq);
+        var outbound = new OutboundOrderService(db, stock, picking, transportReq);
         var order = await outbound.CreateAsync(new CreateOutboundOrderRequest(
             "OUT-FW-NP",
             WmsOrderType.Other,
@@ -177,6 +189,8 @@ public class OutboundToFourWayE2ETests
             WcsGroupNo: "G-NP"));
 
         await outbound.ApproveAsync(order.Id);
+        foreach (var pick in await db.WmsPickingTasks.ToListAsync())
+            await picking.ConfirmPickAsync(new ConfirmPickRequest(pick.Id));
 
         var retrieval = await db.FwRetrievalTasks.SingleAsync();
         retrieval.Status.Should().Be(FwRetrievalStatus.Suspended);

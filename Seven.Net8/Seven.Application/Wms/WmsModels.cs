@@ -22,6 +22,26 @@ public record ShipStockRequest(
     string? RefType = null,
     string? RefId = null);
 
+public record BookStockRequest(
+    string LocationCode,
+    string MaterialCode,
+    decimal Qty,
+    string? ContainerCode = null,
+    string? Lot = null,
+    string? Reason = null,
+    string? RefType = null,
+    string? RefId = null);
+
+public record ConfirmPickStockRequest(
+    string LocationCode,
+    string MaterialCode,
+    decimal Qty,
+    string? ContainerCode = null,
+    string? Lot = null,
+    string? Reason = null,
+    string? RefType = null,
+    string? RefId = null);
+
 public record InboundLineInput(
     int LineNo,
     string MaterialCode,

@@ -5,16 +5,18 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Wcs.FourWay;
 using Seven.Infrastructure.Crud;
 using Seven.Infrastructure.Security;
+using Microsoft.AspNetCore.Http;
+using Seven.WebApi.Controllers.Crud;
 
 namespace Seven.WebApi.Controllers.Wcs.FourWay;
 
 file static class FwCrud
 {
-    public static async Task<WebResponseContent> Page<T>(EntityCrudService<T> crud, PageDataOptions o, CancellationToken ct) where T : class =>
+    public static async Task<WebResponseContent> Page<T>(EntityCrudService<T> crud, PageDataOptions o, CancellationToken ct) where T : class, new() =>
         WebResponseContent.Ok(data: await crud.GetPageDataAsync(o, ct));
-    public static Task<WebResponseContent> Add<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class => crud.AddAsync(e, ct);
-    public static Task<WebResponseContent> Update<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class => crud.UpdateAsync(e, ct);
-    public static Task<WebResponseContent> Del<T>(EntityCrudService<T> crud, JsonElement ids, CancellationToken ct) where T : class => crud.DeleteAsync(ids, ct);
+    public static Task<WebResponseContent> Add<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class, new() => crud.AddAsync(e, ct);
+    public static Task<WebResponseContent> Update<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class, new() => crud.UpdateAsync(e, ct);
+    public static Task<WebResponseContent> Del<T>(EntityCrudService<T> crud, JsonElement ids, CancellationToken ct) where T : class, new() => crud.DeleteAsync(ids, ct);
 }
 
 [Route("api/FwLayerPolicy")]
@@ -30,6 +32,23 @@ public class FwLayerPolicyController(EntityCrudService<FwLayerPolicy> crud) : Co
     public Task<WebResponseContent> Update([FromBody] FwLayerPolicy e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwLayerPolicy.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwLayerPolicy.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwLayerPolicy.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwLayerPolicy.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwAislePolicy")]
@@ -45,6 +64,23 @@ public class FwAislePolicyController(EntityCrudService<FwAislePolicy> crud) : Co
     public Task<WebResponseContent> Update([FromBody] FwAislePolicy e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwAislePolicy.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwAislePolicy.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwAislePolicy.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwAislePolicy.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwRequestPoint")]
@@ -60,6 +96,23 @@ public class FwRequestPointController(EntityCrudService<FwRequestPoint> crud) : 
     public Task<WebResponseContent> Update([FromBody] FwRequestPoint e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwRequestPoint.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwRequestPoint.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwRequestPoint.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwRequestPoint.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwMapVersion")]
@@ -75,6 +128,23 @@ public class FwMapVersionController(EntityCrudService<FwMapVersion> crud) : Cont
     public Task<WebResponseContent> Update([FromBody] FwMapVersion e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwMapVersion.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwMapVersion.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwMapVersion.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwMapVersion.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwNode")]
@@ -90,6 +160,23 @@ public class FwNodeController(EntityCrudService<FwNode> crud) : ControllerBase
     public Task<WebResponseContent> Update([FromBody] FwNode e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwNode.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwNode.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwNode.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwNode.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwRoute")]
@@ -105,6 +192,23 @@ public class FwRouteController(EntityCrudService<FwRoute> crud) : ControllerBase
     public Task<WebResponseContent> Update([FromBody] FwRoute e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwRoute.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwRoute.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwRoute.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwRoute.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwParkingLedger")]
@@ -120,6 +224,23 @@ public class FwParkingLedgerController(EntityCrudService<FwParkingLedger> crud) 
     public Task<WebResponseContent> Update([FromBody] FwParkingLedger e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwParkingLedger.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwParkingLedger.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwParkingLedger.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwParkingLedger.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwHoistDevice")]
@@ -135,6 +256,23 @@ public class FwHoistDeviceController(EntityCrudService<FwHoistDevice> crud) : Co
     public Task<WebResponseContent> Update([FromBody] FwHoistDevice e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwHoistDevice.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwHoistDevice.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwHoistDevice.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwHoistDevice.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwHoistLayerPoint")]
@@ -150,6 +288,23 @@ public class FwHoistLayerPointController(EntityCrudService<FwHoistLayerPoint> cr
     public Task<WebResponseContent> Update([FromBody] FwHoistLayerPoint e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("FwHoistLayerPoint.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => FwCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("FwHoistLayerPoint.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("FwHoistLayerPoint.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("FwHoistLayerPoint.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/FwPutAwayTask")]
@@ -161,6 +316,12 @@ public class FwPutAwayTaskController(EntityCrudService<FwPutAwayTask> crud) : Co
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => FwCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("FwPutAwayTask.Update")]
     public Task<WebResponseContent> Update([FromBody] FwPutAwayTask e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("FwPutAwayTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }
 
 [Route("api/FwRetrievalTask")]
@@ -172,6 +333,12 @@ public class FwRetrievalTaskController(EntityCrudService<FwRetrievalTask> crud) 
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => FwCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("FwRetrievalTask.Update")]
     public Task<WebResponseContent> Update([FromBody] FwRetrievalTask e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("FwRetrievalTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }
 
 [Route("api/FwShuttleTask")]
@@ -183,6 +350,12 @@ public class FwShuttleTaskController(EntityCrudService<FwShuttleTask> crud) : Co
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => FwCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("FwShuttleTask.Update")]
     public Task<WebResponseContent> Update([FromBody] FwShuttleTask e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("FwShuttleTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }
 
 [Route("api/FwHoistTask")]
@@ -194,6 +367,12 @@ public class FwHoistTaskController(EntityCrudService<FwHoistTask> crud) : Contro
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => FwCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("FwHoistTask.Update")]
     public Task<WebResponseContent> Update([FromBody] FwHoistTask e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("FwHoistTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }
 
 [Route("api/FwHoistExecTask")]
@@ -205,4 +384,10 @@ public class FwHoistExecTaskController(EntityCrudService<FwHoistExecTask> crud) 
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => FwCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("FwHoistExecTask.Update")]
     public Task<WebResponseContent> Update([FromBody] FwHoistExecTask e, CancellationToken ct) => FwCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("FwHoistExecTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }

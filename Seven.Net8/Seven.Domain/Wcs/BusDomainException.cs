@@ -1,7 +1,13 @@
+using Seven.Domain.Common;
+
 namespace Seven.Domain.Wcs;
 
-/// <summary>编排总线领域规则违反（如规划失败）。</summary>
-public class BusDomainException : Exception
+/// <summary>编排总线领域异常。</summary>
+public class BusDomainException : AppException
 {
-    public BusDomainException(string message) : base(message) { }
+    public BusDomainException(string message)
+        : base(ExceptionCodes.Bus.Domain, message) { }
+
+    public BusDomainException(string code, string message, int httpStatus = 400)
+        : base(code, message, httpStatus) { }
 }

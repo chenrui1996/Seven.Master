@@ -34,6 +34,17 @@ public interface ISysUserService
     Task<WebResponseContent> AddAsync(Domain.Entities.System.Sys_User entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> UpdateAsync(Domain.Entities.System.Sys_User entity, CancellationToken cancellationToken = default);
     Task<WebResponseContent> DeleteAsync(int[] ids, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetCurrentProfileAsync(CancellationToken cancellationToken = default);
+    Task<WebResponseContent> UpdateCurrentProfileAsync(UpdateCurrentProfileRequest request, CancellationToken cancellationToken = default);
+}
+
+public class UpdateCurrentProfileRequest
+{
+    public string? UserTrueName { get; set; }
+    public string? PhoneNo { get; set; }
+    public string? Email { get; set; }
+    public string? HeadImageUrl { get; set; }
+    public int? Gender { get; set; }
 }
 
 /// <summary>
@@ -111,6 +122,8 @@ public interface IWorkFlowService
     Task<WebResponseContent> DeleteDefinitionsAsync(int[] ids, CancellationToken cancellationToken = default);
     Task<WebResponseContent> SubmitAsync(string tableName, string tableKey, CancellationToken cancellationToken = default);
     Task<WebResponseContent> AuditAsync(int workFlowTableId, int auditStatus, string? remark, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetStepsAsync(string tableName, IReadOnlyList<string> ids, CancellationToken cancellationToken = default);
+    Task<WebResponseContent> GetNodeDicAsync(CancellationToken cancellationToken = default);
     Task<PageGridData<Domain.Entities.Flow.Sys_WorkFlowTable>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default);
 }
 
@@ -120,8 +133,14 @@ public class WorkFlowDefinitionRequest
     public int WorkFlow_Id { get; set; }
     public string WorkName { get; set; } = string.Empty;
     public string? WorkTable { get; set; }
+    public string? WorkTableName { get; set; }
     public string? WorkTableKey { get; set; }
+    public int? Weight { get; set; }
     public byte? Enable { get; set; } = 1;
+    public string? NodeConfig { get; set; }
+    public string? LineConfig { get; set; }
+    public string? Remark { get; set; }
+    public int? AuditingEdit { get; set; }
     public List<WorkFlowStepRequest> Steps { get; set; } = [];
 }
 
@@ -129,10 +148,21 @@ public class WorkFlowDefinitionRequest
 public class WorkFlowStepRequest
 {
     public int WorkStepFlow_Id { get; set; }
+    public string? StepId { get; set; }
     public string StepName { get; set; } = string.Empty;
     public int StepOrder { get; set; }
     public int? StepType { get; set; }
     public string? StepValue { get; set; }
+    public string? StepAttrType { get; set; }
+    public string? NextStepIds { get; set; }
+    public string? ParentId { get; set; }
+    public int? Weight { get; set; }
+    public string? Filters { get; set; }
+    public int? AuditRefuse { get; set; }
+    public int? AuditBack { get; set; }
+    public int? AuditMethod { get; set; }
+    public int? SendMail { get; set; }
+    public string? Remark { get; set; }
 }
 
 /// <summary>
@@ -152,15 +182,6 @@ public interface IBuilderService
     Task<WebResponseContent> GetTableDetailsAsync(string parentTable, CancellationToken cancellationToken = default);
     Task<WebResponseContent> SaveTableDetailsAsync(SaveTableDetailsRequest request, CancellationToken cancellationToken = default);
     Task<WebResponseContent> ScanForeignKeysAsync(ScanForeignKeysRequest request, CancellationToken cancellationToken = default);
-}
-
-/// <summary>
-/// 设备/大屏服务
-/// </summary>
-public interface IDeviceService
-{
-    Task<PageGridData<Domain.Entities.Business.Device>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default);
-    Task<WebResponseContent> GetChartDataAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

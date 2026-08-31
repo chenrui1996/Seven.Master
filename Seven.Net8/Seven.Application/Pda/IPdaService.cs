@@ -92,6 +92,25 @@ public record PdaCycleCountRecordResult(
     decimal DiffQty,
     bool AllCounted);
 
+public record PdaPickingPendingDto(
+    int Id,
+    string TaskNo,
+    int OutboundOrderId,
+    string OrderNo,
+    string MaterialCode,
+    decimal BookQty,
+    decimal PickQty,
+    string? FromLocation,
+    string? ToLocation,
+    string? ContainerCode,
+    int Status);
+
+public record PdaConfirmPickRequest(
+    int PickingTaskId,
+    decimal? PickQty = null,
+    string? ContainerCode = null,
+    string? FromLocation = null);
+
 public interface IPdaService
 {
     IReadOnlyList<PdaMenuItemDto> GetMenu();
@@ -103,4 +122,6 @@ public interface IPdaService
     Task<PdaCycleCountDetailDto> GetCycleCountAsync(int orderId, CancellationToken ct = default);
     Task<PdaCycleCountRecordResult> RecordCycleCountAsync(int orderId, PdaCycleCountRecordRequest request, CancellationToken ct = default);
     Task ConfirmCycleCountAsync(int orderId, CancellationToken ct = default);
+    Task<IReadOnlyList<PdaPickingPendingDto>> GetPendingPickingAsync(CancellationToken ct = default);
+    Task ConfirmPickAsync(PdaConfirmPickRequest request, CancellationToken ct = default);
 }

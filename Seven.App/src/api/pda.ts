@@ -116,3 +116,61 @@ export function confirmCycleCount(orderId: number) {
     method: 'POST',
   })
 }
+
+export function fetchPendingPicking() {
+  return request<
+    Array<{
+      id: number
+      taskNo: string
+      outboundOrderId: number
+      orderNo: string
+      materialCode: string
+      bookQty: number
+      pickQty: number
+      fromLocation?: string
+      toLocation?: string
+      containerCode?: string
+      status: number
+    }>
+  >({ url: '/api/pda/picking/pending' })
+}
+
+export function confirmPick(body: {
+  pickingTaskId: number
+  pickQty?: number
+  containerCode?: string
+  fromLocation?: string
+}) {
+  return request({
+    url: '/api/pda/picking/confirm',
+    method: 'POST',
+    data: body,
+  })
+}
+
+export function fetchPendingTransfer() {
+  return request<
+    Array<{
+      id: number
+      orderNo: string
+      status: number
+      remark?: string
+      lines: Array<{
+        lineNo: number
+        materialCode: string
+        qty: number
+        completedQty: number
+        fromLocation?: string
+        toLocation?: string
+        containerCode?: string
+      }>
+    }>
+  >({ url: '/api/pda/biz/transfer/pending' })
+}
+
+export function completeTransfer(id: number) {
+  return request({
+    url: `/api/pda/biz/transfer/complete/${id}`,
+    method: 'POST',
+  })
+}

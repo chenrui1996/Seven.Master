@@ -24,6 +24,8 @@ ERP/MES / 运维 Vue3 / PDA App
 单据收敛为三套：`Wms_InboundOrder`、`Wms_OutboundOrder`、盘点计划。  
 数量账本只认 `Wms_Stock`；包内禁止第二套可扣减库存表。
 
+**项目扩展**（新单据类型、在库处理等）：勿继续堆在本核心路径；按 [23-业务扩展规范](./23-业务扩展规范.md) 落 `Seven.Business` + `Entities/Business`（`Biz_`）。
+
 ---
 
 ## 2. 主数据与前缀
@@ -133,6 +135,12 @@ API：`api/WmsInboundOrder`（`getPageData` / `add` / `approve` / `buildPallet` 
 ---
 
 ## 5. 出库
+
+**拣选三层（已落地）**：`Wms_OutboundOrder` → `Wms_OutboundOrderLine` → `Wms_PickingTask`。
+
+1. 建出库单（草稿）→ **审核** `Approve`：状态 Approved，并 `GenerateFromOutbound` 生成拣选任务 + `Stock.Book` 扣可用量。
+2. **拣货确认**（Web / PDA `ConfirmPick`）：无目标位则 `ConfirmPick` 扣账完成；有 From≠To 且总线开启则建运（`RefType=OutboundOrder`），运输完成再移库并回写拣选/出库完成。
+3. 手动发运 `Ship` 仅适用于无运输场景；运输中禁止手动发运。
 
 实现：`OutboundOrderService`。
 

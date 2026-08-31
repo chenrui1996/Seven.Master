@@ -1,7 +1,10 @@
+using System.Data;
+using System.Data.Common;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Seven.Application.Interfaces;
+using Seven.Business.WorkFlow;
 using Seven.Domain.Common;
 using Seven.Domain.Entities.Flow;
 using Seven.Domain.Enums;
@@ -77,8 +80,14 @@ public class WorkFlowService : IWorkFlowService
                 ?? throw new InvalidOperationException("流程不存在");
             flow.WorkName = request.WorkName.Trim();
             flow.WorkTable = request.WorkTable.Trim();
+            flow.WorkTableName = request.WorkTableName?.Trim();
             flow.WorkTableKey = string.IsNullOrWhiteSpace(request.WorkTableKey) ? "Id" : request.WorkTableKey.Trim();
+            flow.Weight = request.Weight;
             flow.Enable = request.Enable ?? 1;
+            flow.NodeConfig = request.NodeConfig;
+            flow.LineConfig = request.LineConfig;
+            flow.Remark = request.Remark;
+            flow.AuditingEdit = request.AuditingEdit;
             flow.ModifyDate = DateTime.Now;
             flow.Modifier = _currentUser.UserName;
 
@@ -91,8 +100,14 @@ public class WorkFlowService : IWorkFlowService
             {
                 WorkName = request.WorkName.Trim(),
                 WorkTable = request.WorkTable.Trim(),
+                WorkTableName = request.WorkTableName?.Trim(),
                 WorkTableKey = string.IsNullOrWhiteSpace(request.WorkTableKey) ? "Id" : request.WorkTableKey.Trim(),
+                Weight = request.Weight,
                 Enable = request.Enable ?? 1,
+                NodeConfig = request.NodeConfig,
+                LineConfig = request.LineConfig,
+                Remark = request.Remark,
+                AuditingEdit = request.AuditingEdit,
                 CreateDate = DateTime.Now,
                 Creator = _currentUser.UserName,
                 CreateId = _currentUser.UserId,
@@ -103,18 +118,47 @@ public class WorkFlowService : IWorkFlowService
         await _db.SaveChangesAsync(cancellationToken);
 
         var order = 1;
-        foreach (var step in request.Steps.OrderBy(s => s.StepOrder))
+        var orderedSteps = request.Steps.OrderBy(s => s.StepOrder).ToList();
+        foreach (var step in orderedSteps)
         {
+            var stepId = string.IsNullOrWhiteSpace(step.StepId) ? Guid.NewGuid().ToString("N")[..8] : step.StepId.Trim();
             _db.Sys_WorkFlowSteps.Add(new Sys_WorkFlowStep
             {
                 WorkFlow_Id = flow.WorkFlow_Id,
+                StepId = stepId,
                 StepName = string.IsNullOrWhiteSpace(step.StepName) ? $"步骤{order}" : step.StepName.Trim(),
-                StepOrder = order++,
+                StepOrder = order,
                 StepType = step.StepType ?? (int)WorkFlowStepType.Role,
                 StepValue = step.StepValue,
+                StepAttrType = string.IsNullOrWhiteSpace(step.StepAttrType) ? "node" : step.StepAttrType.Trim(),
+                NextStepIds = step.NextStepIds,
+                ParentId = step.ParentId,
+                Weight = step.Weight,
+                Filters = step.Filters,
+                AuditRefuse = step.AuditRefuse,
+                AuditBack = step.AuditBack,
+                AuditMethod = step.AuditMethod,
+                SendMail = step.SendMail,
+                Remark = step.Remark,
                 CreateDate = DateTime.Now,
                 Creator = _currentUser.UserName,
             });
+            order++;
+        }
+
+        // 线性默认连线：若未传 LineConfig，按顺序生成
+        if (string.IsNullOrWhiteSpace(flow.LineConfig) && orderedSteps.Count > 0)
+        {
+            var ids = _db.Sys_WorkFlowSteps.Local
+                .Where(s => s.WorkFlow_Id == flow.WorkFlow_Id && !s.IsDeleted)
+                .OrderBy(s => s.StepOrder)
+                .Select(s => s.StepId)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToList();
+            var lines = new List<object>();
+            for (var i = 0; i < ids.Count - 1; i++)
+                lines.Add(new { from = ids[i], to = ids[i + 1] });
+            flow.LineConfig = JsonSerializer.Serialize(new { lines });
         }
 
         await _db.SaveChangesAsync(cancellationToken);
@@ -140,11 +184,19 @@ public class WorkFlowService : IWorkFlowService
 
         var flow = await _db.Sys_WorkFlows
             .Include(f => f.Steps.Where(s => !s.IsDeleted))
-            .FirstOrDefaultAsync(f => f.WorkTable == tableName && f.Enable == 1 && !f.IsDeleted, cancellationToken);
+            .Where(f => f.WorkTable == tableName && f.Enable == 1 && !f.IsDeleted)
+            .OrderByDescending(f => f.Weight ?? 0)
+            .ThenByDescending(f => f.WorkFlow_Id)
+            .FirstOrDefaultAsync(cancellationToken);
         if (flow == null) return WebResponseContent.Error("未配置工作流");
 
-        var steps = flow.Steps.OrderBy(s => s.StepOrder).ToList();
-        if (steps.Count == 0) return WebResponseContent.Error("流程未配置步骤");
+        var nodeSteps = flow.Steps.Where(s => !s.IsDeleted && (s.StepAttrType == null || s.StepAttrType == "node"))
+            .OrderBy(s => s.StepOrder)
+            .ThenByDescending(s => s.Weight ?? 0)
+            .ToList();
+        if (nodeSteps.Count == 0)
+            nodeSteps = flow.Steps.Where(s => !s.IsDeleted).OrderBy(s => s.StepOrder).ToList();
+        if (nodeSteps.Count == 0) return WebResponseContent.Error("流程未配置步骤");
 
         var exists = await _db.Sys_WorkFlowTables.AnyAsync(t =>
             t.WorkTable == tableName
@@ -153,7 +205,16 @@ public class WorkFlowService : IWorkFlowService
             && !t.IsDeleted, cancellationToken);
         if (exists) return WebResponseContent.Error("该单据已在审批中");
 
-        var first = steps[0];
+        var bizData = await TryLoadBusinessRowAsync(tableName, tableKey, flow.WorkTableKey, cancellationToken);
+        var applicable = nodeSteps
+            .Where(s => WorkFlowFilterEvaluator.Matches(s.Filters, bizData))
+            .OrderBy(s => s.StepOrder)
+            .ThenByDescending(s => s.Weight ?? 0)
+            .ToList();
+        if (applicable.Count == 0)
+            return WebResponseContent.Error("业务数据未匹配任何审批步骤条件");
+
+        var first = applicable[0];
         var instance = new Sys_WorkFlowTable
         {
             WorkFlow_Id = flow.WorkFlow_Id,
@@ -168,15 +229,15 @@ public class WorkFlowService : IWorkFlowService
         _db.Sys_WorkFlowTables.Add(instance);
         await _db.SaveChangesAsync(cancellationToken);
 
-        foreach (var step in steps)
+        // 实例步骤：全部节点（含未命中条件的，便于进度展示）；当前从首个命中开始
+        foreach (var step in nodeSteps)
         {
             _db.Sys_WorkFlowTableSteps.Add(new Sys_WorkFlowTableStep
             {
                 WorkFlowTable_Id = instance.WorkFlowTable_Id,
                 WorkStepFlow_Id = step.WorkStepFlow_Id,
-                AuditStatus = step.WorkStepFlow_Id == first.WorkStepFlow_Id
-                    ? (int)AuditStatus.Pending
-                    : (int)AuditStatus.Pending,
+                StepName = step.StepName,
+                AuditStatus = (int)AuditStatus.Pending,
                 CreateDate = DateTime.Now,
             });
         }
@@ -205,16 +266,24 @@ public class WorkFlowService : IWorkFlowService
         if (!await CanCurrentUserAuditAsync(currentStepId.Value, cancellationToken))
             return WebResponseContent.Error("无权审批当前步骤");
 
+        var currentDef = await _db.Sys_WorkFlowSteps.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.WorkStepFlow_Id == currentStepId.Value && !s.IsDeleted, cancellationToken);
+
+        // 会签：同一用户不可重复通过
+        if (auditStatus == (int)AuditStatus.Approved && currentDef?.AuditMethod == 1 && _currentUser.UserId is int me)
+        {
+            var already = await _db.Sys_WorkFlowTableAuditLogs.AsNoTracking()
+                .AnyAsync(l => l.WorkFlowTable_Id == workFlowTableId
+                    && l.WorkStepFlow_Id == currentStepId.Value
+                    && l.AuditStatus == (int)AuditStatus.Approved
+                    && l.AuditUser == _currentUser.UserName
+                    && !l.IsDeleted, cancellationToken);
+            if (already) return WebResponseContent.Error("您已完成会签，请等待其他审批人");
+        }
+
         var tableStep = await _db.Sys_WorkFlowTableSteps
             .FirstOrDefaultAsync(s => s.WorkFlowTable_Id == workFlowTableId
                 && s.WorkStepFlow_Id == currentStepId && !s.IsDeleted, cancellationToken);
-        if (tableStep != null)
-        {
-            tableStep.AuditStatus = auditStatus;
-            tableStep.AuditUserId = _currentUser.UserId;
-            tableStep.AuditDate = DateTime.Now;
-            tableStep.ModifyDate = DateTime.Now;
-        }
 
         _db.Sys_WorkFlowTableAuditLogs.Add(new Sys_WorkFlowTableAuditLog
         {
@@ -226,6 +295,7 @@ public class WorkFlowService : IWorkFlowService
             CreateDate = DateTime.Now,
         });
 
+        // 拒绝 / 驳回：立即结束或回退（会签中途拒绝也结束）
         var flowSteps = await _db.Sys_WorkFlowSteps.AsNoTracking()
             .Where(s => s.WorkFlow_Id == instance.WorkFlow_Id && !s.IsDeleted)
             .OrderBy(s => s.StepOrder)
@@ -234,6 +304,14 @@ public class WorkFlowService : IWorkFlowService
 
         if (auditStatus == (int)AuditStatus.Rejected)
         {
+            if (tableStep != null)
+            {
+                tableStep.AuditStatus = auditStatus;
+                tableStep.AuditUserId = _currentUser.UserId;
+                tableStep.Auditor = _currentUser.UserName;
+                tableStep.Remark = remark;
+                tableStep.AuditDate = DateTime.Now;
+            }
             instance.AuditStatus = auditStatus;
             instance.CurrentStepId = null;
             instance.ModifyDate = DateTime.Now;
@@ -246,6 +324,15 @@ public class WorkFlowService : IWorkFlowService
 
         if (auditStatus == (int)AuditStatus.Returned)
         {
+            if (tableStep != null)
+            {
+                tableStep.AuditStatus = auditStatus;
+                tableStep.AuditUserId = _currentUser.UserId;
+                tableStep.Auditor = _currentUser.UserName;
+                tableStep.Remark = remark;
+                tableStep.AuditDate = DateTime.Now;
+            }
+
             if (idx > 0)
             {
                 var prevStepId = flowSteps[idx - 1].WorkStepFlow_Id;
@@ -276,8 +363,38 @@ public class WorkFlowService : IWorkFlowService
             return WebResponseContent.Ok("已驳回");
         }
 
-        // 通过 → 下一步或结束
-        if (idx < 0 || idx >= flowSteps.Count - 1)
+        // 通过：会签需全部审批人完成
+        if (currentDef?.AuditMethod == 1)
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+            var pending = await GetCountersignPendingAsync(currentDef, workFlowTableId, currentStepId.Value, cancellationToken);
+            if (pending.Count > 0)
+            {
+                if (tableStep != null)
+                {
+                    tableStep.AuditStatus = (int)AuditStatus.InProgress;
+                    tableStep.ModifyDate = DateTime.Now;
+                    tableStep.Remark = $"会签进行中，待：{string.Join(',', pending)}";
+                }
+                await _db.SaveChangesAsync(cancellationToken);
+                return WebResponseContent.Ok($"会签已记录，仍待 {pending.Count} 人审批");
+            }
+        }
+
+        if (tableStep != null)
+        {
+            tableStep.AuditStatus = (int)AuditStatus.Approved;
+            tableStep.AuditUserId = _currentUser.UserId;
+            tableStep.Auditor = _currentUser.UserName;
+            tableStep.Remark = remark;
+            tableStep.AuditDate = DateTime.Now;
+            tableStep.ModifyDate = DateTime.Now;
+        }
+
+        // 通过 → 条件匹配的下一步或结束
+        var bizData = await TryLoadBusinessRowAsync(instance.WorkTable, instance.WorkTableKey, null, cancellationToken);
+        var next = ResolveNextStep(flowSteps, currentDef, currentStepId.Value, bizData);
+        if (next == null)
         {
             instance.AuditStatus = (int)AuditStatus.Approved;
             instance.CurrentStepId = null;
@@ -289,7 +406,6 @@ public class WorkFlowService : IWorkFlowService
             return WebResponseContent.Ok("审批完成（全部通过）");
         }
 
-        var next = flowSteps[idx + 1];
         instance.CurrentStepId = next.WorkStepFlow_Id;
         instance.AuditStatus = (int)AuditStatus.InProgress;
         instance.ModifyDate = DateTime.Now;
@@ -306,13 +422,239 @@ public class WorkFlowService : IWorkFlowService
         return WebResponseContent.Ok("已通过，进入下一步");
     }
 
+    static Sys_WorkFlowStep? ResolveNextStep(
+        List<Sys_WorkFlowStep> flowSteps,
+        Sys_WorkFlowStep? current,
+        int currentStepId,
+        IReadOnlyDictionary<string, object?>? bizData)
+    {
+        var nodeSteps = flowSteps
+            .Where(s => s.StepAttrType == null || s.StepAttrType == "node" || s.StepAttrType == "start")
+            .OrderBy(s => s.StepOrder)
+            .ToList();
+
+        // NextStepIds 显式下一跳（可多选，按条件筛选）
+        if (!string.IsNullOrWhiteSpace(current?.NextStepIds))
+        {
+            var ids = current.NextStepIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var candidates = nodeSteps
+                .Where(s => ids.Contains(s.StepId, StringComparer.OrdinalIgnoreCase)
+                            || ids.Contains(s.WorkStepFlow_Id.ToString(), StringComparer.Ordinal))
+                .Where(s => WorkFlowFilterEvaluator.Matches(s.Filters, bizData))
+                .OrderBy(s => s.StepOrder)
+                .ThenByDescending(s => s.Weight ?? 0)
+                .ToList();
+            if (candidates.Count > 0) return candidates[0];
+            // 指向 end
+            if (ids.Any(x => string.Equals(x, "end", StringComparison.OrdinalIgnoreCase)))
+                return null;
+        }
+
+        var idx = nodeSteps.FindIndex(s => s.WorkStepFlow_Id == currentStepId);
+        if (idx < 0) return null;
+        for (var i = idx + 1; i < nodeSteps.Count; i++)
+        {
+            if (WorkFlowFilterEvaluator.Matches(nodeSteps[i].Filters, bizData))
+                return nodeSteps[i];
+        }
+
+        return null;
+    }
+
+    async Task<List<string>> GetCountersignPendingAsync(
+        Sys_WorkFlowStep step,
+        int workFlowTableId,
+        int stepId,
+        CancellationToken ct)
+    {
+        // 会签仅对「按用户」严格校验；角色/部门按 StepValue 中的用户 Id 列表解读
+        var requiredIds = (step.StepValue ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(v => int.TryParse(v, out var id) ? id : 0)
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+        if (requiredIds.Count == 0) return [];
+
+        var approvedUsers = await _db.Sys_WorkFlowTableAuditLogs.AsNoTracking()
+            .Where(l => l.WorkFlowTable_Id == workFlowTableId
+                && l.WorkStepFlow_Id == stepId
+                && l.AuditStatus == (int)AuditStatus.Approved
+                && !l.IsDeleted)
+            .Select(l => l.AuditUser)
+            .ToListAsync(ct);
+
+        var userNames = await _db.Sys_Users.AsNoTracking()
+            .Where(u => requiredIds.Contains(u.User_Id) && !u.IsDeleted)
+            .Select(u => new { u.User_Id, u.UserName, u.UserTrueName })
+            .ToListAsync(ct);
+
+        var pending = new List<string>();
+        foreach (var u in userNames)
+        {
+            if (approvedUsers.Any(a =>
+                    string.Equals(a, u.UserName, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(a, u.UserTrueName, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            pending.Add(u.UserTrueName ?? u.UserName);
+        }
+
+        return pending;
+    }
+
+    async Task<Dictionary<string, object?>?> TryLoadBusinessRowAsync(
+        string? tableName,
+        string? tableKey,
+        string? keyColHint,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(tableName) || string.IsNullOrWhiteSpace(tableKey)) return null;
+        if (!SqlIdentifierRegex.IsMatch(tableName)) return null;
+
+        var keyCol = string.IsNullOrWhiteSpace(keyColHint)
+            ? await _db.Sys_WorkFlows.AsNoTracking()
+                .Where(f => f.WorkTable == tableName && !f.IsDeleted)
+                .Select(f => f.WorkTableKey)
+                .FirstOrDefaultAsync(ct) ?? "Id"
+            : keyColHint;
+        keyCol = string.IsNullOrWhiteSpace(keyCol) ? "Id" : keyCol.Trim();
+        if (!SqlIdentifierRegex.IsMatch(keyCol)) return null;
+
+        try
+        {
+            var conn = _db.Database.GetDbConnection();
+            if (conn.State != ConnectionState.Open)
+                await conn.OpenAsync(ct);
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"SELECT * FROM `{tableName}` WHERE CAST(`{keyCol}` AS CHAR) = @key LIMIT 1";
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@key";
+            p.Value = tableKey;
+            cmd.Parameters.Add(p);
+
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            if (!await reader.ReadAsync(ct)) return null;
+
+            var dict = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                var name = reader.GetName(i);
+                dict[name] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            }
+
+            return dict;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "加载业务行失败 Table={Table} Key={Key}", tableName, tableKey);
+            return null;
+        }
+    }
+
     static void ResetTableStepToPending(Sys_WorkFlowTableStep? step)
     {
         if (step == null) return;
         step.AuditStatus = (int)AuditStatus.Pending;
         step.AuditUserId = null;
+        step.Auditor = null;
+        step.Remark = null;
         step.AuditDate = null;
         step.ModifyDate = DateTime.Now;
+    }
+
+    public async Task<WebResponseContent> GetStepsAsync(
+        string tableName,
+        IReadOnlyList<string> ids,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(tableName) || ids == null || ids.Count == 0)
+            return WebResponseContent.Error("参数无效");
+
+        var keyList = ids.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+        var flows = await _db.Sys_WorkFlowTables.AsNoTracking()
+            .Where(x => x.WorkTable == tableName && keyList.Contains(x.WorkTableKey!) && !x.IsDeleted)
+            .OrderByDescending(x => x.CreateDate)
+            .ToListAsync(cancellationToken);
+
+        if (flows.Count == 0)
+            return WebResponseContent.Ok(data: new { hasFlow = false });
+
+        if (flows.Count > 1 && keyList.Count > 1)
+            return WebResponseContent.Error("只能选择一条数据进行审核");
+
+        var flow = flows[0];
+        var tableSteps = await _db.Sys_WorkFlowTableSteps.AsNoTracking()
+            .Where(s => s.WorkFlowTable_Id == flow.WorkFlowTable_Id && !s.IsDeleted)
+            .ToListAsync(cancellationToken);
+        var defSteps = await _db.Sys_WorkFlowSteps.AsNoTracking()
+            .Where(s => s.WorkFlow_Id == flow.WorkFlow_Id && !s.IsDeleted)
+            .OrderBy(s => s.StepOrder)
+            .ToListAsync(cancellationToken);
+        var logs = await _db.Sys_WorkFlowTableAuditLogs.AsNoTracking()
+            .Where(l => l.WorkFlowTable_Id == flow.WorkFlowTable_Id && !l.IsDeleted)
+            .OrderBy(l => l.CreateDate)
+            .ToListAsync(cancellationToken);
+
+        var list = defSteps.Select(def =>
+        {
+            var ts = tableSteps.FirstOrDefault(t => t.WorkStepFlow_Id == def.WorkStepFlow_Id);
+            var isCurrent = flow.CurrentStepId == def.WorkStepFlow_Id
+                && flow.AuditStatus is (int)AuditStatus.Pending or (int)AuditStatus.InProgress;
+            return new
+            {
+                def.WorkStepFlow_Id,
+                def.StepId,
+                StepName = ts?.StepName ?? def.StepName,
+                def.StepOrder,
+                def.StepType,
+                def.StepValue,
+                def.StepAttrType,
+                AuditStatus = ts?.AuditStatus,
+                Auditor = ts?.Auditor,
+                AuditDate = ts?.AuditDate,
+                Remark = ts?.Remark,
+                isCurrent,
+                isCurrentUser = isCurrent, // 前端结合权限再判；服务端在 audit 时校验
+            };
+        }).OrderBy(x => x.StepOrder).ToList();
+
+        return WebResponseContent.Ok(data: new
+        {
+            hasFlow = true,
+            workFlowTableId = flow.WorkFlowTable_Id,
+            currentStepId = flow.CurrentStepId,
+            auditStatus = flow.AuditStatus,
+            list,
+            log = logs.Select(l => new
+            {
+                l.Id,
+                l.WorkStepFlow_Id,
+                l.AuditUser,
+                l.AuditStatus,
+                l.Remark,
+                l.CreateDate,
+            }),
+        });
+    }
+
+    public async Task<WebResponseContent> GetNodeDicAsync(CancellationToken cancellationToken = default)
+    {
+        var users = await _db.Sys_Users.AsNoTracking()
+            .Where(u => !u.IsDeleted)
+            .OrderBy(u => u.User_Id)
+            .Take(5000)
+            .Select(u => new { key = u.User_Id, value = u.UserTrueName ?? u.UserName })
+            .ToListAsync(cancellationToken);
+        var roles = await _db.Sys_Roles.AsNoTracking()
+            .Where(r => !r.IsDeleted)
+            .Select(r => new { key = r.Role_Id, value = r.RoleName })
+            .ToListAsync(cancellationToken);
+        var dept = await _db.Sys_Departments.AsNoTracking()
+            .Where(d => !d.IsDeleted)
+            .Select(d => new { key = d.DepartmentId, value = d.DepartmentName })
+            .ToListAsync(cancellationToken);
+        return WebResponseContent.Ok(data: new { users, roles, dept });
     }
 
     public async Task<PageGridData<Sys_WorkFlowTable>> GetPageDataAsync(PageDataOptions options, CancellationToken cancellationToken = default)

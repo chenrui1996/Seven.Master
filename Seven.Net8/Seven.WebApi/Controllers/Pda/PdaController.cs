@@ -97,7 +97,25 @@ public class PdaController : ControllerBase
         }
         catch (WmsDomainException ex)
         {
-            return WebResponseContent.Error(ex.Message);
+            return WebResponseContent.Error(ex.Message, ex.Code);
+        }
+    }
+
+    [HttpGet("picking/pending")]
+    public async Task<WebResponseContent> PendingPicking(CancellationToken ct) =>
+        WebResponseContent.Ok(data: await _pda.GetPendingPickingAsync(ct));
+
+    [HttpPost("picking/confirm")]
+    public async Task<WebResponseContent> ConfirmPick([FromBody] PdaConfirmPickRequest request, CancellationToken ct)
+    {
+        try
+        {
+            await _pda.ConfirmPickAsync(request, ct);
+            return WebResponseContent.Ok("拣选确认成功");
+        }
+        catch (WmsDomainException ex)
+        {
+            return WebResponseContent.Error(ex.Message, ex.Code);
         }
     }
 }

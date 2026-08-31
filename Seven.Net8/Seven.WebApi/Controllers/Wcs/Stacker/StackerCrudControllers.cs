@@ -5,16 +5,18 @@ using Seven.Domain.Common;
 using Seven.Domain.Entities.Wcs.Stacker;
 using Seven.Infrastructure.Crud;
 using Seven.Infrastructure.Security;
+using Microsoft.AspNetCore.Http;
+using Seven.WebApi.Controllers.Crud;
 
 namespace Seven.WebApi.Controllers.Wcs.Stacker;
 
 file static class StkCrud
 {
-    public static async Task<WebResponseContent> Page<T>(EntityCrudService<T> crud, PageDataOptions o, CancellationToken ct) where T : class =>
+    public static async Task<WebResponseContent> Page<T>(EntityCrudService<T> crud, PageDataOptions o, CancellationToken ct) where T : class, new() =>
         WebResponseContent.Ok(data: await crud.GetPageDataAsync(o, ct));
-    public static Task<WebResponseContent> Add<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class => crud.AddAsync(e, ct);
-    public static Task<WebResponseContent> Update<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class => crud.UpdateAsync(e, ct);
-    public static Task<WebResponseContent> Del<T>(EntityCrudService<T> crud, JsonElement ids, CancellationToken ct) where T : class => crud.DeleteAsync(ids, ct);
+    public static Task<WebResponseContent> Add<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class, new() => crud.AddAsync(e, ct);
+    public static Task<WebResponseContent> Update<T>(EntityCrudService<T> crud, T e, CancellationToken ct) where T : class, new() => crud.UpdateAsync(e, ct);
+    public static Task<WebResponseContent> Del<T>(EntityCrudService<T> crud, JsonElement ids, CancellationToken ct) where T : class, new() => crud.DeleteAsync(ids, ct);
 }
 
 [Route("api/StkRequestPoint")]
@@ -30,6 +32,23 @@ public class StkRequestPointController(EntityCrudService<StkRequestPoint> crud) 
     public Task<WebResponseContent> Update([FromBody] StkRequestPoint e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("StkRequestPoint.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => StkCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("StkRequestPoint.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("StkRequestPoint.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("StkRequestPoint.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/StkAssignmentPolicy")]
@@ -45,6 +64,23 @@ public class StkAssignmentPolicyController(EntityCrudService<StkAssignmentPolicy
     public Task<WebResponseContent> Update([FromBody] StkAssignmentPolicy e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("StkAssignmentPolicy.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => StkCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("StkAssignmentPolicy.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("StkAssignmentPolicy.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("StkAssignmentPolicy.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/StkLocationProfile")]
@@ -60,6 +96,23 @@ public class StkLocationProfileController(EntityCrudService<StkLocationProfile> 
     public Task<WebResponseContent> Update([FromBody] StkLocationProfile e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("StkLocationProfile.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => StkCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("StkLocationProfile.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("StkLocationProfile.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("StkLocationProfile.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/StkRoute")]
@@ -75,6 +128,23 @@ public class StkRouteController(EntityCrudService<StkRoute> crud) : ControllerBa
     public Task<WebResponseContent> Update([FromBody] StkRoute e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("StkRoute.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => StkCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("StkRoute.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("StkRoute.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("StkRoute.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/StkDeviceCoder")]
@@ -90,6 +160,23 @@ public class StkDeviceCoderController(EntityCrudService<StkDeviceCoder> crud) : 
     public Task<WebResponseContent> Update([FromBody] StkDeviceCoder e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
     [HttpPost("del")][Permission("StkDeviceCoder.Delete")]
     public Task<WebResponseContent> Del([FromBody] JsonElement ids, CancellationToken ct) => StkCrud.Del(crud, ids, ct);
+
+    [HttpPost("export")]
+    [Permission("StkDeviceCoder.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
+    [HttpGet("exportTemplate")]
+    [Permission("StkDeviceCoder.Import")]
+    public IActionResult ExportTemplate() =>
+        EntityCrudExcel.ExportTemplate(this, crud);
+
+    [HttpPost("import")]
+    [Permission("StkDeviceCoder.Import")]
+    [RequestSizeLimit(50_000_000)]
+    public Task<WebResponseContent> Import(IFormFile file, CancellationToken ct) =>
+        EntityCrudExcel.ImportAsync(crud, file, ct);
+
 }
 
 [Route("api/StkPutAwayTask")]
@@ -101,6 +188,12 @@ public class StkPutAwayTaskController(EntityCrudService<StkPutAwayTask> crud) : 
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => StkCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("StkPutAwayTask.Update")]
     public Task<WebResponseContent> Update([FromBody] StkPutAwayTask e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("StkPutAwayTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }
 
 [Route("api/StkRetrievalTask")]
@@ -112,6 +205,12 @@ public class StkRetrievalTaskController(EntityCrudService<StkRetrievalTask> crud
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => StkCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("StkRetrievalTask.Update")]
     public Task<WebResponseContent> Update([FromBody] StkRetrievalTask e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("StkRetrievalTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }
 
 [Route("api/StkDeviceTask")]
@@ -123,4 +222,10 @@ public class StkDeviceTaskController(EntityCrudService<StkDeviceTask> crud) : Co
     public Task<WebResponseContent> GetPageData([FromBody] PageDataOptions o, CancellationToken ct) => StkCrud.Page(crud, o, ct);
     [HttpPost("update")][Permission("StkDeviceTask.Update")]
     public Task<WebResponseContent> Update([FromBody] StkDeviceTask e, CancellationToken ct) => StkCrud.Update(crud, e, ct);
+
+    [HttpPost("export")]
+    [Permission("StkDeviceTask.Export")]
+    public Task<IActionResult> Export([FromBody] PageDataOptions options, CancellationToken ct) =>
+        EntityCrudExcel.ExportAsync(this, crud, options, ct);
+
 }

@@ -44,7 +44,7 @@ public sealed class StockService : IStockService
         var stock = await FindStockAsync(
             request.LocationCode, request.MaterialCode, request.ContainerCode, request.Lot, ct);
         if (stock == null || stock.AvailableQty < request.Qty)
-            throw new WmsDomainException("库存不足");
+            throw new WmsDomainException(ExceptionCodes.Wms.StockInsufficient, "库存不足");
 
         stock.Qty -= request.Qty;
         stock.AvailableQty -= request.Qty;
@@ -57,24 +57,73 @@ public sealed class StockService : IStockService
         return stock;
     }
 
+    public async Task<WmsStock> BookAsync(BookStockRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ValidateQty(request.Qty);
+        var stock = await FindStockAsync(
+            request.LocationCode, request.MaterialCode, request.ContainerCode, request.Lot, ct);
+        if (stock == null || stock.AvailableQty < request.Qty)
+            throw new WmsDomainException(ExceptionCodes.Wms.StockInsufficient, "库存不足");
+
+        stock.AvailableQty -= request.Qty;
+        AddLedger(stock, 0, request.Reason ?? "Book", request.RefType, request.RefId);
+        await _db.SaveChangesAsync(ct);
+        return stock;
+    }
+
+    public async Task<WmsStock> ConfirmPickAsync(ConfirmPickStockRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ValidateQty(request.Qty);
+        var stock = await FindStockAsync(
+            request.LocationCode, request.MaterialCode, request.ContainerCode, request.Lot, ct);
+        if (stock == null || stock.Qty < request.Qty)
+            throw new WmsDomainException(ExceptionCodes.Wms.StockInsufficient, "库存不足");
+
+        // 已预约：AvailableQty 已扣，仅扣 Qty；若未预约则同步扣 AvailableQty
+        stock.Qty -= request.Qty;
+        if (stock.AvailableQty > stock.Qty)
+            stock.AvailableQty = stock.Qty;
+        AddLedger(stock, -request.Qty, request.Reason ?? "ConfirmPick", request.RefType, request.RefId);
+
+        if (stock.Qty <= 0)
+            await ReleaseLocationIfEmptyAsync(request.LocationCode, stock.Id, ct);
+
+        await _db.SaveChangesAsync(ct);
+        return stock;
+    }
+
+    public async Task ReleaseBookAsync(BookStockRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ValidateQty(request.Qty);
+        var stock = await FindStockAsync(
+            request.LocationCode, request.MaterialCode, request.ContainerCode, request.Lot, ct);
+        if (stock == null) return;
+        stock.AvailableQty = Math.Min(stock.Qty, stock.AvailableQty + request.Qty);
+        AddLedger(stock, 0, request.Reason ?? "ReleaseBook", request.RefType, request.RefId);
+        await _db.SaveChangesAsync(ct);
+    }
+
     public Task<PageGridData<WmsStock>> GetPageDataAsync(PageDataOptions options, CancellationToken ct = default) =>
         CrudHelper.PaginateAsync(_db.WmsStocks.AsNoTracking(), options, ct);
 
     private static void ValidateQty(decimal qty)
     {
         if (qty <= 0)
-            throw new WmsDomainException("数量必须大于 0");
+            throw new WmsDomainException(ExceptionCodes.Wms.QtyInvalid, "数量必须大于 0");
     }
 
     private async Task<WmsLocation> RequireLocationAsync(string locationCode, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(locationCode))
-            throw new WmsDomainException("库位编码不能为空");
+            throw new WmsDomainException(ExceptionCodes.Wms.LocationRequired, "库位编码不能为空");
         var location = await _db.WmsLocations.FirstOrDefaultAsync(x => x.Code == locationCode, ct);
         if (location == null)
-            throw new WmsDomainException($"库位不存在: {locationCode}");
+            throw new WmsDomainException(ExceptionCodes.Wms.LocationNotFound, $"库位不存在: {locationCode}");
         if (location.IsLocked)
-            throw new WmsDomainException($"库位已锁定: {locationCode}");
+            throw new WmsDomainException(ExceptionCodes.Wms.LocationLocked, $"库位已锁定: {locationCode}");
         return location;
     }
 
@@ -90,7 +139,7 @@ public sealed class StockService : IStockService
         string locationCode, string materialCode, string? containerCode, string? lot, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(materialCode))
-            throw new WmsDomainException("物料编码不能为空");
+            throw new WmsDomainException(ExceptionCodes.Wms.MaterialRequired, "物料编码不能为空");
 
         var existing = await FindStockAsync(locationCode, materialCode, containerCode, lot, ct);
         if (existing != null) return existing;

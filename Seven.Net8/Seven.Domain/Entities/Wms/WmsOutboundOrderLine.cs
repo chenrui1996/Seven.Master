@@ -17,4 +17,5 @@ public class WmsOutboundOrderLine : BaseEntity
     /// <summary>组内优先级；0 表示审核时按 LineNo 赋值。</summary>
     public int WcsPri { get; set; }
     public WmsOutboundOrder? Order { get; set; }
+    public ICollection<WmsPickingTask> PickingTasks { get; set; } = new List<WmsPickingTask>();
 }

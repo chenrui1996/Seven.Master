@@ -27,6 +27,16 @@ public enum WmsInboundDetailStatus
     Cancelled = 90
 }
 
+/// <summary>出库拣选任务状态：预约 → 拣货确认 →（可选运输）→ 完成。</summary>
+public enum WmsPickingTaskStatus
+{
+    Booked = 10,
+    Confirmed = 20,
+    Transporting = 30,
+    Completed = 40,
+    Cancelled = 90
+}
+
 /// <summary>WMS 单据业务来源（各仅一套入/出库表，用本枚举区分）</summary>
 public enum WmsOrderType
 {

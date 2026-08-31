@@ -276,6 +276,33 @@ public class WmsOutboundOrderLineConfiguration : IEntityTypeConfiguration<WmsOut
     }
 }
 
+public class WmsPickingTaskConfiguration : IEntityTypeConfiguration<WmsPickingTask>
+{
+    public void Configure(EntityTypeBuilder<WmsPickingTask> builder)
+    {
+        builder.ToTable(TablePrefixes.Wms + "PickingTask");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.TaskNo).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.MaterialCode).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.BookQty).HasPrecision(18, 4);
+        builder.Property(x => x.PickQty).HasPrecision(18, 4);
+        builder.Property(x => x.FromLocation).HasMaxLength(64);
+        builder.Property(x => x.ToLocation).HasMaxLength(64);
+        builder.Property(x => x.ContainerCode).HasMaxLength(64);
+        builder.HasIndex(x => x.TaskNo).IsUnique();
+        builder.HasIndex(x => new { x.OutboundOrderId, x.LineId });
+        builder.HasIndex(x => x.Status);
+        builder.HasOne(x => x.Order)
+            .WithMany(x => x.PickingTasks)
+            .HasForeignKey(x => x.OutboundOrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Line)
+            .WithMany(x => x.PickingTasks)
+            .HasForeignKey(x => x.LineId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 public class WmsCycleCountConfiguration : IEntityTypeConfiguration<WmsCycleCount>
 {
     public void Configure(EntityTypeBuilder<WmsCycleCount> builder)
