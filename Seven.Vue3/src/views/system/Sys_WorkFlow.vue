@@ -45,58 +45,75 @@
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="form.workFlow_Id ? t('sysWorkFlow.editFlow') : t('sysWorkFlow.addFlow')" width="760px">
-      <el-form :model="form" label-width="110px">
-        <el-form-item :label="t('sysWorkFlow.colName')" required>
-          <el-input v-model="form.workName" />
-        </el-form-item>
-        <el-form-item :label="t('sysWorkFlow.colTable')" required>
-          <el-input v-model="form.workTable" placeholder="Device" />
-        </el-form-item>
-        <el-form-item :label="t('sysWorkFlow.colTableKey')">
-          <el-input v-model="form.workTableKey" placeholder="Id" />
-        </el-form-item>
-        <el-form-item :label="t('sysWorkFlow.colStatus')">
-          <el-switch v-model="form.enable" :active-value="1" :inactive-value="0" />
-        </el-form-item>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="form.workFlow_Id ? t('sysWorkFlow.editFlow') : t('sysWorkFlow.addFlow')"
+      width="920px"
+      destroy-on-close
+      top="4vh"
+    >
+      <el-form :model="form" label-width="110px" class="flow-meta">
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item :label="t('sysWorkFlow.colName')" required>
+              <el-input v-model="form.workName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('sysWorkFlow.workTableName')">
+              <el-input v-model="form.workTableName" :placeholder="t('sysWorkFlow.workTableNameHint')" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('sysWorkFlow.colTable')" required>
+              <el-input v-model="form.workTable" placeholder="WmsInboundOrder" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('sysWorkFlow.colTableKey')">
+              <el-input v-model="form.workTableKey" placeholder="Id" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item :label="t('sysWorkFlow.weight')">
+              <el-input-number v-model="form.weight" :min="0" controls-position="right" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item :label="t('sysWorkFlow.colStatus')">
+              <el-switch v-model="form.enable" :active-value="1" :inactive-value="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item :label="t('sysWorkFlow.auditingEdit')">
+              <el-switch v-model="form.auditingEdit" :active-value="1" :inactive-value="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item :label="t('sysWorkFlow.remark')">
+              <el-input v-model="form.remark" type="textarea" :rows="2" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
 
-      <div class="steps-toolbar">
-        <span>{{ t('sysWorkFlow.stepsTitle') }}</span>
-        <el-button size="small" type="primary" :icon="ActionIcons.add" @click="addStep">{{ t('sysWorkFlow.addStep') }}</el-button>
-      </div>
-      <el-table :data="form.steps" border size="small">
-        <el-table-column :label="t('sysWorkFlow.stepOrder')" width="70">
-          <template #default="{ $index }">{{ $index + 1 }}</template>
-        </el-table-column>
-        <el-table-column :label="t('sysWorkFlow.stepName')" min-width="140">
-          <template #default="{ row }">
-            <el-input v-model="row.stepName" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('sysWorkFlow.stepType')" width="140">
-          <template #default="{ row }">
-            <el-select v-model="row.stepType" size="small" style="width: 100%">
-              <el-option v-for="opt in stepTypeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('sysWorkFlow.stepValue')" min-width="160">
-          <template #default="{ row }">
-            <el-input v-model="row.stepValue" size="small" :placeholder="t('sysWorkFlow.stepValueHint')" />
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('sysWorkFlow.colActions')" width="80">
-          <template #default="{ $index }">
-            <el-button link type="danger" :icon="ActionIcons.delete" @click="removeStep($index)" />
-          </template>
-        </el-table-column>
-      </el-table>
+      <WorkflowDesigner
+        v-model="form.steps"
+        @update:node-config="(v) => (form.nodeConfig = v)"
+        @update:line-config="(v) => (form.lineConfig = v)"
+      />
 
       <template #footer>
         <div class="dialog-footer-actions">
           <el-button :icon="ActionIcons.cancel" @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button v-permission="['Sys_WorkFlow.Add', 'Sys_WorkFlow.Update']" type="primary" :icon="ActionIcons.save" @click="save">{{ t('common.save') }}</el-button>
+          <el-button
+            v-permission="['Sys_WorkFlow.Add', 'Sys_WorkFlow.Update']"
+            type="primary"
+            :icon="ActionIcons.save"
+            @click="save"
+          >
+            {{ t('common.save') }}
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -104,11 +121,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '../../api/http'
 import { ActionIcons } from '../../constants/actionIcons'
+import WorkflowDesigner, { type DesignerStep } from '../../components/workflow/WorkflowDesigner.vue'
 
 interface DefinitionRow {
   workFlow_Id: number
@@ -117,13 +135,6 @@ interface DefinitionRow {
   workTableKey?: string
   enable?: number
   stepCount?: number
-}
-
-interface StepForm {
-  stepName: string
-  stepOrder: number
-  stepType: number
-  stepValue: string
 }
 
 const { t } = useI18n()
@@ -136,16 +147,29 @@ const form = reactive({
   workFlow_Id: 0,
   workName: '',
   workTable: '',
+  workTableName: '',
   workTableKey: 'Id',
+  weight: 0 as number | undefined,
   enable: 1 as number,
-  steps: [] as StepForm[],
+  auditingEdit: 0 as number,
+  remark: '',
+  nodeConfig: '',
+  lineConfig: '',
+  steps: [] as DesignerStep[],
 })
 
-const stepTypeOptions = computed(() => [
-  { value: 1, label: t('sysWorkFlow.stepTypeRole') },
-  { value: 2, label: t('sysWorkFlow.stepTypeUser') },
-  { value: 3, label: t('sysWorkFlow.stepTypeDept') },
-])
+function newStep(name?: string): DesignerStep {
+  return {
+    stepId: Math.random().toString(36).slice(2, 10),
+    stepName: name || t('sysWorkFlow.defaultStepName'),
+    stepOrder: 1,
+    stepType: 1,
+    stepValue: '',
+    stepAttrType: 'node',
+    sendMail: 0,
+    remark: '',
+  }
+}
 
 async function loadDefinitions() {
   loading.value = true
@@ -163,19 +187,21 @@ function onSelectionChange(rows: DefinitionRow[]) {
   selectedIds.value = rows.map((r) => r.workFlow_Id)
 }
 
-function defaultSteps(): StepForm[] {
-  return [{ stepName: t('sysWorkFlow.defaultStepName'), stepOrder: 1, stepType: 1, stepValue: '' }]
-}
-
 async function openForm(row?: DefinitionRow) {
   if (!row) {
     Object.assign(form, {
       workFlow_Id: 0,
       workName: '',
       workTable: '',
+      workTableName: '',
       workTableKey: 'Id',
+      weight: 0,
       enable: 1,
-      steps: defaultSteps(),
+      auditingEdit: 0,
+      remark: '',
+      nodeConfig: '',
+      lineConfig: '',
+      steps: [newStep()],
     })
     dialogVisible.value = true
     return
@@ -186,38 +212,51 @@ async function openForm(row?: DefinitionRow) {
       workFlow_Id: number
       workName: string
       workTable?: string
+      workTableName?: string
       workTableKey?: string
+      weight?: number
       enable?: number
-      steps?: { stepName: string; stepOrder: number; stepType?: number; stepValue?: string }[]
+      auditingEdit?: number
+      remark?: string
+      nodeConfig?: string
+      lineConfig?: string
+      steps?: {
+        stepId?: string
+        stepName: string
+        stepOrder: number
+        stepType?: number
+        stepValue?: string
+        stepAttrType?: string
+        sendMail?: number
+        remark?: string
+      }[]
     }
     form.workFlow_Id = data.workFlow_Id
     form.workName = data.workName
     form.workTable = data.workTable ?? ''
+    form.workTableName = data.workTableName ?? ''
     form.workTableKey = data.workTableKey ?? 'Id'
+    form.weight = data.weight ?? 0
     form.enable = data.enable ?? 1
+    form.auditingEdit = data.auditingEdit ?? 0
+    form.remark = data.remark ?? ''
+    form.nodeConfig = data.nodeConfig ?? ''
+    form.lineConfig = data.lineConfig ?? ''
     form.steps = (data.steps ?? []).map((s, i) => ({
+      stepId: s.stepId || Math.random().toString(36).slice(2, 10),
       stepName: s.stepName,
       stepOrder: s.stepOrder || i + 1,
       stepType: s.stepType ?? 1,
       stepValue: s.stepValue ?? '',
+      stepAttrType: s.stepAttrType || 'node',
+      auditMethod: (s as { auditMethod?: number }).auditMethod ?? 0,
+      filters: (s as { filters?: string }).filters ?? '',
+      sendMail: s.sendMail ?? 0,
+      remark: s.remark ?? '',
     }))
-    if (!form.steps.length) form.steps = defaultSteps()
+    if (!form.steps.length) form.steps = [newStep()]
     dialogVisible.value = true
   }
-}
-
-function addStep() {
-  form.steps.push({
-    stepName: `${t('sysWorkFlow.defaultStepName')}${form.steps.length + 1}`,
-    stepOrder: form.steps.length + 1,
-    stepType: 1,
-    stepValue: '',
-  })
-}
-
-function removeStep(index: number) {
-  form.steps.splice(index, 1)
-  form.steps.forEach((s, i) => { s.stepOrder = i + 1 })
 }
 
 async function save() {
@@ -229,13 +268,26 @@ async function save() {
     workFlow_Id: form.workFlow_Id,
     workName: form.workName.trim(),
     workTable: form.workTable.trim(),
+    workTableName: form.workTableName.trim() || undefined,
     workTableKey: form.workTableKey.trim() || 'Id',
+    weight: form.weight,
     enable: form.enable,
+    auditingEdit: form.auditingEdit,
+    remark: form.remark,
+    nodeConfig: form.nodeConfig,
+    lineConfig: form.lineConfig,
     steps: form.steps.map((s, i) => ({
+      stepId: s.stepId,
       stepName: s.stepName,
       stepOrder: i + 1,
       stepType: s.stepType,
       stepValue: s.stepValue,
+      stepAttrType: s.stepAttrType || 'node',
+      nextStepIds: s.nextStepIds,
+      auditMethod: s.auditMethod ?? 0,
+      filters: s.filters || undefined,
+      sendMail: s.sendMail,
+      remark: s.remark,
     })),
   }
   const res = await http.post('/api/Sys_WorkFlow/saveDefinition', payload)
@@ -261,12 +313,7 @@ onMounted(loadDefinitions)
 </script>
 
 <style scoped>
-.steps-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 12px 0 8px;
-  font-size: 13px;
-  font-weight: 600;
+.flow-meta {
+  margin-bottom: 8px;
 }
 </style>

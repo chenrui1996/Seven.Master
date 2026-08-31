@@ -218,8 +218,8 @@ public class DeviceCommReconnectOptions
 }
 
 /// <summary>
-/// 功能总开关。关闭后后端不注册对应宿主/中间件，前端隐藏菜单与入口。
-/// 与细节节（MinIO/Mail/Tenant/Security/MessageQueue）为 AND 关系。
+/// 功能总开关。模块类开关（Wms / OrchestrationBus / WcsPacks / Simulator 等）仅供前端隐藏菜单与入口；
+/// 对应后端表结构、DI、业务 API 始终保留。基础设施类（Captcha / RateLimit / Tenant 等）仍与细节节 AND 控制运行时行为。
 /// </summary>
 public class FeatureOptions
 {
@@ -247,6 +247,26 @@ public class FeatureOptions
     /// <summary>设备通讯（Step7 / Modbus TCP）；细节见 DeviceComm 节</summary>
     public bool DeviceComm { get; set; }
 
+    /// <summary>仿真前端入口（Seven.Simulator）；Deploy API 始终可用</summary>
+    public bool Simulator { get; set; }
+
+    /// <summary>仅控制前端 WMS/SCADA 菜单显示</summary>
+    public bool Wms { get; set; }
+    /// <summary>仅控制前端总线/运维菜单显示</summary>
+    public bool OrchestrationBus { get; set; }
+    /// <summary>仅控制前端各 WCS 包菜单显示</summary>
+    public WcsPackFeatureOptions WcsPacks { get; set; } = new();
+
+    public bool IsWcsPackEnabled(string packName)
+    {
+        if (string.IsNullOrWhiteSpace(packName) || WcsPacks is null) return false;
+        var prop = typeof(WcsPackFeatureOptions).GetProperty(
+            packName,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+        if (prop?.PropertyType != typeof(bool)) return false;
+        return (bool)(prop.GetValue(WcsPacks) ?? false);
+    }
+
     /// <summary>按属性名读取开关（忽略大小写）</summary>
     public bool IsEnabled(string featureName)
     {
@@ -257,4 +277,11 @@ public class FeatureOptions
         if (prop?.PropertyType != typeof(bool)) return true;
         return (bool)(prop.GetValue(this) ?? true);
     }
+}
+
+public class WcsPackFeatureOptions
+{
+    public bool Stacker { get; set; }
+    public bool FourWay { get; set; }
+    public bool BoxSort { get; set; }
 }

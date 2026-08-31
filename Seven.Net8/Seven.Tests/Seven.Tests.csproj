@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Seven.WebApi\Seven.WebApi.csproj" />
     <ProjectReference Include="..\Seven.Infrastructure\Seven.Infrastructure.csproj" />
     <ProjectReference Include="..\Seven.Application\Seven.Application.csproj" />
+    <ProjectReference Include="..\Seven.Business\Seven.Business.csproj" />
   </ItemGroup>
 
 </Project>

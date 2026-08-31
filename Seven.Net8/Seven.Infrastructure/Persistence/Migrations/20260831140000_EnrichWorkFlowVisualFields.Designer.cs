@@ -1,0 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Seven.Infrastructure.Persistence;
+
+#nullable disable
+
+namespace Seven.Infrastructure.Persistence.Migrations;
+
+[DbContext(typeof(SevenDbContext))]
+[Migration("20260831140000_EnrichWorkFlowVisualFields")]
+partial class EnrichWorkFlowVisualFields
+{
+}

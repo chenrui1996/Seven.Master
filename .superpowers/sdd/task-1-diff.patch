@@ -1,0 +1,242 @@
+﻿# Task 1 review package (working tree, no commits)
+# Base: HEAD (pre-task tracked state) + untracked new files
+diff --git a/Seven.Net8/Seven.Infrastructure/Configuration/AppOptions.cs b/Seven.Net8/Seven.Infrastructure/Configuration/AppOptions.cs
+index cd8a4bd..8643ef7 100644
+--- a/Seven.Net8/Seven.Infrastructure/Configuration/AppOptions.cs
++++ b/Seven.Net8/Seven.Infrastructure/Configuration/AppOptions.cs
+@@ -247,6 +247,20 @@ public class FeatureOptions
+     /// <summary>设备通讯（Step7 / Modbus TCP）；细节见 DeviceComm 节</summary>
+     public bool DeviceComm { get; set; }
+ 
++    public bool Wms { get; set; }
++    public bool OrchestrationBus { get; set; }
++    public WcsPackFeatureOptions WcsPacks { get; set; } = new();
++
++    public bool IsWcsPackEnabled(string packName)
++    {
++        if (string.IsNullOrWhiteSpace(packName) || WcsPacks is null) return false;
++        var prop = typeof(WcsPackFeatureOptions).GetProperty(
++            packName,
++            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
++        if (prop?.PropertyType != typeof(bool)) return false;
++        return (bool)(prop.GetValue(WcsPacks) ?? false);
++    }
++
+     /// <summary>按属性名读取开关（忽略大小写）</summary>
+     public bool IsEnabled(string featureName)
+     {
+@@ -258,3 +272,10 @@ public class FeatureOptions
+         return (bool)(prop.GetValue(this) ?? true);
+     }
+ }
++
++public class WcsPackFeatureOptions
++{
++    public bool Stacker { get; set; }
++    public bool FourWay { get; set; }
++    public bool BoxSort { get; set; }
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs b/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs
+index 17f5a15..c6fdecb 100644
+--- a/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs
++++ b/Seven.Net8/Seven.Infrastructure/DependencyInjection.cs
+@@ -19,6 +19,7 @@ using Seven.Infrastructure.Caching;
+ using Seven.Infrastructure.Configuration;
+ using Seven.Infrastructure.DeviceComm;
+ using Seven.Infrastructure.HotStore;
++using Seven.Infrastructure.Wcs;
+ using Seven.Infrastructure.Mail;
+ using Seven.Infrastructure.Messaging;
+ using Seven.Infrastructure.Messaging.Outbox;
+@@ -62,6 +63,7 @@ public static class DependencyInjection
+         AddCache(services, configuration);
+         services.AddSevenHotStore(configuration);
+         services.AddSevenDeviceComm(configuration);
++        services.AddSevenWcs(configuration);
+         AddAuthentication(services, configuration);
+         services.AddSevenMessageQueue(configuration);
+         if (features.Quartz)
+diff --git a/Seven.Net8/Seven.WebApi/appsettings.Development.json b/Seven.Net8/Seven.WebApi/appsettings.Development.json
+index 1316401..afd1aec 100644
+--- a/Seven.Net8/Seven.WebApi/appsettings.Development.json
++++ b/Seven.Net8/Seven.WebApi/appsettings.Development.json
+@@ -1,4 +1,13 @@
+ {
++  "Features": {
++    "Wms": false,
++    "OrchestrationBus": false,
++    "WcsPacks": {
++      "Stacker": false,
++      "FourWay": false,
++      "BoxSort": false
++    }
++  },
+   "Database": {
+     "MigrateOnStartup": true
+   },
+diff --git a/Seven.Net8/Seven.WebApi/appsettings.json b/Seven.Net8/Seven.WebApi/appsettings.json
+index 1dcecce..1f76024 100644
+--- a/Seven.Net8/Seven.WebApi/appsettings.json
++++ b/Seven.Net8/Seven.WebApi/appsettings.json
+@@ -84,7 +84,14 @@
+     "AuditInterceptor": true,
+     "Builder": true,
+     "HotStore": false,
+-    "DeviceComm": true
++    "DeviceComm": true,
++    "Wms": false,
++    "OrchestrationBus": false,
++    "WcsPacks": {
++      "Stacker": false,
++      "FourWay": false,
++      "BoxSort": false
++    }
+   },
+   "DeviceComm": {
+     "SingleWriter": true,
+diff --git a/Seven.Vue3/src/stores/features.ts b/Seven.Vue3/src/stores/features.ts
+index 6f0b31c..13262b5 100644
+--- a/Seven.Vue3/src/stores/features.ts
++++ b/Seven.Vue3/src/stores/features.ts
+@@ -3,6 +3,12 @@ import { computed, ref } from 'vue'
+ import http from '../api/http'
+ 
+ /** 与后端 FeatureOptions 对齐（camelCase） */
++export interface WcsPackFeatureFlags {
++  stacker: boolean
++  fourWay: boolean
++  boxSort: boolean
++}
++
+ export interface FeatureFlags {
+   workFlow: boolean
+   quartz: boolean
+@@ -21,6 +27,9 @@ export interface FeatureFlags {
+   builder: boolean
+   hotStore: boolean
+   deviceComm: boolean
++  wms: boolean
++  orchestrationBus: boolean
++  wcsPacks: WcsPackFeatureFlags
+ }
+ 
+ const defaults: FeatureFlags = {
+@@ -41,6 +50,13 @@ const defaults: FeatureFlags = {
+   builder: true,
+   hotStore: false,
+   deviceComm: false,
++  wms: false,
++  orchestrationBus: false,
++  wcsPacks: {
++    stacker: false,
++    fourWay: false,
++    boxSort: false,
++  },
+ }
+ 
+ /** 菜单 TableName → 功能开关 */
+@@ -56,6 +72,7 @@ const menuFeatureMap: Record<string, keyof FeatureFlags> = {
+   CommRule: 'deviceComm',
+   DeviceComm: 'deviceComm',
+   DeviceCommFolder: 'deviceComm',
++  WmsFolder: 'wms',
+ }
+ 
+ export const useFeatureStore = defineStore('features', () => {
+@@ -68,9 +85,13 @@ export const useFeatureStore = defineStore('features', () => {
+ 
+   async function load() {
+     try {
+-      const res = await http.get<{ status: boolean; data?: Partial<FeatureFlags> }>('/api/config/features')
++      const res = await http.get<{ status: boolean; data?: Partial<FeatureFlags> & { wcsPacks?: Partial<WcsPackFeatureFlags> } }>('/api/config/features')
+       if (res.status && res.data) {
+-        flags.value = { ...defaults, ...res.data }
++        flags.value = {
++          ...defaults,
++          ...res.data,
++          wcsPacks: { ...defaults.wcsPacks, ...res.data.wcsPacks },
++        }
+       }
+     } catch {
+       flags.value = { ...defaults }
+diff --git a/Seven.Net8/Seven.Domain/Wcs/TablePrefixes.cs b/Seven.Net8/Seven.Domain/Wcs/TablePrefixes.cs
+new file mode 100644
+index 0000000..4d2053e
+--- /dev/null
++++ b/Seven.Net8/Seven.Domain/Wcs/TablePrefixes.cs
+@@ -0,0 +1,13 @@
++namespace Seven.Domain.Wcs;
++
++public static class TablePrefixes
++{
++    public const string Wms = "Wms_";
++    public const string Bus = "Bus_";
++    public const string Stacker = "Stk_";
++    public const string FourWay = "Fw_";
++    public const string External = "Ext_";
++    public const string InterfaceLog = "Ifc_";
++    public const string Control = "Ctl_";
++    public const string Scada = "Scd_";
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs b/Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs
+new file mode 100644
+index 0000000..3331db8
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs
+@@ -0,0 +1,16 @@
++using Microsoft.Extensions.Configuration;
++using Microsoft.Extensions.DependencyInjection;
++using Seven.Infrastructure.Configuration;
++
++namespace Seven.Infrastructure.Wcs;
++
++/// <summary>WCS/WMS DI 注册（Phase A 骨架）</summary>
++public static class WcsServiceCollectionExtensions
++{
++    /// <summary>按 Features.Wms / WcsPacks 预留扩展点；Phase A 仅读取配置</summary>
++    public static IServiceCollection AddSevenWcs(this IServiceCollection services, IConfiguration configuration)
++    {
++        _ = configuration.GetSection(FeatureOptions.SectionName).Get<FeatureOptions>() ?? new FeatureOptions();
++        return services;
++    }
++}
+diff --git a/Seven.Net8/Seven.Tests/Wcs/FeatureOptionsWcsTests.cs b/Seven.Net8/Seven.Tests/Wcs/FeatureOptionsWcsTests.cs
+new file mode 100644
+index 0000000..ce40f57
+--- /dev/null
++++ b/Seven.Net8/Seven.Tests/Wcs/FeatureOptionsWcsTests.cs
+@@ -0,0 +1,34 @@
++using FluentAssertions;
++using Seven.Infrastructure.Configuration;
++using Xunit;
++
++namespace Seven.Tests.Wcs;
++
++public class FeatureOptionsWcsTests
++{
++    [Fact]
++    public void IsEnabled_ShouldRead_NestedPack_ViaFlatName_OrExplicit()
++    {
++        var f = new FeatureOptions
++        {
++            Wms = true,
++            OrchestrationBus = true,
++            WcsPacks = new WcsPackFeatureOptions { Stacker = true, FourWay = false }
++        };
++        f.Wms.Should().BeTrue();
++        f.WcsPacks.Stacker.Should().BeTrue();
++        f.WcsPacks.FourWay.Should().BeFalse();
++    }
++
++    [Fact]
++    public void IsWcsPackEnabled_ShouldResolve_PackName()
++    {
++        var f = new FeatureOptions
++        {
++            WcsPacks = new WcsPackFeatureOptions { Stacker = true, FourWay = false }
++        };
++        f.IsWcsPackEnabled("Stacker").Should().BeTrue();
++        f.IsWcsPackEnabled("FourWay").Should().BeFalse();
++        f.IsWcsPackEnabled("Unknown").Should().BeFalse();
++    }
++}

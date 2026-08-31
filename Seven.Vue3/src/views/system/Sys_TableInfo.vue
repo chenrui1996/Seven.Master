@@ -312,7 +312,7 @@ async function save() {
     ElMessage.success(t('common.success'))
     await loadTree()
   } else {
-    ElMessage.error(res.message || '保存失败')
+    ElMessage.error(res.message || t('sysCoder.saveFailed'))
   }
 }
 
@@ -332,7 +332,7 @@ async function saveDetails() {
       }))
     }
   } else {
-    ElMessage.error(res.message || '保存失败')
+    ElMessage.error(res.message || t('sysCoder.saveFailed'))
   }
 }
 
@@ -351,7 +351,7 @@ async function scanForeignKeys() {
       await loadDetails(tableInfo.tableName)
     }
   } else {
-    ElMessage.error(res.message || '扫描失败')
+    ElMessage.error(res.message || t('sysCoder.scanFailed'))
   }
 }
 
@@ -362,7 +362,7 @@ async function syncTable() {
     ElMessage.success(res.message || t('common.success'))
     await loadTable(tableInfo.table_Id, true)
   } else {
-    ElMessage.error(res.message || '同步失败')
+    ElMessage.error(res.message || t('sysCoder.syncFailed'))
   }
 }
 
@@ -372,12 +372,12 @@ async function createServices() {
     namespace: tableInfo.namespace,
     folderName: tableInfo.folderName,
   })
-  ElMessage.success(res.message || (res.status ? t('common.success') : '失败'))
+  ElMessage.success(res.message || (res.status ? t('common.success') : t('sysCoder.failed')))
 }
 
 async function createVue() {
   const res = await http.post('/api/Builder/CreateVuePage', { tableInfo: { ...tableInfo } })
-  ElMessage.success(res.message || (res.status ? t('common.success') : '失败'))
+  ElMessage.success(res.message || (res.status ? t('common.success') : t('sysCoder.failed')))
 }
 
 async function delTree() {
@@ -390,7 +390,7 @@ async function delTree() {
     tableDetails.value = []
     await loadTree()
   } else {
-    ElMessage.error(res.message || '删除失败')
+    ElMessage.error(res.message || t('sysCoder.deleteFailed'))
   }
 }
 

@@ -1,0 +1,296 @@
+﻿Task 2 working-tree diff
+diff --git a/Seven.Net8/Seven.Application/Wcs/IEquipmentTriggerPort.cs b/Seven.Net8/Seven.Application/Wcs/IEquipmentTriggerPort.cs
+new file mode 100644
+index 0000000..8b1c897
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wcs/IEquipmentTriggerPort.cs
+@@ -0,0 +1,10 @@
++namespace Seven.Application.Wcs;
++
++/// <summary>通讯无关：映射 LES_v2 的 SUDR/SUDS/SUM* 语义，由未来通讯包调用。</summary>
++public interface IEquipmentTriggerPort
++{
++    event Func<DestinationRequestTrigger, Task>? DestinationRequested; // SUDR
++    Task DispatchDestinationAsync(DispatchDestinationCommand cmd, CancellationToken ct = default); // SUDS
++    Task DispatchMoveAsync(DispatchMoveCommand cmd, CancellationToken ct = default); // SUMT/SUMM/SUPM
++    event Func<DeviceSegmentFeedback, Task>? SegmentFeedback; // SUMR/SUPR/SULL…
++}
+diff --git a/Seven.Net8/Seven.Application/Wcs/IOrchestrationBus.cs b/Seven.Net8/Seven.Application/Wcs/IOrchestrationBus.cs
+new file mode 100644
+index 0000000..38c8929
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wcs/IOrchestrationBus.cs
+@@ -0,0 +1,8 @@
++namespace Seven.Application.Wcs;
++
++/// <summary>薄编排总线：跨包运输单与 Leg 事件归一入口。</summary>
++public interface IOrchestrationBus
++{
++    Task<Guid> CreateTransportOrderAsync(CreateTransportOrderRequest req, CancellationToken ct = default);
++    Task OnLegEventAsync(LegEvent evt, CancellationToken ct = default);
++}
+diff --git a/Seven.Net8/Seven.Application/Wcs/IWcsPack.cs b/Seven.Net8/Seven.Application/Wcs/IWcsPack.cs
+new file mode 100644
+index 0000000..610bb06
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wcs/IWcsPack.cs
+@@ -0,0 +1,12 @@
++namespace Seven.Application.Wcs;
++
++/// <summary>WCS 包契约：接单、取消、查询与健康检查。</summary>
++public interface IWcsPack
++{
++    string PackId { get; }
++    Task<bool> CanHandleAsync(string fromLocationCode, string toLocationCode, CancellationToken ct = default);
++    Task<AcceptLegResult> AcceptLegAsync(TransportLegDto leg, CancellationToken ct = default);
++    Task CancelLegAsync(Guid legId, CancellationToken ct = default);
++    Task<LegStatusDto?> QueryLegAsync(Guid legId, CancellationToken ct = default);
++    Task<PackHealthDto> HealthAsync(CancellationToken ct = default);
++}
+diff --git a/Seven.Net8/Seven.Application/Wcs/WcsModels.cs b/Seven.Net8/Seven.Application/Wcs/WcsModels.cs
+new file mode 100644
+index 0000000..5b0ee97
+--- /dev/null
++++ b/Seven.Net8/Seven.Application/Wcs/WcsModels.cs
+@@ -0,0 +1,69 @@
++namespace Seven.Application.Wcs;
++
++public record TransportLegDto(
++    Guid LegId,
++    Guid OrderId,
++    string PackId,
++    int Seq,
++    string FromCode,
++    string ToCode,
++    string ContainerCode,
++    string? HandoverIn,
++    string? HandoverOut);
++
++public enum LegEventType
++{
++    Progress,
++    Completed,
++    Failed,
++    Cancelled,
++    DestinationRequest
++}
++
++public record LegEvent(
++    Guid LegId,
++    LegEventType EventType,
++    string? Status = null,
++    string? Message = null);
++
++public record AcceptLegResult(bool Accepted, string? RejectReason = null);
++
++public record DestinationRequestTrigger(
++    string ContainerCode,
++    string SourcePointCode,
++    int Height,
++    int Weight,
++    string CheckResult);
++
++public record DispatchDestinationCommand(
++    string ContainerCode,
++    string DestinationPointCode,
++    Guid? LegId = null);
++
++public record DispatchMoveCommand(
++    string ContainerCode,
++    string FromPointCode,
++    string ToPointCode,
++    Guid? LegId = null);
++
++public record DeviceSegmentFeedback(
++    string ContainerCode,
++    string SegmentPointCode,
++    string FeedbackCode,
++    Guid? LegId = null);
++
++public record CreateTransportOrderRequest(
++    string ContainerCode,
++    string FromLocationCode,
++    string ToLocationCode);
++
++public record LegStatusDto(
++    Guid LegId,
++    string Status,
++    string? Message = null);
++
++public record PackHealthDto(
++    string PackId,
++    bool IsHealthy,
++    bool CanAcceptLegs,
++    string? Message = null);
+diff --git a/Seven.Net8/Seven.Infrastructure/Wcs/Triggers/InMemoryEquipmentTriggerPort.cs b/Seven.Net8/Seven.Infrastructure/Wcs/Triggers/InMemoryEquipmentTriggerPort.cs
+new file mode 100644
+index 0000000..5407c74
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wcs/Triggers/InMemoryEquipmentTriggerPort.cs
+@@ -0,0 +1,106 @@
++using Seven.Application.Wcs;
++
++namespace Seven.Infrastructure.Wcs.Triggers;
++
++/// <summary>仿真/测试用设备触发端口：事件订阅 + 下发记录。</summary>
++public sealed class InMemoryEquipmentTriggerPort : IEquipmentTriggerPort
++{
++    private readonly object _lock = new();
++    private Func<DestinationRequestTrigger, Task>? _destinationRequested;
++    private Func<DeviceSegmentFeedback, Task>? _segmentFeedback;
++
++    public List<DispatchDestinationCommand> DispatchedDestinations { get; } = [];
++    public List<DispatchMoveCommand> DispatchedMoves { get; } = [];
++
++    public event Func<DestinationRequestTrigger, Task>? DestinationRequested
++    {
++        add
++        {
++            lock (_lock)
++            {
++                _destinationRequested += value;
++            }
++        }
++        remove
++        {
++            lock (_lock)
++            {
++                _destinationRequested -= value;
++            }
++        }
++    }
++
++    public event Func<DeviceSegmentFeedback, Task>? SegmentFeedback
++    {
++        add
++        {
++            lock (_lock)
++            {
++                _segmentFeedback += value;
++            }
++        }
++        remove
++        {
++            lock (_lock)
++            {
++                _segmentFeedback -= value;
++            }
++        }
++    }
++
++    public async Task SimulateDestinationRequestAsync(
++        DestinationRequestTrigger trigger,
++        CancellationToken ct = default)
++    {
++        ct.ThrowIfCancellationRequested();
++        Func<DestinationRequestTrigger, Task>? handler;
++        lock (_lock)
++        {
++            handler = _destinationRequested;
++        }
++
++        if (handler != null)
++        {
++            await handler(trigger).ConfigureAwait(false);
++        }
++    }
++
++    public async Task SimulateSegmentFeedbackAsync(
++        DeviceSegmentFeedback feedback,
++        CancellationToken ct = default)
++    {
++        ct.ThrowIfCancellationRequested();
++        Func<DeviceSegmentFeedback, Task>? handler;
++        lock (_lock)
++        {
++            handler = _segmentFeedback;
++        }
++
++        if (handler != null)
++        {
++            await handler(feedback).ConfigureAwait(false);
++        }
++    }
++
++    public Task DispatchDestinationAsync(DispatchDestinationCommand cmd, CancellationToken ct = default)
++    {
++        ct.ThrowIfCancellationRequested();
++        lock (_lock)
++        {
++            DispatchedDestinations.Add(cmd);
++        }
++
++        return Task.CompletedTask;
++    }
++
++    public Task DispatchMoveAsync(DispatchMoveCommand cmd, CancellationToken ct = default)
++    {
++        ct.ThrowIfCancellationRequested();
++        lock (_lock)
++        {
++            DispatchedMoves.Add(cmd);
++        }
++
++        return Task.CompletedTask;
++    }
++}
+diff --git a/Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs b/Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs
+new file mode 100644
+index 0000000..c68e65e
+--- /dev/null
++++ b/Seven.Net8/Seven.Infrastructure/Wcs/WcsServiceCollectionExtensions.cs
+@@ -0,0 +1,19 @@
++using Microsoft.Extensions.Configuration;
++using Microsoft.Extensions.DependencyInjection;
++using Seven.Application.Wcs;
++using Seven.Infrastructure.Configuration;
++using Seven.Infrastructure.Wcs.Triggers;
++
++namespace Seven.Infrastructure.Wcs;
++
++/// <summary>WCS/WMS DI 注册（Phase A 骨架）</summary>
++public static class WcsServiceCollectionExtensions
++{
++    /// <summary>按 Features.Wms / WcsPacks 预留扩展点；Phase A 仅读取配置</summary>
++    public static IServiceCollection AddSevenWcs(this IServiceCollection services, IConfiguration configuration)
++    {
++        _ = configuration.GetSection(FeatureOptions.SectionName).Get<FeatureOptions>() ?? new FeatureOptions();
++        services.AddSingleton<IEquipmentTriggerPort, InMemoryEquipmentTriggerPort>();
++        return services;
++    }
++}
+diff --git a/Seven.Net8/Seven.Tests/Wcs/EquipmentTriggerPortTests.cs b/Seven.Net8/Seven.Tests/Wcs/EquipmentTriggerPortTests.cs
+new file mode 100644
+index 0000000..19bdf13
+--- /dev/null
++++ b/Seven.Net8/Seven.Tests/Wcs/EquipmentTriggerPortTests.cs
+@@ -0,0 +1,29 @@
++using FluentAssertions;
++using Seven.Application.Wcs;
++using Seven.Infrastructure.Wcs.Triggers;
++using Xunit;
++
++namespace Seven.Tests.Wcs;
++
++public class EquipmentTriggerPortTests
++{
++    [Fact]
++    public async Task DestinationRequested_ShouldInvoke_Subscriber()
++    {
++        var port = new InMemoryEquipmentTriggerPort();
++        DestinationRequestTrigger? got = null;
++        port.DestinationRequested += t => { got = t; return Task.CompletedTask; };
++        await port.SimulateDestinationRequestAsync(new DestinationRequestTrigger(
++            "TP001", "RP_IN_01", 1, 1, "OK"));
++        got!.ContainerCode.Should().Be("TP001");
++    }
++
++    [Fact]
++    public async Task DispatchDestinationAsync_ShouldRecord_Command()
++    {
++        var port = new InMemoryEquipmentTriggerPort();
++        var cmd = new DispatchDestinationCommand("TP001", "RP_OUT_01");
++        await port.DispatchDestinationAsync(cmd);
++        port.DispatchedDestinations.Should().Contain(cmd);
++    }
++}

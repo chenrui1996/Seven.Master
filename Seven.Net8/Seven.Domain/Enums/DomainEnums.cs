@@ -125,25 +125,3 @@ public enum AlarmStatus
     /// <summary>已清除</summary>
     Cleared = 2
 }
-
-/// <summary>
-/// 设备运行状态
-/// </summary>
-public enum DeviceStatus
-{
-    /// <summary>离线</summary>
-    [System.ComponentModel.Description("离线")]
-    Offline = 0,
-
-    /// <summary>在线</summary>
-    [System.ComponentModel.Description("在线")]
-    Online = 1,
-
-    /// <summary>故障</summary>
-    [System.ComponentModel.Description("故障")]
-    Fault = 2,
-
-    /// <summary>维护中</summary>
-    [System.ComponentModel.Description("维护中")]
-    Maintenance = 3
-}

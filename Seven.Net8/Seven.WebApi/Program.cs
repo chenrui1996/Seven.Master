@@ -10,6 +10,7 @@ using Seven.Infrastructure;
 using Seven.Infrastructure.Configuration;
 using Seven.Infrastructure.Middleware;
 using Seven.Infrastructure.Persistence;
+using Seven.Infrastructure.Simulator.Gateway;
 using Seven.WebApi;
 using Seven.WebApi.Hubs;
 
@@ -73,6 +74,12 @@ builder.Services.AddSwaggerGen(c =>
         Title = "Seven Ops API",
         Version = apiVersion,
         Description = "告警、消息队列、文件、邮件、通知、健康检查",
+    });
+    c.SwaggerDoc("pda", new OpenApiInfo
+    {
+        Title = "Seven PDA API",
+        Version = apiVersion,
+        Description = "WMS PDA：平库收货/上架等扫码契约",
     });
 
     c.TagActionsBy(api =>
@@ -161,6 +168,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/workflow/swagger.json", "Workflow v1");
         c.SwaggerEndpoint("/swagger/builder/swagger.json", "Builder v1");
         c.SwaggerEndpoint("/swagger/ops/swagger.json", "Ops v1");
+        c.SwaggerEndpoint("/swagger/pda/swagger.json", "PDA v1");
     });
 }
 
@@ -193,6 +201,7 @@ if (features.SignalR)
         app.MapHub<AlarmHub>("/hub/alarm");
     if (features.DeviceComm)
         app.MapHub<DeviceCommHub>("/hub/devicecomm");
+    app.MapHub<SimWcsProxyHub>("/hubs/sim-wcs-proxy");
 }
 app.MapSevenHealthChecks();
 app.MapSevenMetrics();

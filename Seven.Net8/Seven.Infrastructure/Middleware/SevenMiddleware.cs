@@ -6,35 +6,48 @@ using Seven.Domain.Common;
 
 namespace Seven.Infrastructure.Middleware;
 
-/// <summary>
-/// 全局异常处理中间件
-/// </summary>
+/// <summary>统一异常处理：AppException 按业务码返回；未知异常 → SYS.UNHANDLED。</summary>
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    /// <summary>构造函数</summary>
     public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
     }
 
-    /// <summary>处理请求</summary>
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
             await _next(context);
         }
+        catch (AppException ex)
+        {
+            _logger.LogWarning(ex, "业务异常 {Code}: {Message}", ex.Code, ex.Message);
+            await WriteErrorAsync(context, ex.HttpStatus, ex.Code, ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "未处理异常: {Message}", ex.Message);
-            context.Response.StatusCode = 500;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(WebResponseContent.Error(ex.Message)));
+            await WriteErrorAsync(context, StatusCodes.Status500InternalServerError,
+                ExceptionCodes.Sys.Unhandled, ex.Message);
         }
+    }
+
+    private static async Task WriteErrorAsync(HttpContext context, int status, string code, string message)
+    {
+        if (context.Response.HasStarted) return;
+        context.Response.StatusCode = status;
+        context.Response.ContentType = "application/json";
+        var traceId = context.Items["TraceId"]?.ToString() ?? context.TraceIdentifier;
+        var body = new { status = false, code, message, traceId, data = (object?)null };
+        await context.Response.WriteAsync(JsonSerializer.Serialize(body, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        }));
     }
 }
 

@@ -1,4 +1,5 @@
--- Legrand.Master → Seven.Master 数据迁移脚本
+-- Legrand.Master → Seven.Master 平台数据迁移脚本（用户/角色/菜单）
+-- WMS 主数据与库存（LES→Seven，含前缀）见：scripts/les-migrate/README.md
 -- 注意：密码字段无法从 DES 直接迁移到 BCrypt，迁移后用户需首次登录重置密码
 
 -- ========== 1. 用户迁移 ==========

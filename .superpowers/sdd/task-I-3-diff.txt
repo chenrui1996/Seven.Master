@@ -1,0 +1,645 @@
+﻿diff --git a/Seven.Net8/Seven.Application/Simulator/ISimulationDeployService.cs b/Seven.Net8/Seven.Application/Simulator/ISimulationDeployService.cs
+index c6f63ff..970762a 100644
+--- a/Seven.Net8/Seven.Application/Simulator/ISimulationDeployService.cs
++++ b/Seven.Net8/Seven.Application/Simulator/ISimulationDeployService.cs
+@@ -10,28 +10,39 @@ public record SimFeaturesDto(
+ 
+ public record SimWcsPacksDto(bool Stacker, bool FourWay, bool BoxSort);
+ 
+ public record SimMapNodeDto(string Id, string Code, double X, double Y);
+ public record SimMapEdgeDto(string Id, string From, string To);
+ public record SimMapDeviceDto(string Id, string Code, string Type, double X, double Y);
++public record SimMapRequestPointDto(string Code, string MappedLocationCode);
+ 
+ public record SimMapDto(
+     string PackId,
+     IReadOnlyList<SimMapNodeDto> Nodes,
+     IReadOnlyList<SimMapEdgeDto>? Edges = null,
+-    IReadOnlyList<SimMapDeviceDto>? Devices = null);
++    IReadOnlyList<SimMapDeviceDto>? Devices = null,
++    IReadOnlyList<SimMapRequestPointDto>? RequestPoints = null);
++
++public record SimScadaViewDto(string Code, string Name, int Width, int Height);
++public record SimScadaDto(IReadOnlyList<SimScadaViewDto>? Views = null);
++
++public record SimPromoteDeviceDto(string Code, string Host, int Port, string Protocol);
++public record SimPromoteDto(IReadOnlyList<SimPromoteDeviceDto>? Devices = null);
+ 
+ public record SimProjectDto(
+     int Version,
+     SimProjectMetaDto Meta,
+-    SimMapDto Map);
++    SimMapDto Map,
++    SimScadaDto? Scada = null,
++    SimPromoteDto? Promote = null);
+ 
+ public record SimProjectMetaDto(
+     string Name,
+     SimFeaturesDto Features,
+-    string RuntimeMode);
++    string RuntimeMode,
++    string SimCommsMode = "Trigger");
+ 
+ public record ValidateFeaturesResult(bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings);
+ 
+ public record DeployResult(
+     int DeploymentId,
+     string WarehouseCode,
+@@ -41,12 +52,13 @@ public record DeployResult(
+ 
+ public interface ISimulationDeployService
+ {
+     ValidateFeaturesResult ValidateFeatures(SimFeaturesDto features);
+     Task<DeployResult> DeployAsync(SimProjectDto project, CancellationToken ct = default);
+     Task UndeployAsync(string projectName, bool removeLocations = false, CancellationToken ct = default);
++    Task ResetAsync(string projectName, CancellationToken ct = default);
+     Task<IReadOnlyList<SimDeploymentSummary>> ListDeploymentsAsync(CancellationToken ct = default);
+ }
+ 
+ public record SimDeploymentSummary(
+     int Id,
+     string ProjectName,
+diff --git a/Seven.Net8/Seven.Infrastructure/Simulator/SimulationDeployService.cs b/Seven.Net8/Seven.Infrastructure/Simulator/SimulationDeployService.cs
+index a52ec04..8fa69f7 100644
+--- a/Seven.Net8/Seven.Infrastructure/Simulator/SimulationDeployService.cs
++++ b/Seven.Net8/Seven.Infrastructure/Simulator/SimulationDeployService.cs
+@@ -1,9 +1,10 @@
+ using System.Text.Json;
+ using Microsoft.EntityFrameworkCore;
+ using Seven.Application.Simulator;
++using Seven.Domain.Entities.Platform;
+ using Seven.Domain.Entities.Simulator;
+ using Seven.Domain.Entities.Wcs.FourWay;
+ using Seven.Domain.Entities.Wcs.Stacker;
+ using Seven.Domain.Entities.Wms;
+ using Seven.Domain.Enums;
+ using Seven.Domain.Wcs;
+@@ -117,16 +118,18 @@ public sealed class SimulationDeployService : ISimulationDeployService
+         }
+ 
+         await _db.SaveChangesAsync(ct);
+ 
+         var edgeCount = 0;
+         if (packId == WcsPackIds.Stacker)
+-            await EnsureStackerSeedAsync(project, packId, ct);
++            edgeCount = await EnsureStackerSeedAsync(project, packId, ct);
+         else if (packId == WcsPackIds.FourWay)
+             edgeCount = await EnsureFourWayMapAsync(project, packId, ct);
+ 
++        await EnsureScadaAsync(project, packId, ct);
++
+         var active = await _db.SimDeployments
+             .Where(x => x.ProjectName == project.Meta.Name && x.Status == "Deployed")
+             .ToListAsync(ct);
+         foreach (var row in active)
+         {
+             row.Status = "Undeployed";
+@@ -197,12 +200,177 @@ public sealed class SimulationDeployService : ISimulationDeployService
+             }
+         }
+ 
+         await _db.SaveChangesAsync(ct);
+     }
+ 
++    public async Task ResetAsync(string projectName, CancellationToken ct = default)
++    {
++        if (string.IsNullOrWhiteSpace(projectName))
++            throw new InvalidOperationException("工程名称不能为空");
++
++        var warehouseCode = SimWarehousePrefix + SanitizeCode(projectName);
++        var warehouse = await _db.WmsWarehouses.FirstOrDefaultAsync(x => x.Code == warehouseCode, ct)
++            ?? throw new InvalidOperationException($"未找到仿真仓库: {warehouseCode}");
++
++        var locationCodes = await _db.WmsLocations
++            .Where(x => x.WarehouseId == warehouse.Id)
++            .Select(x => x.Code)
++            .ToListAsync(ct);
++        var locationSet = locationCodes.ToHashSet(StringComparer.OrdinalIgnoreCase);
++        if (locationSet.Count == 0)
++        {
++            await _db.SaveChangesAsync(ct);
++            return;
++        }
++
++        bool Touches(string? code) =>
++            !string.IsNullOrWhiteSpace(code) && locationSet.Contains(code);
++
++        var openOrderStatuses = new[]
++        {
++            BusOrderStatus.Created,
++            BusOrderStatus.Planning,
++            BusOrderStatus.Executing,
++            BusOrderStatus.Cancelling
++        };
++        var orders = await _db.BusTransportOrders
++            .Include(x => x.Legs)
++            .Where(x => openOrderStatuses.Contains(x.Status))
++            .ToListAsync(ct);
++
++        var affectedLegIds = new HashSet<Guid>();
++        foreach (var order in orders)
++        {
++            if (!Touches(order.FromLocationCode) && !Touches(order.ToLocationCode))
++                continue;
++
++            order.Status = BusOrderStatus.Failed;
++            order.FailReason = "Simulation reset";
++            order.ModifyDate = DateTime.UtcNow;
++
++            foreach (var leg in order.Legs)
++            {
++                affectedLegIds.Add(leg.Id);
++                if (leg.Status is BusLegStatus.Completed or BusLegStatus.Failed or BusLegStatus.Cancelled)
++                    continue;
++                leg.Status = BusLegStatus.Cancelled;
++                leg.Message = "Simulation reset";
++                leg.ModifyDate = DateTime.UtcNow;
++            }
++        }
++
++        foreach (var task in await _db.StkPutAwayTasks
++                     .Where(x => x.Status != StkPutAwayStatus.Completed
++                                 && x.Status != StkPutAwayStatus.Cancelled
++                                 && x.Status != StkPutAwayStatus.Failed)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId) && !Touches(task.FromCode) && !Touches(task.ToCode)
++                && !Touches(task.AssignedLocationCode))
++                continue;
++            task.Status = StkPutAwayStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.StkRetrievalTasks
++                     .Where(x => x.Status != StkRetrievalStatus.Completed
++                                 && x.Status != StkRetrievalStatus.Cancelled
++                                 && x.Status != StkRetrievalStatus.Failed
++                                 && x.Status != StkRetrievalStatus.Suspended)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId) && !Touches(task.FromCode) && !Touches(task.ToCode))
++                continue;
++            task.Status = StkRetrievalStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.StkDeviceTasks
++                     .Where(x => x.Status != StkDeviceTaskStatus.Completed && x.Status != StkDeviceTaskStatus.Failed)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId)
++                && !Touches(task.FromPointCode)
++                && !Touches(task.DestinationPointCode))
++                continue;
++            task.Status = StkDeviceTaskStatus.Failed;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.FwShuttleTasks
++                     .Where(x => x.Status != FwShuttleTaskStatus.Completed
++                                 && x.Status != FwShuttleTaskStatus.Cancelled
++                                 && x.Status != FwShuttleTaskStatus.Failed)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId) && !Touches(task.FromCode) && !Touches(task.ToCode))
++                continue;
++            task.Status = FwShuttleTaskStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.FwPutAwayTasks
++                     .Where(x => x.Status != FwPutAwayStatus.Completed
++                                 && x.Status != FwPutAwayStatus.Cancelled
++                                 && x.Status != FwPutAwayStatus.Failed)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId) && !Touches(task.FromCode) && !Touches(task.ToCode)
++                && !Touches(task.AssignedLocationCode))
++                continue;
++            task.Status = FwPutAwayStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.FwRetrievalTasks
++                     .Where(x => x.Status != FwRetrievalStatus.Completed
++                                 && x.Status != FwRetrievalStatus.Cancelled
++                                 && x.Status != FwRetrievalStatus.Failed
++                                 && x.Status != FwRetrievalStatus.Suspended)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId) && !Touches(task.FromCode) && !Touches(task.ToCode))
++                continue;
++            task.Status = FwRetrievalStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.FwHoistTasks
++                     .Where(x => x.Status != FwHoistTaskStatus.Completed
++                                 && x.Status != FwHoistTaskStatus.Cancelled
++                                 && x.Status != FwHoistTaskStatus.Failed)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId)
++                && !Touches(task.FromCode)
++                && !Touches(task.ToCode)
++                && !Touches(task.SrcAddress)
++                && !Touches(task.DesAddress))
++                continue;
++            task.Status = FwHoistTaskStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        foreach (var task in await _db.FwHoistExecTasks
++                     .Where(x => x.Status != FwHoistExecStatus.Completed
++                                 && x.Status != FwHoistExecStatus.Cancelled
++                                 && x.Status != FwHoistExecStatus.Failed)
++                     .ToListAsync(ct))
++        {
++            if (!affectedLegIds.Contains(task.LegId)
++                && !Touches(task.SrcAddress)
++                && !Touches(task.DesAddress))
++                continue;
++            task.Status = FwHoistExecStatus.Cancelled;
++            task.ModifyDate = DateTime.UtcNow;
++        }
++
++        await _db.SaveChangesAsync(ct);
++    }
++
+     public async Task<IReadOnlyList<SimDeploymentSummary>> ListDeploymentsAsync(CancellationToken ct = default)
+     {
+         return await _db.SimDeployments.AsNoTracking()
+             .OrderByDescending(x => x.Id)
+             .Take(50)
+             .Select(x => new SimDeploymentSummary(
+@@ -244,29 +412,74 @@ public sealed class SimulationDeployService : ISimulationDeployService
+         };
+         _db.WmsLayers.Add(layer);
+         await _db.SaveChangesAsync(ct);
+         return layer.Id;
+     }
+ 
+-    private async Task EnsureStackerSeedAsync(SimProjectDto project, string packId, CancellationToken ct)
++    private async Task<int> EnsureStackerSeedAsync(SimProjectDto project, string packId, CancellationToken ct)
+     {
+-        foreach (var node in project.Map.Nodes)
++        var edgeCount = 0;
++        foreach (var edge in project.Map.Edges ?? [])
+         {
+-            var raw = node.Code?.Trim();
+-            if (string.IsNullOrEmpty(raw)) continue;
+-            var code = PackCodeRules.EnsurePrefix(raw, packId);
+-            var exists = await _db.StkRequestPoints.AnyAsync(x => x.Code == code, ct);
++            var fromCode = PackCodeRules.EnsurePrefix(edge.From.Trim(), packId);
++            var toCode = PackCodeRules.EnsurePrefix(edge.To.Trim(), packId);
++            var exists = await _db.StkRoutes.AnyAsync(
++                x => x.MapCode == string.Empty && x.FromCode == fromCode && x.ToCode == toCode, ct);
+             if (exists) continue;
+-            _db.StkRequestPoints.Add(new StkRequestPoint
++            _db.StkRoutes.Add(new StkRoute
+             {
+-                Code = code,
+-                PointType = StkRequestPointType.AisleRequest,
++                FromCode = fromCode,
++                ToCode = toCode,
++                Weight = 1,
++                Capacity = 1,
+                 IsEnabled = true,
+-                AisleCode = code,
+                 CreateDate = DateTime.UtcNow
+             });
++            edgeCount++;
++        }
++
++        var requestPoints = project.Map.RequestPoints ?? [];
++        if (requestPoints.Count > 0)
++        {
++            foreach (var rp in requestPoints)
++            {
++                if (string.IsNullOrWhiteSpace(rp.Code)) continue;
++                var code = PackCodeRules.EnsurePrefix(rp.Code.Trim(), packId);
++                var exists = await _db.StkRequestPoints.AnyAsync(x => x.Code == code, ct);
++                if (exists) continue;
++                var mapped = string.IsNullOrWhiteSpace(rp.MappedLocationCode)
++                    ? code
++                    : PackCodeRules.EnsurePrefix(rp.MappedLocationCode.Trim(), packId);
++                _db.StkRequestPoints.Add(new StkRequestPoint
++                {
++                    Code = code,
++                    PointType = StkRequestPointType.AisleRequest,
++                    IsEnabled = true,
++                    AisleCode = mapped,
++                    CreateDate = DateTime.UtcNow
++                });
++            }
++        }
++        else
++        {
++            foreach (var node in project.Map.Nodes)
++            {
++                var raw = node.Code?.Trim();
++                if (string.IsNullOrEmpty(raw)) continue;
++                var code = PackCodeRules.EnsurePrefix(raw, packId);
++                var exists = await _db.StkRequestPoints.AnyAsync(x => x.Code == code, ct);
++                if (exists) continue;
++                _db.StkRequestPoints.Add(new StkRequestPoint
++                {
++                    Code = code,
++                    PointType = StkRequestPointType.AisleRequest,
++                    IsEnabled = true,
++                    AisleCode = code,
++                    CreateDate = DateTime.UtcNow
++                });
++            }
+         }
+ 
+         if (!await _db.StkAssignmentPolicies.AnyAsync(ct))
+         {
+             foreach (var node in project.Map.Nodes.Take(3))
+             {
+@@ -283,12 +496,13 @@ public sealed class SimulationDeployService : ISimulationDeployService
+                     CreateDate = DateTime.UtcNow
+                 });
+             }
+         }
+ 
+         await _db.SaveChangesAsync(ct);
++        return edgeCount;
+     }
+ 
+     private async Task<int> EnsureFourWayMapAsync(SimProjectDto project, string packId, CancellationToken ct)
+     {
+         var mapCode = $"SIM_{SanitizeCode(project.Meta.Name)}";
+         var existingMaps = await _db.FwMapVersions.Where(x => x.Code == mapCode).ToListAsync(ct);
+@@ -343,12 +557,64 @@ public sealed class SimulationDeployService : ISimulationDeployService
+         }
+ 
+         await _db.SaveChangesAsync(ct);
+         return edgeCount;
+     }
+ 
++    private async Task EnsureScadaAsync(SimProjectDto project, string packId, CancellationToken ct)
++    {
++        var views = project.Scada?.Views;
++        if (views is { Count: > 0 })
++            return;
++
++        var viewCode = $"SIM_{SanitizeCode(project.Meta.Name)}";
++        var view = await _db.ScdViews.FirstOrDefaultAsync(x => x.Code == viewCode, ct);
++        if (view == null)
++        {
++            var (width, height) = ComputeScadaCanvasSize(project.Map.Nodes);
++            view = new ScdView
++            {
++                Code = viewCode,
++                Name = viewCode,
++                Width = width,
++                Height = height,
++                CreateDate = DateTime.UtcNow
++            };
++            _db.ScdViews.Add(view);
++            await _db.SaveChangesAsync(ct);
++        }
++
++        foreach (var node in project.Map.Nodes)
++        {
++            if (string.IsNullOrWhiteSpace(node.Code)) continue;
++            var locationCode = PackCodeRules.EnsurePrefix(node.Code.Trim(), packId);
++            var exists = await _db.ScdNodeBinds.AnyAsync(
++                x => x.ViewId == view.Id && x.LocationCode == locationCode, ct);
++            if (exists) continue;
++            _db.ScdNodeBinds.Add(new ScdNodeBind
++            {
++                ViewId = view.Id,
++                LocationCode = locationCode,
++                X = node.X,
++                Y = node.Y,
++                Label = node.Code.Trim(),
++                CreateDate = DateTime.UtcNow
++            });
++        }
++
++        await _db.SaveChangesAsync(ct);
++    }
++
++    private static (int Width, int Height) ComputeScadaCanvasSize(IReadOnlyList<SimMapNodeDto> nodes)
++    {
++        if (nodes.Count == 0) return (800, 600);
++        var maxX = nodes.Max(n => n.X);
++        var maxY = nodes.Max(n => n.Y);
++        return ((int)Math.Max(800, maxX + 100), (int)Math.Max(600, maxY + 100));
++    }
++
+     private static string SanitizeCode(string name)
+     {
+         var chars = name.Where(c => char.IsLetterOrDigit(c) || c is '_' or '-').ToArray();
+         var s = new string(chars);
+         return string.IsNullOrWhiteSpace(s) ? "DEMO" : s.ToUpperInvariant();
+     }
+diff --git a/Seven.Net8/Seven.Tests/Simulator/SimulationDeployServiceTests.cs b/Seven.Net8/Seven.Tests/Simulator/SimulationDeployServiceTests.cs
+index 83dd88e..61f158c 100644
+--- a/Seven.Net8/Seven.Tests/Simulator/SimulationDeployServiceTests.cs
++++ b/Seven.Net8/Seven.Tests/Simulator/SimulationDeployServiceTests.cs
+@@ -1,9 +1,12 @@
+ using FluentAssertions;
+ using Microsoft.EntityFrameworkCore;
+ using Seven.Application.Simulator;
++using Seven.Domain.Entities.Bus;
++using Seven.Domain.Entities.Wcs.Stacker;
++using Seven.Domain.Enums;
+ using Seven.Infrastructure.Persistence;
+ using Seven.Infrastructure.Simulator;
+ 
+ namespace Seven.Tests.Simulator;
+ 
+ public class SimulationDeployServiceTests
+@@ -73,7 +76,157 @@ public class SimulationDeployServiceTests
+ 
+         await svc.UndeployAsync("P1");
+ 
+         (await db.SimDeployments.SingleAsync()).Status.Should().Be("Undeployed");
+         (await db.WmsLocations.CountAsync()).Should().Be(2);
+     }
++
++    [Fact]
++    public async Task Deploy_Stacker_WithEdgeAndRequestPoint_ShouldCreateRouteAndRequestPoint()
++    {
++        var db = CreateDb();
++        var svc = new SimulationDeployService(db);
++        var project = new SimProjectDto(
++            1,
++            new SimProjectMetaDto(
++                "EdgeDemo",
++                new SimFeaturesDto(true, true, false, false, true, new SimWcsPacksDto(true, false, false)),
++                "Simulation"),
++            new SimMapDto(
++                "stacker",
++                [
++                    new SimMapNodeDto("1", "RECV-01", 0, 0),
++                    new SimMapNodeDto("2", "BIN-01", 100, 0)
++                ],
++                [new SimMapEdgeDto("e1", "RECV-01", "BIN-01")],
++                null,
++                [new SimMapRequestPointDto("RP-IN", "RECV-01")]));
++
++        var result = await svc.DeployAsync(project);
++
++        result.EdgeCount.Should().Be(1);
++        (await db.StkRoutes.CountAsync()).Should().Be(1);
++        var route = await db.StkRoutes.SingleAsync();
++        route.FromCode.Should().Be("Stk.RECV-01");
++        route.ToCode.Should().Be("Stk.BIN-01");
++
++        (await db.StkRequestPoints.CountAsync()).Should().Be(1);
++        var rp = await db.StkRequestPoints.SingleAsync();
++        rp.Code.Should().Be("Stk.RP-IN");
++        rp.AisleCode.Should().Be("Stk.RECV-01");
++    }
++
++    [Fact]
++    public async Task Deploy_ShouldAutoCreateScadaView_WhenViewsEmpty()
++    {
++        var db = CreateDb();
++        var svc = new SimulationDeployService(db);
++        var project = SampleProject("ScadaDemo");
++
++        await svc.DeployAsync(project);
++
++        (await db.ScdViews.CountAsync()).Should().Be(1);
++        var view = await db.ScdViews.SingleAsync();
++        view.Code.Should().Be("SIM_SCADADEMO");
++        view.Name.Should().Be("SIM_SCADADEMO");
++
++        (await db.ScdNodeBinds.CountAsync()).Should().Be(2);
++        var binds = await db.ScdNodeBinds.OrderBy(x => x.LocationCode).ToListAsync();
++        binds[0].LocationCode.Should().Be("Stk.BIN-01");
++        binds[0].X.Should().Be(100);
++        binds[1].LocationCode.Should().Be("Stk.RECV-01");
++        binds[1].X.Should().Be(0);
++    }
++
++    [Fact]
++    public async Task Deploy_FourWay_WithEdge_ShouldCreateFwNodeAndRoute()
++    {
++        var db = CreateDb();
++        var svc = new SimulationDeployService(db);
++        var project = new SimProjectDto(
++            1,
++            new SimProjectMetaDto(
++                "FwDemo",
++                new SimFeaturesDto(true, true, true, false, true, new SimWcsPacksDto(false, true, false)),
++                "Simulation"),
++            new SimMapDto(
++                "fourway",
++                [
++                    new SimMapNodeDto("1", "N1", 0, 0),
++                    new SimMapNodeDto("2", "N2", 50, 0)
++                ],
++                [new SimMapEdgeDto("e1", "N1", "N2")]));
++
++        var result = await svc.DeployAsync(project);
++
++        result.EdgeCount.Should().Be(1);
++        (await db.FwNodes.CountAsync()).Should().Be(2);
++        (await db.FwRoutes.CountAsync()).Should().Be(1);
++        var route = await db.FwRoutes.SingleAsync();
++        route.FromCode.Should().Be("Fw.N1");
++        route.ToCode.Should().Be("Fw.N2");
++    }
++
++    [Fact]
++    public async Task Reset_AfterDeploy_ShouldKeepDeploymentAndLocations()
++    {
++        var db = CreateDb();
++        var svc = new SimulationDeployService(db);
++        await svc.DeployAsync(SampleProject("KeepDemo"));
++
++        await svc.ResetAsync("KeepDemo");
++
++        (await db.SimDeployments.SingleAsync()).Status.Should().Be("Deployed");
++        (await db.WmsLocations.CountAsync()).Should().Be(2);
++    }
++
++    [Fact]
++    public async Task Reset_AfterDeploy_ShouldCancelOpenBusOrdersAndStackerTasks()
++    {
++        var db = CreateDb();
++        var svc = new SimulationDeployService(db);
++        await svc.DeployAsync(SampleProject("ResetDemo"));
++
++        var legId = Guid.NewGuid();
++        var orderId = Guid.NewGuid();
++        db.BusTransportOrders.Add(new BusTransportOrder
++        {
++            Id = orderId,
++            ContainerCode = "C1",
++            FromLocationCode = "Stk.RECV-01",
++            ToLocationCode = "Stk.BIN-01",
++            Status = BusOrderStatus.Executing,
++            CreateDate = DateTime.UtcNow
++        });
++        db.BusTransportLegs.Add(new BusTransportLeg
++        {
++            Id = legId,
++            OrderId = orderId,
++            PackId = "stacker",
++            Seq = 1,
++            FromCode = "Stk.RECV-01",
++            ToCode = "Stk.BIN-01",
++            ContainerCode = "C1",
++            Status = BusLegStatus.Running,
++            CreateDate = DateTime.UtcNow
++        });
++        db.StkPutAwayTasks.Add(new StkPutAwayTask
++        {
++            Id = Guid.NewGuid(),
++            LegId = legId,
++            ContainerCode = "C1",
++            FromCode = "Stk.RECV-01",
++            ToCode = "Stk.BIN-01",
++            Status = StkPutAwayStatus.LocationAssigned,
++            CreateDate = DateTime.UtcNow
++        });
++        await db.SaveChangesAsync();
++
++        await svc.ResetAsync("ResetDemo");
++
++        (await db.SimDeployments.SingleAsync()).Status.Should().Be("Deployed");
++        (await db.WmsLocations.CountAsync()).Should().Be(2);
++        (await db.BusTransportOrders.SingleAsync()).Status.Should().Be(BusOrderStatus.Failed);
++        (await db.BusTransportLegs.SingleAsync()).Status.Should().Be(BusLegStatus.Cancelled);
++        (await db.StkPutAwayTasks.SingleAsync()).Status.Should().Be(StkPutAwayStatus.Cancelled);
++    }
+ }
+diff --git a/Seven.Net8/Seven.WebApi/Controllers/Simulator/SimulationController.cs b/Seven.Net8/Seven.WebApi/Controllers/Simulator/SimulationController.cs
+index a5766f6..f02f53d 100644
+--- a/Seven.Net8/Seven.WebApi/Controllers/Simulator/SimulationController.cs
++++ b/Seven.Net8/Seven.WebApi/Controllers/Simulator/SimulationController.cs
+@@ -48,12 +48,27 @@ public class SimulationController : ControllerBase
+         catch (Exception ex)
+         {
+             return WebResponseContent.Error(ex.Message);
+         }
+     }
+ 
++    [HttpPost("reset")]
++    public async Task<WebResponseContent> Reset([FromBody] ResetRequest request, CancellationToken ct)
++    {
++        try
++        {
++            await _deploy.ResetAsync(request.ProjectName, ct);
++            return WebResponseContent.Ok("已 Reset");
++        }
++        catch (Exception ex)
++        {
++            return WebResponseContent.Error(ex.Message);
++        }
++    }
++
+     [HttpGet("deployments")]
+     public async Task<WebResponseContent> List(CancellationToken ct) =>
+         WebResponseContent.Ok(data: await _deploy.ListDeploymentsAsync(ct));
+ }
+ 
+ public record UndeployRequest(string ProjectName, bool RemoveLocations = false);
++public record ResetRequest(string ProjectName);

@@ -1,56 +1,118 @@
 <template>
   <el-container class="layout-container" :class="{ 'is-content-fullscreen': isContentFullscreen }">
-    <el-aside :width="sidebarWidth" class="aside">
-      <div class="logo-block">
-        <img src="../assets/icons/logo-master.svg" alt="Seven Master" class="logo-icon" />
-        <div class="logo-text">
-          <span class="logo-title">{{ t('layout.logoTitle') }}</span>
-          <span class="logo-sub">{{ t('layout.logoSub') }}</span>
+    <el-aside :width="sidebarWidth" class="aside dual-rail">
+      <nav class="icon-rail" aria-label="primary">
+        <div class="rail-logo" :title="t('layout.logoTitle')">
+          <img src="../assets/icons/logo-master.svg" alt="Seven Master" class="logo-icon" />
         </div>
-      </div>
 
-      <div class="aside-status">
-        <span class="seven-status-dot" />
-        <span>{{ t('layout.systemRunning') }}</span>
-      </div>
-
-      <el-scrollbar class="menu-scroll">
-        <el-menu
-          :default-active="route.path"
-          router
-          class="industrial-menu"
-          background-color="transparent"
-          text-color="#94a3b8"
-          active-text-color="#f97316"
+        <button
+          type="button"
+          class="rail-item"
+          :class="{ active: activeRailKey === 'home' }"
+          :title="t('common.home')"
+          :aria-label="t('common.home')"
+          @click="selectHome"
         >
-          <el-menu-item index="/home" @click="onHomeClick">
-            <el-icon><HomeFilled /></el-icon>
-            <span>{{ t('common.home') }}</span>
-          </el-menu-item>
+          <el-icon :size="20"><HomeFilled /></el-icon>
+          <span class="rail-label">{{ t('common.home') }}</span>
+        </button>
 
-          <template v-for="menu in menuStore.menus" :key="menu.menu_Id">
-            <el-sub-menu v-if="menu.children?.length" :index="String(menu.menu_Id)">
-              <template #title>
-                <el-icon><component :is="getMenuIcon(menu.menuName)" /></el-icon>
-                <span>{{ menuLabel(menu.menuName) }}</span>
-              </template>
-              <el-menu-item
-                v-for="child in menu.children"
-                :key="child.menu_Id"
-                :index="child.url || ''"
-                @click="onMenuClick(child)"
+        <button
+          v-for="menu in railMenusMain"
+          :key="menu.menu_Id"
+          type="button"
+          class="rail-item"
+          :class="{ active: activeRailKey === String(menu.menu_Id) }"
+          :title="menuLabel(menu.menuName)"
+          :aria-label="menuLabel(menu.menuName)"
+          @click="selectRail(menu)"
+        >
+          <el-icon :size="20">
+            <component :is="resolveMenuIcon(menu)" />
+          </el-icon>
+          <span class="rail-label">{{ menuLabel(menu.menuName) }}</span>
+        </button>
+
+        <div class="rail-spacer" aria-hidden="true" />
+
+        <button
+          v-for="menu in railMenusBottom"
+          :key="menu.menu_Id"
+          type="button"
+          class="rail-item"
+          :class="{ active: activeRailKey === String(menu.menu_Id) }"
+          :title="menuLabel(menu.menuName)"
+          :aria-label="menuLabel(menu.menuName)"
+          @click="selectRail(menu)"
+        >
+          <el-icon :size="20">
+            <component :is="resolveMenuIcon(menu)" />
+          </el-icon>
+          <span class="rail-label">{{ menuLabel(menu.menuName) }}</span>
+        </button>
+      </nav>
+
+      <div v-if="showSecondaryPanel" class="secondary-panel">
+        <div class="panel-title-bar">
+          <el-icon v-if="activeRailMenu" class="panel-title-icon" :size="16">
+            <component :is="resolveMenuIcon(activeRailMenu)" />
+          </el-icon>
+          <span class="panel-title">{{ secondaryTitle }}</span>
+        </div>
+
+        <div class="panel-filter">
+          <el-input
+            v-model="menuFilter"
+            clearable
+            size="default"
+            :placeholder="t('layout.menuFilter')"
+          />
+        </div>
+
+        <el-scrollbar class="panel-scroll">
+          <template v-for="node in filteredSecondaryNodes" :key="node.key">
+            <div v-if="node.kind === 'group'" class="menu-group">
+              <div class="menu-group-header">
+                <el-icon :size="14" class="group-icon">
+                  <component :is="resolveMenuIcon(node.folder)" />
+                </el-icon>
+                <span>{{ node.label }}</span>
+              </div>
+              <button
+                v-for="leaf in node.leaves"
+                :key="leaf.menu_Id"
+                type="button"
+                class="menu-leaf is-nested"
+                :class="{ active: isLeafActive(leaf) }"
+                :aria-current="isLeafActive(leaf) ? 'page' : undefined"
+                @click="onMenuClick(leaf)"
               >
-                <el-icon><component :is="getMenuIcon(child.menuName)" /></el-icon>
-                <span>{{ menuLabel(child.menuName) }}</span>
-              </el-menu-item>
-            </el-sub-menu>
-            <el-menu-item v-else-if="menu.url" :index="menu.url" @click="onMenuClick(menu)">
-              <el-icon><component :is="getMenuIcon(menu.menuName)" /></el-icon>
-              <span>{{ menuLabel(menu.menuName) }}</span>
-            </el-menu-item>
+                <el-icon :size="15" class="leaf-icon">
+                  <component :is="resolveMenuIcon(leaf)" />
+                </el-icon>
+                <span class="leaf-text">{{ menuLabel(leaf.menuName) }}</span>
+              </button>
+            </div>
+            <button
+              v-else
+              type="button"
+              class="menu-leaf"
+              :class="{ active: isLeafActive(node.menu) }"
+              :aria-current="isLeafActive(node.menu) ? 'page' : undefined"
+              @click="onMenuClick(node.menu)"
+            >
+              <el-icon :size="15" class="leaf-icon">
+                <component :is="resolveMenuIcon(node.menu)" />
+              </el-icon>
+              <span class="leaf-text">{{ menuLabel(node.menu.menuName) }}</span>
+            </button>
           </template>
-        </el-menu>
-      </el-scrollbar>
+          <div v-if="filteredSecondaryNodes.length === 0" class="panel-empty">
+            {{ t('layout.menuEmpty') }}
+          </div>
+        </el-scrollbar>
+      </div>
     </el-aside>
 
     <el-container class="main-wrap">
@@ -77,7 +139,10 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>{{ t('userInfo.title') }}
+                </el-dropdown-item>
+                <el-dropdown-item command="logout" divided>
                   <el-icon><SwitchButton /></el-icon>{{ t('common.logout') }}
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -163,6 +228,7 @@ import {
   HomeFilled,
   Refresh,
   SwitchButton,
+  User,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { useMenuStore, useTabsStore, type MenuItem } from '../stores'
@@ -194,7 +260,140 @@ const onlineLabel = computed(() => {
   return t('layout.systemOnline')
 })
 
-const sidebarWidth = '240px'
+const RAIL_WIDTH = 84
+const PANEL_WIDTH = 200
+const menuFilter = ref('')
+const activeRailKey = ref<string>('home')
+
+type SecondaryNode =
+  | { kind: 'group'; key: string; label: string; folder: MenuItem; leaves: MenuItem[] }
+  | { kind: 'leaf'; key: string; menu: MenuItem }
+
+/** OrderNo ≥ 此值，或运维目录：钉在轨底部 */
+const RAIL_BOTTOM_ORDER = 90
+
+function isRailBottomMenu(menu: MenuItem) {
+  if ((menu.orderNo ?? 0) >= RAIL_BOTTOM_ORDER) return true
+  const table = (menu.tableName || '').toLowerCase()
+  const name = menu.menuName || ''
+  return table === 'wcsopsfolder' || name === '执行运维'
+}
+
+const railMenus = computed(() => menuStore.menus)
+const railMenusMain = computed(() => railMenus.value.filter((m) => !isRailBottomMenu(m)))
+const railMenusBottom = computed(() => railMenus.value.filter((m) => isRailBottomMenu(m)))
+
+const activeRailMenu = computed(() =>
+  railMenus.value.find((m) => String(m.menu_Id) === activeRailKey.value) ?? null,
+)
+
+const showSecondaryPanel = computed(
+  () =>
+    activeRailKey.value !== 'home' &&
+    (activeRailMenu.value?.children?.length ?? 0) > 0,
+)
+
+const secondaryTitle = computed(() => {
+  if (!activeRailMenu.value) return ''
+  return menuLabel(activeRailMenu.value.menuName)
+})
+
+const sidebarWidth = computed(() =>
+  showSecondaryPanel.value ? `${RAIL_WIDTH + PANEL_WIDTH}px` : `${RAIL_WIDTH}px`,
+)
+
+function resolveMenuIcon(menu: MenuItem) {
+  return getMenuIcon(menu.menuName, menu.icon)
+}
+
+function isFolder(menu: MenuItem) {
+  return !menu.url && (menu.children?.length ?? 0) > 0
+}
+
+function isLeaf(menu: MenuItem) {
+  return !!menu.url
+}
+
+function buildSecondaryNodes(menu: MenuItem | null): SecondaryNode[] {
+  if (!menu?.children?.length) return []
+  const nodes: SecondaryNode[] = []
+  for (const child of menu.children) {
+    if (isFolder(child)) {
+      const leaves = (child.children ?? []).filter(isLeaf)
+      if (leaves.length || menuFilter.value) {
+        nodes.push({
+          kind: 'group',
+          key: `g-${child.menu_Id}`,
+          label: menuLabel(child.menuName),
+          folder: child,
+          leaves,
+        })
+      }
+    } else if (isLeaf(child)) {
+      nodes.push({ kind: 'leaf', key: `l-${child.menu_Id}`, menu: child })
+    }
+  }
+  return nodes
+}
+
+const secondaryNodes = computed(() => buildSecondaryNodes(activeRailMenu.value))
+
+const filteredSecondaryNodes = computed(() => {
+  const q = menuFilter.value.trim().toLowerCase()
+  if (!q) return secondaryNodes.value
+  const out: SecondaryNode[] = []
+  for (const node of secondaryNodes.value) {
+    if (node.kind === 'leaf') {
+      if (menuLabel(node.menu.menuName).toLowerCase().includes(q)) out.push(node)
+      continue
+    }
+    const leaves = node.leaves.filter((l) =>
+      menuLabel(l.menuName).toLowerCase().includes(q),
+    )
+    if (leaves.length || node.label.toLowerCase().includes(q)) {
+      out.push({ ...node, leaves: leaves.length ? leaves : node.leaves })
+    }
+  }
+  return out
+})
+
+function isLeafActive(menu: MenuItem) {
+  return !!menu.url && (route.path === menu.url || route.path.startsWith(`${menu.url}/`))
+}
+
+function findRailKeyForPath(path: string): string {
+  if (path === '/home') return 'home'
+  for (const top of railMenus.value) {
+    if (top.url && (path === top.url || path.startsWith(`${top.url}/`))) {
+      return String(top.menu_Id)
+    }
+    const stack = [...(top.children ?? [])]
+    while (stack.length) {
+      const cur = stack.pop()!
+      if (cur.url && (path === cur.url || path.startsWith(`${cur.url}/`))) {
+        return String(top.menu_Id)
+      }
+      if (cur.children?.length) stack.push(...cur.children)
+    }
+  }
+  return activeRailKey.value
+}
+
+function selectHome() {
+  activeRailKey.value = 'home'
+  menuFilter.value = ''
+  tabsStore.activeTab = '/home'
+  if (route.path !== '/home') router.push('/home')
+}
+
+function selectRail(menu: MenuItem) {
+  activeRailKey.value = String(menu.menu_Id)
+  menuFilter.value = ''
+  if (menu.url && !menu.children?.length) {
+    onMenuClick(menu)
+  }
+}
+
 const currentTime = ref('')
 
 const avatarText = computed(() => {
@@ -217,14 +416,12 @@ function updateTime() {
   currentTime.value = new Date().toLocaleString(locale.value, { hour12: false })
 }
 
-function onHomeClick() {
-  tabsStore.activeTab = '/home'
-}
-
 function onMenuClick(menu: MenuItem) {
-  if (menu.url) {
-    const componentName = menu.tableName || (router.resolve(menu.url).name as string | undefined)
-    tabsStore.addTab(menu.menuName, menu.url, componentName)
+  if (!menu.url) return
+  const componentName = menu.tableName || (router.resolve(menu.url).name as string | undefined)
+  tabsStore.addTab(menu.menuName, menu.url, componentName)
+  if (route.path !== menu.url) {
+    void router.push(menu.url)
   }
 }
 
@@ -339,9 +536,28 @@ function handleLogout() {
 
 function handleCommand(cmd: string) {
   if (cmd === 'logout') handleLogout()
+  else if (cmd === 'profile') {
+    tabsStore.addTab(t('userInfo.title'), '/UserInfo', 'UserInfo')
+    router.push('/UserInfo')
+  }
 }
 
 watch(locale, updateTime)
+
+watch(
+  () => route.path,
+  (path) => {
+    activeRailKey.value = findRailKeyForPath(path)
+  },
+  { immediate: true },
+)
+
+watch(
+  () => menuStore.menus,
+  () => {
+    activeRailKey.value = findRailKeyForPath(route.path)
+  },
+)
 
 onMounted(() => {
   updateTime()
@@ -365,87 +581,250 @@ onUnmounted(() => {
   background: var(--seven-bg-page);
 }
 
-.aside {
-  background: var(--seven-bg-sidebar);
-  border-right: 1px solid rgba(249, 115, 22, 0.25);
+.aside.dual-rail {
   display: flex;
-  flex-direction: column;
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+  flex-direction: row;
+  padding: 0;
+  background: var(--seven-bg-charcoal);
+  border-right: 1px solid var(--seven-rail-border);
+  overflow: hidden;
 }
 
-.logo-block {
+.icon-rail {
+  width: var(--seven-rail-width, 84px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 5px 10px;
+  background: var(--seven-bg-charcoal);
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.rail-spacer {
+  flex: 1 1 auto;
+  min-height: 8px;
+  width: 100%;
+}
+
+.rail-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 12px 8px;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
+}
+
+.rail-item {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 3px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--seven-radius-sm);
+  background: transparent;
+  color: var(--seven-rail-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.rail-item :deep(.el-icon) {
+  font-size: 20px;
+}
+
+.rail-item:hover {
+  background: var(--seven-bg-charcoal-hover);
+  color: var(--seven-rail-text-hover);
+}
+
+.rail-item:focus-visible {
+  outline: 2px solid var(--seven-accent-gold);
+  outline-offset: 1px;
+}
+
+.rail-item.active {
+  color: var(--seven-accent-gold);
+  background: var(--seven-bg-charcoal-active);
+  border-color: var(--seven-accent-gold-strong);
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 39, 0.2);
+}
+
+.rail-label {
+  max-width: 74px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 500;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-all;
+}
+
+.secondary-panel {
+  width: var(--seven-secondary-menu-width, 200px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--seven-bg-secondary-menu);
+  border-right: 1px solid var(--seven-border-light);
+}
+
+.panel-title-bar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--seven-panel-title-bg);
+  color: var(--seven-panel-title-text);
+  border-bottom: 2px solid var(--seven-accent-gold);
+}
+
+.panel-title-icon {
+  flex-shrink: 0;
+  color: var(--seven-accent-gold);
+}
+
+.panel-title {
+  font-family: var(--seven-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--seven-panel-title-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-filter {
+  padding: 8px 10px;
+  background: var(--seven-bg-secondary-menu);
+  border-bottom: 1px solid var(--seven-border-light);
+}
+
+.panel-scroll {
+  flex: 1;
+  padding: 8px 6px 12px;
+}
+
+.menu-group {
+  margin: 0 0 8px;
+  padding: 6px 0 4px;
+  border: 1px solid var(--seven-border-light);
+  border-left: 3px solid var(--seven-accent-gold);
+  background: var(--seven-bg-group-soft);
+  border-radius: var(--seven-radius-sm);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.menu-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 4px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--seven-border-light);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--seven-group-title);
+}
+
+.group-icon {
+  color: var(--seven-accent-gold-strong);
   flex-shrink: 0;
 }
 
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.logo-title {
-  font-family: var(--seven-font-mono);
-  font-size: 15px;
-  font-weight: 700;
-  color: #f8fafc;
-  letter-spacing: 0.04em;
-}
-
-.logo-sub {
-  font-size: 11px;
-  color: #64748b;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.aside-status {
+.menu-leaf {
+  width: calc(100% - 6px);
+  min-height: 36px;
   display: flex;
   align-items: center;
-  padding: 8px 14px;
-  font-size: 11px;
-  color: #94a3b8;
-  font-family: var(--seven-font-mono);
-}
-
-.menu-scroll {
-  flex: 1;
-}
-
-.industrial-menu {
-  border-right: none;
-  padding: 6px;
-}
-
-.industrial-menu :deep(.el-menu-item),
-.industrial-menu :deep(.el-sub-menu__title) {
+  gap: 8px;
+  padding: 5px 8px;
+  margin: 0 3px 1px;
+  border: none;
   border-radius: var(--seven-radius-sm);
-  margin-bottom: 1px;
-  height: 38px;
-  font-size: 13px;
+  background: transparent;
+  color: var(--seven-primary-dark);
+  text-align: left;
+  cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.industrial-menu :deep(.el-menu-item:hover),
-.industrial-menu :deep(.el-sub-menu__title:hover) {
-  background: var(--seven-bg-sidebar-hover) !important;
+.menu-leaf.is-nested {
+  padding-left: 12px;
 }
 
-.industrial-menu :deep(.el-menu-item.is-active) {
-  background: rgba(249, 115, 22, 0.12) !important;
-  border-left: 3px solid var(--seven-accent);
+.menu-leaf:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--seven-primary-dark);
+}
+
+.menu-leaf:hover .leaf-icon {
+  color: var(--seven-accent-gold-strong);
+}
+
+.menu-leaf:focus-visible {
+  outline: 2px solid var(--seven-accent-gold);
+  outline-offset: 1px;
+}
+
+.menu-leaf.active {
+  background: var(--seven-accent-gold-soft);
+  color: var(--seven-leaf-active-text);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--seven-accent-gold);
+}
+
+.leaf-icon {
+  flex-shrink: 0;
+  color: var(--seven-leaf-icon);
+  transition: color 0.2s ease;
+}
+
+.menu-leaf.active .leaf-icon {
+  color: var(--seven-accent-gold-strong);
+}
+
+.leaf-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-empty {
+  padding: 14px 8px;
+  font-size: 12px;
+  color: var(--seven-text-muted);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-item,
+  .menu-leaf,
+  .leaf-icon {
+    transition: none;
+  }
 }
 
 .main-wrap {
@@ -569,21 +948,6 @@ onUnmounted(() => {
   overflow: auto;
 }
 
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
 .layout-container.is-content-fullscreen .aside,
 .layout-container.is-content-fullscreen .header {
   display: none;
@@ -599,6 +963,10 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .header-meta {
+    display: none;
+  }
+
+  .rail-label {
     display: none;
   }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Seven.Domain.Entities.DeviceComm;
+using Seven.Domain.Wcs;
 
 namespace Seven.Infrastructure.Persistence.Configurations;
 
@@ -8,7 +9,7 @@ public class CommConnectionConfiguration : IEntityTypeConfiguration<CommConnecti
 {
     public void Configure(EntityTypeBuilder<CommConnection> builder)
     {
-        builder.ToTable("CommConnection");
+        builder.ToTable(TablePrefixes.DeviceComm + "CommConnection");
         builder.HasKey(x => x.CommConnectionId);
         builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
         builder.Property(x => x.Host).HasMaxLength(128).IsRequired();
@@ -22,7 +23,7 @@ public class CommPointConfiguration : IEntityTypeConfiguration<CommPoint>
 {
     public void Configure(EntityTypeBuilder<CommPoint> builder)
     {
-        builder.ToTable("CommPoint");
+        builder.ToTable(TablePrefixes.DeviceComm + "CommPoint");
         builder.HasKey(x => x.CommPointId);
         builder.Property(x => x.Code).HasMaxLength(64).IsRequired();
         builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
@@ -41,7 +42,7 @@ public class CommRuleConfiguration : IEntityTypeConfiguration<CommRule>
 {
     public void Configure(EntityTypeBuilder<CommRule> builder)
     {
-        builder.ToTable("CommRule");
+        builder.ToTable(TablePrefixes.DeviceComm + "CommRule");
         builder.HasKey(x => x.CommRuleId);
         builder.Property(x => x.Name).HasMaxLength(128).IsRequired();
         builder.Property(x => x.DefinitionJson).IsRequired();
@@ -55,7 +56,7 @@ public class CommEventLogConfiguration : IEntityTypeConfiguration<CommEventLog>
 {
     public void Configure(EntityTypeBuilder<CommEventLog> builder)
     {
-        builder.ToTable("CommEventLog");
+        builder.ToTable(TablePrefixes.DeviceComm + "CommEventLog");
         builder.HasKey(x => x.CommEventLogId);
         builder.Property(x => x.EventName).HasMaxLength(128);
         builder.Property(x => x.Message).HasMaxLength(512);

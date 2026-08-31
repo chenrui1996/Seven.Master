@@ -67,7 +67,7 @@ export interface SearchFieldConfig {
 /** 表单字段（弹窗新增/编辑；含子表嵌套 CRUD） */
 export interface FormFieldDef {
   prop: string
-  kind?: 'string' | 'number' | 'enum' | 'date' | 'bool'
+  kind?: 'string' | 'number' | 'enum' | 'date' | 'bool' | 'upload'
   options?: { value: number | string; label: string }[]
   dicNo?: string
   dataSource?: string

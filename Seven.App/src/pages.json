@@ -1,0 +1,53 @@
+{
+	"pages": [
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/home/index",
+			"style": {
+				"navigationBarTitleText": "Seven PDA"
+			}
+		},
+		{
+			"path": "pages/receive/index",
+			"style": {
+				"navigationBarTitleText": "平库收货"
+			}
+		},
+		{
+			"path": "pages/putaway/index",
+			"style": {
+				"navigationBarTitleText": "平库上架"
+			}
+		},
+		{
+			"path": "pages/cyclecount/index",
+			"style": {
+				"navigationBarTitleText": "盘点录入"
+			}
+		},
+		{
+			"path": "pages/picking/index",
+			"style": {
+				"navigationBarTitleText": "出库拣选"
+			}
+		},
+		{
+			"path": "pages/transfer/index",
+			"style": {
+				"navigationBarTitleText": "仓内调拨"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "Seven PDA",
+		"navigationBarBackgroundColor": "#F5F7FA",
+		"backgroundColor": "#F0F2F5"
+	}
+}

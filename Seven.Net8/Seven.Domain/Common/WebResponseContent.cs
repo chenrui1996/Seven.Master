@@ -22,8 +22,8 @@ public class WebResponseContent
         new() { Status = true, Message = message, Data = data };
 
     /// <summary>创建失败响应</summary>
-    public static WebResponseContent Error(string? message = null) =>
-        new() { Status = false, Message = message };
+    public static WebResponseContent Error(string? message = null, string? code = null) =>
+        new() { Status = false, Message = message, Code = code };
 }
 
 /// <summary>

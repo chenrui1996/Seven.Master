@@ -83,18 +83,18 @@
 
         <div class="seven-panel" style="margin-top: 16px">
           <div class="seven-panel__header">
-            <h3 class="seven-panel__title">{{ t('home.deviceTitle') }}</h3>
-            <el-button link type="primary" @click="router.push('/Device')">{{ t('home.viewAll') }}</el-button>
+            <h3 class="seven-panel__title">{{ t('home.transferTitle') }}</h3>
+            <el-button link type="primary" @click="router.push('/Business/TransferOrder')">{{ t('home.viewAll') }}</el-button>
           </div>
-          <div class="seven-panel__body device-list" v-loading="deviceLoading">
-            <div v-if="!deviceRows.length" class="empty-hint">{{ t('home.deviceEmpty') }}</div>
-            <div v-for="dev in deviceRows" :key="dev.deviceId" class="device-row">
+          <div class="seven-panel__body device-list" v-loading="transferLoading">
+            <div v-if="!transferRows.length" class="empty-hint">{{ t('home.transferEmpty') }}</div>
+            <div v-for="row in transferRows" :key="row.id" class="device-row">
               <div class="device-info">
-                <span class="device-name">{{ dev.deviceName }}</span>
-                <span class="device-code">{{ dev.deviceCode || '-' }}</span>
+                <span class="device-name">{{ row.orderNo }}</span>
+                <span class="device-code">{{ row.remark || '-' }}</span>
               </div>
-              <el-tag :type="deviceStatusType(dev.status)" size="small" effect="plain">
-                {{ deviceStatusLabel(dev.status) }}
+              <el-tag :type="transferStatusType(row.status)" size="small" effect="plain">
+                {{ transferStatusLabel(row.status) }}
               </el-tag>
             </div>
           </div>
@@ -155,7 +155,7 @@ const occupancyChartRef = ref<HTMLElement | null>(null)
 let occupancyChart: ECharts | null = null
 
 const alarmLoading = ref(false)
-const deviceLoading = ref(false)
+const transferLoading = ref(false)
 
 interface AlarmRow {
   alarmId: number
@@ -166,16 +166,15 @@ interface AlarmRow {
   createDate?: string
 }
 
-interface DeviceRow {
-  deviceId: number
-  deviceName: string
-  deviceCode?: string
+interface TransferRow {
+  id: number
+  orderNo: string
   status: number
-  location?: string
+  remark?: string
 }
 
 const alarmRows = ref<AlarmRow[]>([])
-const deviceRows = ref<DeviceRow[]>([])
+const transferRows = ref<TransferRow[]>([])
 const notifyTitle = ref('')
 const notifyContent = ref('')
 const notifySending = ref(false)
@@ -203,12 +202,12 @@ async function sendBroadcast() {
 }
 
 /** 库存 Demo 数据（尚无独立库存 API） */
-const inventoryRows = [
-  { zone: 'A-01', sku: 'MAT-1001', qty: 320, uom: '箱' },
-  { zone: 'A-02', sku: 'MAT-2048', qty: 86, uom: '托' },
-  { zone: 'B-03', sku: 'MAT-3102', qty: 1540, uom: '件' },
-  { zone: 'C-01', sku: 'MAT-4410', qty: 42, uom: '托' },
-]
+const inventoryRows = computed(() => [
+  { zone: 'A-01', sku: 'MAT-1001', qty: 320, uom: t('home.uomBox') },
+  { zone: 'A-02', sku: 'MAT-2048', qty: 86, uom: t('home.uomPallet') },
+  { zone: 'B-03', sku: 'MAT-3102', qty: 1540, uom: t('home.uomPcs') },
+  { zone: 'C-01', sku: 'MAT-4410', qty: 42, uom: t('home.uomPallet') },
+])
 
 const occupancyZones = [
   { key: 'zoneA', used: 720, total: 1000 },
@@ -224,16 +223,19 @@ const occupancyPercent = computed(() => {
 })
 
 const inventorySummary = computed(() => {
-  const skuCount = new Set(inventoryRows.map((r) => r.sku)).size
-  const qtySum = inventoryRows.reduce((s, r) => s + r.qty, 0)
+  const rows = inventoryRows.value
+  const skuCount = new Set(rows.map((r) => r.sku)).size
+  const qtySum = rows.reduce((s, r) => s + r.qty, 0)
   return [
     { label: t('home.invSkuCount'), value: String(skuCount) },
     { label: t('home.invQtyTotal'), value: qtySum.toLocaleString() },
-    { label: t('home.invZoneCount'), value: String(new Set(inventoryRows.map((r) => r.zone)).size) },
+    { label: t('home.invZoneCount'), value: String(new Set(rows.map((r) => r.zone)).size) },
   ]
 })
 
-const onlineDeviceCount = computed(() => deviceRows.value.filter((d) => d.status === 1).length)
+const openTransferCount = computed(
+  () => transferRows.value.filter((d) => d.status === 0 || d.status === 1).length,
+)
 
 const kpiCards = computed(() => [
   {
@@ -249,9 +251,9 @@ const kpiCards = computed(() => [
     variant: 'seven-kpi-card--warning',
   },
   {
-    label: t('home.kpiOnlineDevices'),
-    value: String(onlineDeviceCount.value),
-    meta: t('home.kpiOnlineMeta'),
+    label: t('home.kpiOpenTransfers'),
+    value: String(openTransferCount.value),
+    meta: t('home.kpiOpenTransfersMeta'),
     variant: 'seven-kpi-card--success',
   },
   {
@@ -269,21 +271,15 @@ function levelTag(level: number) {
   return 'success'
 }
 
-function deviceStatusType(status: number) {
-  if (status === 1) return 'success'
-  if (status === 2) return 'danger'
-  if (status === 3) return 'warning'
-  return 'info'
+function transferStatusType(status: number) {
+  if (status === 3) return 'success'
+  if (status === 1) return 'warning'
+  if (status === 4) return 'info'
+  return 'primary'
 }
 
-function deviceStatusLabel(status: number) {
-  const map: Record<number, string> = {
-    0: t('home.deviceOffline'),
-    1: t('home.deviceOnline'),
-    2: t('home.deviceFault'),
-    3: t('home.deviceMaintenance'),
-  }
-  return map[status] ?? String(status)
+function transferStatusLabel(status: number) {
+  return t(`generated.TransferOrder.enum_status_${status}`)
 }
 
 function formatTime(v?: string) {
@@ -340,22 +336,21 @@ async function loadAlarms() {
   }
 }
 
-async function loadDevices() {
-  deviceLoading.value = true
+async function loadTransfers() {
+  transferLoading.value = true
   try {
-    const res = await getPageData('/api/Device/getPageData', { page: 1, rows: 12 })
+    const res = await getPageData('/api/TransferOrder/getPageData', { page: 1, rows: 12 })
     if (res.status && res.data) {
       const data = res.data as { rows: Record<string, unknown>[] }
-      deviceRows.value = (data.rows ?? []).map((r) => ({
-        deviceId: Number(r.deviceId ?? 0),
-        deviceName: String(r.deviceName ?? ''),
-        deviceCode: r.deviceCode != null ? String(r.deviceCode) : undefined,
+      transferRows.value = (data.rows ?? []).map((r) => ({
+        id: Number(r.id ?? 0),
+        orderNo: String(r.orderNo ?? ''),
         status: Number(r.status ?? 0),
-        location: r.location != null ? String(r.location) : undefined,
+        remark: r.remark != null ? String(r.remark) : undefined,
       }))
     }
   } finally {
-    deviceLoading.value = false
+    transferLoading.value = false
   }
 }
 
@@ -364,7 +359,7 @@ function onResize() {
 }
 
 onMounted(async () => {
-  const tasks: Promise<unknown>[] = [loadDevices()]
+  const tasks: Promise<unknown>[] = [loadTransfers()]
   if (featureStore.flags.alarm) {
     tasks.push(alarmStore.fetchActiveCount(), loadAlarms())
   }
