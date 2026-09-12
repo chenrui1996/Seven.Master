@@ -66,6 +66,9 @@
               <el-button size="small" type="primary" :icon="ActionIcons.sync" @click="onSearch">
                 {{ t('common.search') }}
               </el-button>
+              <el-button size="small" @click="onResetSearch">
+                {{ t('common.reset') }}
+              </el-button>
             </div>
             <div
               v-if="userStore.hasPermission(`${tableName}.Add`)"
@@ -141,7 +144,6 @@
                       v-if="userStore.hasPermission(`${tableName}.Import`)"
                       @click="downloadTemplate"
                     >{{ t('common.downloadTemplate') }}</el-dropdown-item>
-                    <el-dropdown-item @click="onResetSearch">{{ t('common.reset') }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -228,7 +230,27 @@
           </el-table-column>
 
           <el-table-column
-            v-if="rowActionsVisible"
+            v-if="entryDetailTables.length"
+            :label="t('common.detailTables')"
+            :min-width="detailTablesColumnWidth"
+            class-name="crud-table__operations-cell"
+            label-class-name="crud-table__operations-head"
+            fixed="right"
+          >
+            <template #default="{ row }">
+              <div class="row-actions" role="group" :aria-label="rowDetailGroupLabel(row)">
+                <el-button
+                  v-for="dt in entryDetailTables"
+                  :key="'detail-' + dt.key"
+                  link
+                  type="primary"
+                  @click="onDetailEntry(dt, row)"
+                >{{ dt.buttonLabel || dt.title }}</el-button>
+              </div>
+            </template>
+          </el-table-column>
+
+          <el-table-column
             :label="t(`${i18nKey}.actions`)"
             :min-width="actionsColumnWidth"
             class-name="crud-table__operations-cell"
@@ -237,6 +259,13 @@
           >
             <template #default="{ row }">
               <div class="row-actions" role="group" :aria-label="rowActionGroupLabel(row)">
+                <el-button
+                  v-if="userStore.hasPermission(`${tableName}.Update`)"
+                  link
+                  type="primary"
+                  :icon="ActionIcons.edit"
+                  @click="openForm(row)"
+                >{{ t(`${i18nKey}.edit`) }}</el-button>
                 <template v-if="depth === 0">
                   <el-button
                     v-for="btn in rowButtonsFor(row)"
@@ -260,6 +289,13 @@
                     @click="openAudit(row)"
                   >{{ t('sysWorkFlow.viewAudit') }}</el-button>
                 </template>
+                <el-button
+                  v-if="userStore.hasPermission(`${tableName}.Delete`)"
+                  link
+                  type="danger"
+                  :icon="ActionIcons.delete"
+                  @click="remove(row)"
+                >{{ t('common.delete') }}</el-button>
               </div>
             </template>
           </el-table-column>
@@ -544,19 +580,17 @@ const permittedDetails = computed(() =>
   ),
 )
 
-/** 主子表强制同页 below（dialog/page 归一） */
-function normalizeDetailMode(d: DetailTableConfig): DetailTableConfig {
-  if (d.mode === 'below') return d
-  return { ...d, mode: 'below' }
-}
-
 const belowDetailTables = computed(() =>
   canRenderDetails.value
-    ? permittedDetails.value.map(normalizeDetailMode)
+    ? permittedDetails.value.filter((d) => d.mode === 'below')
     : [],
 )
 
-const entryDetailTables = computed(() => [] as DetailTableConfig[])
+const entryDetailTables = computed(() =>
+  canRenderDetails.value
+    ? permittedDetails.value.filter((d) => d.mode === 'dialog' || d.mode === 'page')
+    : [],
+)
 
 const selectedIds = computed(() =>
   selectedRows.value
@@ -575,15 +609,6 @@ const hasMoreActions = computed(
     userStore.hasPermission(`${props.tableName}.Export`),
 )
 
-const rowActionsVisible = computed(() => {
-  if (props.depth !== 0) return false
-  return (
-    rowButtons.value.length > 0 ||
-    !!props.extension?.hooks?.submitAudit ||
-    !!featureStore.flags.workFlow
-  )
-})
-
 const toolbarButtons = computed(() =>
   (props.extension?.toolbarButtons ?? []).filter(
     (btn) => !btn.permission || userStore.hasPermission(btn.permission),
@@ -597,10 +622,10 @@ const rowButtons = computed(() =>
 )
 
 const actionsColumnWidth = computed(() => {
+  const base = 2
   const submitAuditExtra = props.depth === 0 && props.extension?.hooks?.submitAudit ? 1 : 0
   const extra = props.depth === 0 ? rowButtons.value.length + submitAuditExtra : 0
-  if (extra <= 0) return 120
-  return Math.max(140, extra * 88)
+  return Math.max(180, (base + extra) * 88)
 })
 
 const detailTablesColumnWidth = computed(() =>
@@ -660,6 +685,12 @@ function rowActionGroupLabel(row: Record<string, unknown>) {
   const actionLabel = t(`${props.i18nKey}.actions`)
   const rowKey = displayCellValue(row[props.keyField])
   return rowKey ? `${actionLabel} ${rowKey}` : actionLabel
+}
+
+function rowDetailGroupLabel(row: Record<string, unknown>) {
+  const detailLabel = t('common.detailTables')
+  const rowKey = displayCellValue(row[props.keyField])
+  return rowKey ? `${detailLabel} ${rowKey}` : detailLabel
 }
 
 function tableColumnClassName(col: ColumnDef, colIdx: number) {
