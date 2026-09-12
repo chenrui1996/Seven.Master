@@ -1355,7 +1355,7 @@
       "failReason": "失败原因",
       "legs": "腿",
       "legStatus": "状态 {status}",
-      "noLegs": "无 Leg"
+      "noLegs": "无腿"
     },
     "stackerTrigger": {
       "title": "堆垛机仿真触发",

@@ -1355,7 +1355,7 @@
       "failReason": "失敗理由",
       "legs": "レッグ",
       "legStatus": "状態 {status}",
-      "noLegs": "Legなし"
+      "noLegs": "レッグなし"
     },
     "stackerTrigger": {
       "title": "スタッカーシミュ",
