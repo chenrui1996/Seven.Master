@@ -1474,6 +1474,7 @@
     "available": "空闲",
     "availableMeta": "未占用库位",
     "pollingMeta": "保持 5 秒轮询，不改变节点坐标",
+    "fallbackName": "SCADA",
     "legendLabel": "SCADA 占用图例",
     "legendAvailable": "空闲",
     "legendOccupied": "占用",

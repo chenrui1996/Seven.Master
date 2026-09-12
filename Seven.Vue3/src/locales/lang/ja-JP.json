@@ -1474,6 +1474,7 @@
     "available": "空き",
     "availableMeta": "未占有のロケーション",
     "pollingMeta": "5 秒ポーリングを維持し、ノード座標は変更しません",
+    "fallbackName": "SCADA",
     "legendLabel": "SCADA 占有凡例",
     "legendAvailable": "空き",
     "legendOccupied": "占有",

@@ -1474,6 +1474,7 @@
     "available": "Available",
     "availableMeta": "Unoccupied locations",
     "pollingMeta": "Polling every 5 seconds without changing node coordinates",
+    "fallbackName": "SCADA",
     "legendLabel": "SCADA occupancy legend",
     "legendAvailable": "Available",
     "legendOccupied": "Occupied",
