@@ -81,8 +81,8 @@
     "taskId": "Task ID"
   },
   "layout": {
-    "logoTitle": "Seven Master",
-    "logoSub": "Agile Dev Framework",
+    "logoTitle": "WMS/WCS Operations",
+    "logoSub": "Warehouse Management & Control",
     "systemRunning": "System Running",
     "systemOnline": "Service Online",
     "onlineUsers": "{count} online",

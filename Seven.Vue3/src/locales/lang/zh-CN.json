@@ -81,8 +81,8 @@
     "taskId": "任务ID"
   },
   "layout": {
-    "logoTitle": "Seven Master",
-    "logoSub": "敏捷开发框架",
+    "logoTitle": "WMS/WCS 运营平台",
+    "logoSub": "仓储管理与控制",
     "systemRunning": "系统运行中",
     "systemOnline": "服务在线",
     "onlineUsers": "在线 {count} 人",

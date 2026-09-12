@@ -81,8 +81,8 @@
     "taskId": "タスクID"
   },
   "layout": {
-    "logoTitle": "Seven Master",
-    "logoSub": "アジャイル開発フレームワーク",
+    "logoTitle": "WMS/WCS 運用プラットフォーム",
+    "logoSub": "倉庫管理と制御",
     "systemRunning": "システム稼働中",
     "systemOnline": "サービスオンライン",
     "onlineUsers": "オンライン {count} 人",
