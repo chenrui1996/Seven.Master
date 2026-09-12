@@ -5,15 +5,17 @@
       <ThemeToggle />
     </div>
     <div class="login-bg" aria-hidden="true">
-      <div class="login-bg__grid" />
-      <div class="login-bg__glow login-bg__glow--orange" />
-      <div class="login-bg__glow login-bg__glow--blue" />
+      <div class="login-bg__mesh" />
+      <div class="login-bg__glow login-bg__glow--a" />
+      <div class="login-bg__glow login-bg__glow--b" />
     </div>
 
     <div class="login-shell">
-      <section class="login-brand">
-        <img src="../assets/icons/logo-master.svg" alt="" class="brand-logo" />
-        <h1>{{ t('login.title') }}</h1>
+      <section class="login-brand" aria-labelledby="login-brand-title">
+        <div class="brand-badge">
+          <img src="../assets/icons/logo-master.svg" alt="" class="brand-logo" />
+        </div>
+        <h1 id="login-brand-title">{{ t('login.title') }}</h1>
         <p class="brand-tagline">{{ t('login.tagline') }}</p>
         <ul class="feature-list">
           <li><el-icon><Box /></el-icon>{{ t('login.featureCore') }}</li>
@@ -28,62 +30,85 @@
 
       <section class="login-panel">
         <div class="panel-header">
-          <h2>{{ t('login.panelTitle') }}</h2>
+          <div class="panel-brand">
+            <div class="brand-badge brand-badge--compact" aria-hidden="true">
+              <img src="../assets/icons/logo-master.svg" alt="" class="brand-logo" />
+            </div>
+            <div class="panel-brand__copy">
+              <span class="panel-brand__name">{{ t('login.title') }}</span>
+              <span class="panel-brand__tagline">{{ t('login.tagline') }}</span>
+            </div>
+          </div>
+          <div class="seven-section-title">
+            <span class="seven-section-title__bar" aria-hidden="true" />
+            <h2>{{ t('login.panelTitle') }}</h2>
+          </div>
           <p>{{ t('login.panelSubtitle') }}</p>
         </div>
-        <el-form :model="form" class="login-form" @submit.prevent="handleLogin">
-          <el-form-item :label="t('login.userName')">
-            <el-input
-              v-model="form.userName"
-              :placeholder="t('login.userNamePlaceholder')"
-              size="large"
-              :prefix-icon="User"
-              autocomplete="username"
-            />
-          </el-form-item>
-          <el-form-item :label="t('login.password')">
-            <el-input
-              v-model="form.password"
-              type="password"
-              :placeholder="t('login.passwordPlaceholder')"
-              size="large"
-              :prefix-icon="Lock"
-              show-password
-              autocomplete="current-password"
-            />
-          </el-form-item>
-          <el-form-item v-if="featureStore.captchaEnabled" :label="t('login.captcha')">
-            <div class="captcha-row">
+        <el-form :model="form" class="login-form" label-position="top" @submit.prevent="handleLogin">
+          <div class="login-form__group">
+            <el-form-item :label="t('login.userName')">
               <el-input
-                v-model="form.verificationCode"
-                :placeholder="t('login.captchaPlaceholder')"
+                v-model="form.userName"
+                :placeholder="t('login.userNamePlaceholder')"
                 size="large"
-                maxlength="6"
-                autocomplete="off"
-                @keyup.enter="handleLogin"
+                :prefix-icon="User"
+                autocomplete="username"
               />
-              <button
-                type="button"
-                class="captcha-display"
-                :title="t('login.captchaRefresh')"
-                :disabled="captchaLoading"
-                @click="loadCaptcha"
-              >
-                <span v-if="captchaLoading">…</span>
-                <span v-else class="captcha-code">{{ captchaDisplay }}</span>
-              </button>
-            </div>
-          </el-form-item>
-          <el-button
-            type="primary"
-            native-type="submit"
-            size="large"
-            class="login-btn"
-            :icon="ActionIcons.login"
-            :loading="loading"
-          >
-            {{ t('login.submit') }}
-          </el-button>
+            </el-form-item>
+            <el-form-item :label="t('login.password')">
+              <el-input
+                v-model="form.password"
+                type="password"
+                :placeholder="t('login.passwordPlaceholder')"
+                size="large"
+                :prefix-icon="Lock"
+                show-password
+                autocomplete="current-password"
+              />
+            </el-form-item>
+            <el-form-item v-if="featureStore.captchaEnabled" :label="t('login.captcha')">
+              <div class="captcha-row">
+                <el-input
+                  v-model="form.verificationCode"
+                  :placeholder="t('login.captchaPlaceholder')"
+                  size="large"
+                  maxlength="6"
+                  autocomplete="off"
+                  @keyup.enter="handleLogin"
+                />
+                <button
+                  type="button"
+                  class="captcha-display"
+                  :title="t('login.captchaRefresh')"
+                  :aria-label="t('login.captchaRefresh')"
+                  :aria-busy="captchaLoading ? 'true' : 'false'"
+                  :aria-disabled="captchaLoading ? 'true' : 'false'"
+                  :disabled="captchaLoading"
+                  @click="loadCaptcha"
+                >
+                  <span v-if="captchaLoading">...</span>
+                  <span v-else class="captcha-code">{{ captchaDisplay }}</span>
+                </button>
+              </div>
+            </el-form-item>
+          </div>
+          <div class="login-form__actions" :aria-busy="loading ? 'true' : 'false'">
+            <el-button
+              type="primary"
+              native-type="submit"
+              size="large"
+              class="login-btn"
+              :icon="ActionIcons.login"
+              :loading="loading"
+              :aria-label="t('login.submit')"
+              :aria-busy="loading ? 'true' : 'false'"
+              :aria-disabled="loading ? 'true' : 'false'"
+              aria-live="polite"
+            >
+              {{ loading ? `${t('login.submit')}...` : t('login.submit') }}
+            </el-button>
+          </div>
         </el-form>
       </section>
     </div>
@@ -185,6 +210,7 @@ async function handleLogin() {
   justify-content: center;
   padding: var(--seven-space-6);
   overflow: hidden;
+  background: var(--seven-bg-page);
 }
 
 .login-toolbar {
@@ -200,81 +226,99 @@ async function handleLogin() {
 .login-bg {
   position: absolute;
   inset: 0;
-  background: #0b1220;
+  background:
+    radial-gradient(circle at top right, var(--seven-accent-soft) 0%, transparent 28%),
+    radial-gradient(circle at bottom left, var(--seven-status-info-soft) 0%, transparent 24%),
+    linear-gradient(145deg, var(--seven-bg-panel) 0%, var(--seven-bg-page) 46%, var(--seven-bg-subtle) 100%);
 }
 
-.login-bg__grid {
+.login-bg__mesh {
   position: absolute;
   inset: 0;
-  background-image: url('../assets/patterns/industrial-grid.svg');
-  background-size: cover;
-  background-position: center;
-  opacity: 0.9;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(var(--seven-border-light) 1px, transparent 1px),
+    linear-gradient(90deg, var(--seven-border-light) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 .login-bg__glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(72px);
   pointer-events: none;
 }
 
-.login-bg__glow--orange {
-  width: 420px;
-  height: 420px;
-  top: -80px;
-  right: 10%;
-  background: rgba(249, 115, 22, 0.18);
+.login-bg__glow--a {
+  width: 340px;
+  height: 340px;
+  top: -120px;
+  right: 12%;
+  background: var(--seven-accent-soft);
 }
 
-.login-bg__glow--blue {
-  width: 320px;
-  height: 320px;
-  bottom: -60px;
-  left: 8%;
-  background: rgba(14, 165, 233, 0.12);
+.login-bg__glow--b {
+  width: 240px;
+  height: 240px;
+  bottom: -70px;
+  left: 10%;
+  background: var(--seven-status-info-soft);
 }
 
 .login-shell {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 400px;
-  max-width: 960px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 420px);
+  max-width: 920px;
   width: 100%;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 12px;
+  background: var(--seven-bg-panel);
+  border: 1px solid var(--seven-border-light);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 48px var(--seven-accent-soft), var(--seven-shadow);
 }
 
 .login-brand {
-  padding: 48px 40px;
-  border-right: 1px solid rgba(148, 163, 184, 0.15);
-  color: #e2e8f0;
+  min-width: 0;
+  padding: 44px 40px;
+  border-right: 1px solid var(--seven-border-light);
+  background:
+    linear-gradient(165deg, var(--seven-bg-charcoal) 0%, var(--seven-bg-charcoal-hover) 55%, var(--seven-bg-sidebar) 100%);
+  color: var(--seven-panel-title-text);
+}
+
+.brand-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  background: var(--seven-bg-charcoal-active);
+  border: 1px solid var(--seven-rail-border);
 }
 
 .brand-logo {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 20px;
+  width: 30px;
+  height: 30px;
 }
 
 .login-brand h1 {
   margin: 0 0 8px;
-  font-family: var(--seven-font-mono);
-  font-size: 26px;
+  font-family: var(--seven-font-body);
+  font-size: 24px;
   font-weight: 700;
-  color: #f8fafc;
-  letter-spacing: 0.02em;
+  color: var(--seven-panel-title-text);
+  letter-spacing: 0.01em;
 }
 
 .brand-tagline {
   margin: 0 0 28px;
   font-size: 14px;
-  color: #94a3b8;
+  line-height: 1.55;
+  color: var(--seven-rail-text);
 }
 
 .feature-list {
@@ -283,7 +327,7 @@ async function handleLogin() {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .feature-list li {
@@ -291,7 +335,11 @@ async function handleLogin() {
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: #cbd5e1;
+  color: var(--seven-rail-text-hover);
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--seven-bg-charcoal-active);
+  border: 1px solid var(--seven-rail-border);
 }
 
 .feature-list .el-icon {
@@ -302,91 +350,200 @@ async function handleLogin() {
 .brand-footer {
   display: flex;
   align-items: center;
-  margin-top: 40px;
+  gap: var(--seven-space-2);
+  margin-top: 36px;
   font-size: 12px;
-  color: #64748b;
-  font-family: var(--seven-font-mono);
+  color: var(--seven-rail-text);
 }
 
 .login-panel {
-  padding: var(--seven-space-8) var(--seven-space-6);
+  min-width: 0;
+  padding: 40px 36px;
   background: var(--seven-bg-panel);
   transition: background-color 0.2s ease;
 }
 
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--seven-space-4);
+  margin-bottom: var(--seven-space-6);
+}
+
+.panel-brand {
+  display: none;
+  align-items: center;
+  gap: var(--seven-space-4);
+  padding-bottom: var(--seven-space-4);
+  border-bottom: 1px solid var(--seven-border-light);
+}
+
+.brand-badge--compact {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.brand-badge--compact .brand-logo {
+  width: 22px;
+  height: 22px;
+}
+
+.panel-brand__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panel-brand__name {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--seven-primary-dark);
+}
+
+.panel-brand__tagline {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--seven-text-muted);
+}
+
+.panel-header .seven-section-title {
+  margin-bottom: 0;
+}
+
 .panel-header h2 {
-  margin: 0 0 6px;
-  font-family: var(--seven-font-mono);
-  font-size: 22px;
+  margin: 0;
+  font-family: var(--seven-font-body);
+  font-size: 20px;
   font-weight: 600;
   color: var(--seven-primary-dark);
 }
 
 .panel-header p {
-  margin: 0 0 28px;
+  margin: 0;
   font-size: 13px;
+  line-height: 1.5;
   color: var(--seven-text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--seven-space-5);
+}
+
+.login-form__group {
+  padding: var(--seven-space-6);
+  border: 1px solid var(--seven-border-light);
+  border-radius: 8px;
+  background: var(--seven-bg-subtle);
+}
+
+.login-form :deep(.el-form-item) {
+  margin-bottom: 16px;
+}
+
+.login-form :deep(.el-form-item:last-child) {
+  margin-bottom: 0;
 }
 
 .login-form :deep(.el-form-item__label) {
   font-size: 13px;
   font-weight: 500;
   color: var(--seven-text);
+  margin-bottom: 4px;
+}
+
+.login-form :deep(.el-input__wrapper) {
+  min-height: 44px;
+  background: var(--seven-bg-panel);
+  box-shadow: 0 0 0 1px var(--seven-border) inset;
+}
+
+.login-form :deep(.el-input__wrapper:hover),
+.login-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--seven-accent) inset, 0 0 0 3px var(--seven-accent-soft);
+}
+
+.login-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--seven-space-2);
 }
 
 .login-btn {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 4px;
+  height: 44px !important;
+  min-height: 44px !important;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--seven-btn-on-solid);
-}
-
-.login-btn:not(.is-link):not(.is-text) {
-  box-shadow: var(--seven-btn-primary-shadow);
-}
-
-.login-btn:not(.is-link):not(.is-text):hover {
-  box-shadow: var(--seven-btn-primary-hover-shadow);
 }
 
 .captcha-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  align-items: stretch;
   gap: var(--seven-space-2);
   width: 100%;
 }
 
 .captcha-row :deep(.el-input) {
-  flex: 1;
+  min-width: 0;
 }
 
 .captcha-display {
-  flex-shrink: 0;
-  width: 112px;
-  height: 40px;
+  width: 100%;
+  min-height: 44px;
   padding: 0;
-  border: 1px solid var(--el-border-color);
-  border-radius: var(--el-border-radius-base);
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid var(--seven-border);
+  border-radius: var(--seven-radius-sm);
+  background: var(--seven-bg-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  touch-action: manipulation;
   user-select: none;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.captcha-display:hover {
+  border-color: var(--seven-accent);
+  background: var(--seven-accent-soft);
+}
+
+.captcha-display:focus-visible {
+  outline: 2px solid var(--seven-focus-ring);
+  outline-offset: 1px;
 }
 
 .captcha-display:disabled {
-  opacity: 0.6;
+  opacity: 0.68;
   cursor: wait;
 }
 
 .captcha-code {
   font-family: var(--seven-font-mono);
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 0.35em;
-  color: #f97316;
-  text-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+  letter-spacing: 0.24em;
+  color: var(--seven-accent);
 }
 
 @media (max-width: 768px) {
+  .login-page {
+    padding: 56px var(--seven-space-4) var(--seven-space-5);
+  }
+
+  .login-toolbar {
+    top: var(--seven-space-3);
+    right: var(--seven-space-3);
+  }
+
   .login-shell {
     grid-template-columns: 1fr;
     max-width: 420px;
@@ -397,7 +554,29 @@ async function handleLogin() {
   }
 
   .login-panel {
-    padding: 36px 28px;
+    padding: 28px 22px 24px;
+  }
+
+  .panel-brand {
+    display: flex;
+  }
+
+  .login-form__group {
+    padding: var(--seven-space-5);
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-brand__tagline {
+    max-width: 24ch;
+  }
+
+  .captcha-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .captcha-display {
+    min-height: 44px;
   }
 }
 </style>
