@@ -30,6 +30,8 @@
     "columnName": "Column",
     "columnVisible": "Visible",
     "search": "Search",
+    "more": "More",
+    "refresh": "Refresh",
     "selectRowForDetail": "Select a master row to view details",
     "detailTables": "Details",
     "submitAudit": "Submit for Approval"
@@ -1472,6 +1474,7 @@
     "available": "Available",
     "availableMeta": "Unoccupied locations",
     "pollingMeta": "Polling every 5 seconds without changing node coordinates",
+    "legendLabel": "SCADA occupancy legend",
     "legendAvailable": "Available",
     "legendOccupied": "Occupied",
     "selectView": "Select view",

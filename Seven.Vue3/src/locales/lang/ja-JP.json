@@ -30,6 +30,8 @@
     "columnName": "列名",
     "columnVisible": "表示",
     "search": "検索",
+    "more": "その他",
+    "refresh": "更新",
     "selectRowForDetail": "明細を表示するには上の行を選択してください",
     "detailTables": "明細",
     "submitAudit": "承認申請"
@@ -1351,7 +1353,7 @@
       "status": "状態",
       "refType": "参照",
       "failReason": "失敗理由",
-      "legs": "Legs",
+      "legs": "レッグ",
       "legStatus": "状態 {status}",
       "noLegs": "Legなし"
     },
@@ -1472,6 +1474,7 @@
     "available": "空き",
     "availableMeta": "未占有のロケーション",
     "pollingMeta": "5 秒ポーリングを維持し、ノード座標は変更しません",
+    "legendLabel": "SCADA 占有凡例",
     "legendAvailable": "空き",
     "legendOccupied": "占有",
     "selectView": "ビュー選択",

@@ -2,7 +2,7 @@
   "common": {
     "home": "控制台",
     "logout": "退出登录",
-    "add": "新增",
+    "add": "新建",
     "delete": "删除",
     "deleteConfirm": "确定删除该记录吗？",
     "batchDelete": "批量删除",
@@ -30,6 +30,8 @@
     "columnName": "列名",
     "columnVisible": "是否显示",
     "search": "查询",
+    "more": "更多",
+    "refresh": "刷新",
     "selectRowForDetail": "请选择上方一行以查看明细",
     "detailTables": "子表",
     "submitAudit": "提交审批"
@@ -1351,7 +1353,7 @@
       "status": "状态",
       "refType": "来源",
       "failReason": "失败原因",
-      "legs": "Legs",
+      "legs": "腿",
       "legStatus": "状态 {status}",
       "noLegs": "无 Leg"
     },
@@ -1472,6 +1474,7 @@
     "available": "空闲",
     "availableMeta": "未占用库位",
     "pollingMeta": "保持 5 秒轮询，不改变节点坐标",
+    "legendLabel": "SCADA 占用图例",
     "legendAvailable": "空闲",
     "legendOccupied": "占用",
     "selectView": "选择视图",

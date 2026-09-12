@@ -42,7 +42,7 @@
           <h3>{{ selectedViewName }}</h3>
           <p class="ops-panel__sub">{{ t('scada.pollingMeta') }}</p>
         </div>
-        <div class="scada-legend" aria-label="SCADA occupancy legend">
+        <div class="scada-legend" :aria-label="t('scada.legendLabel')">
           <span class="scada-legend__item">
             <span class="scada-swatch scada-swatch--available" aria-hidden="true"></span>
             {{ t('scada.legendAvailable') }}
@@ -118,7 +118,7 @@ const status = ref<ScdViewStatus | null>(null)
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 const selectedViewName = computed(
-  () => status.value?.name ?? views.value.find((view) => view.id === selectedViewId.value)?.name ?? 'SCADA',
+  () => status.value?.name ?? views.value.find((view) => view.id === selectedViewId.value)?.name ?? t('scada.fallbackName'),
 )
 const nodeCount = computed(() => status.value?.nodes.length ?? 0)
 const occupiedCount = computed(() => status.value?.nodes.filter((node) => node.isOccupied).length ?? 0)
