@@ -99,12 +99,12 @@
     }
   },
   "login": {
-    "title": "Seven Master",
-    "tagline": "アジャイル開発フレームワーク · 迅速な業務提供",
-    "featureCore": "コード生成と標準 CRUD",
-    "featureAuth": "メニュー権限とロール認可",
-    "featureRealtime": "リアルタイム警報と拡張",
-    "footer": "Production Ready · .NET 8 + Vue 3",
+    "title": "WMS/WCS 運用プラットフォーム",
+    "tagline": "倉庫管理と制御 · リアルタイム運用可視化",
+    "featureCore": "在庫・ロケーション・倉庫マスタ",
+    "featureAuth": "倉庫作業・設備・ロール権限",
+    "featureRealtime": "WCS 制御・設備通信・リアルタイム警報",
+    "footer": "Warehouse Operations · WMS + WCS",
     "panelTitle": "ログイン",
     "panelSubtitle": "オペレーターアカウントを入力",
     "userName": "ユーザー名",

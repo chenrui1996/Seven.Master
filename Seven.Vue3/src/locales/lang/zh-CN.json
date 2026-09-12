@@ -99,12 +99,12 @@
     }
   },
   "login": {
-    "title": "Seven Master",
-    "tagline": "敏捷开发框架 · 快速交付业务系统",
-    "featureCore": "代码生成与标准 CRUD",
-    "featureAuth": "菜单权限与角色授权",
-    "featureRealtime": "实时告警与扩展集成",
-    "footer": "Production Ready · .NET 8 + Vue 3",
+    "title": "WMS/WCS 运营平台",
+    "tagline": "仓储管理与控制系统 · 实时运营可视化",
+    "featureCore": "库存、货位与仓储主数据",
+    "featureAuth": "仓储作业、设备与角色权限",
+    "featureRealtime": "WCS 调度、设备通信与实时告警",
+    "footer": "Warehouse Operations · WMS + WCS",
     "panelTitle": "系统登录",
     "panelSubtitle": "请输入您的操作员账号",
     "userName": "用户名",

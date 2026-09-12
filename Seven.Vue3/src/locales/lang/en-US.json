@@ -99,12 +99,12 @@
     }
   },
   "login": {
-    "title": "Seven Master",
-    "tagline": "Agile development framework for rapid delivery",
-    "featureCore": "Code generation & standard CRUD",
-    "featureAuth": "Menus, roles & permissions",
-    "featureRealtime": "Realtime alerts & extensions",
-    "footer": "Production Ready · .NET 8 + Vue 3",
+    "title": "WMS/WCS Operations",
+    "tagline": "Warehouse management & control · Real-time visibility",
+    "featureCore": "Inventory, locations & warehouse master data",
+    "featureAuth": "Warehouse tasks, devices & role permissions",
+    "featureRealtime": "WCS orchestration, device links & live alerts",
+    "footer": "Warehouse Operations · WMS + WCS",
     "panelTitle": "Sign In",
     "panelSubtitle": "Enter your operator credentials",
     "userName": "Username",

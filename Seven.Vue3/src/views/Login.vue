@@ -227,19 +227,47 @@ async function handleLogin() {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top right, var(--seven-accent-soft) 0%, transparent 28%),
-    radial-gradient(circle at bottom left, var(--seven-status-danger-soft) 0%, transparent 24%),
-    linear-gradient(145deg, var(--seven-bg-panel) 0%, var(--seven-bg-page) 46%, var(--seven-bg-subtle) 100%);
+    radial-gradient(circle at 82% 12%, rgba(64, 158, 255, 0.2) 0%, transparent 24%),
+    radial-gradient(circle at 12% 86%, rgba(64, 158, 255, 0.1) 0%, transparent 26%),
+    linear-gradient(135deg, #eef7ff 0%, var(--seven-bg-page) 48%, #e9f2fb 100%);
+}
+
+html.dark .login-bg {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(64, 158, 255, 0.2) 0%, transparent 24%),
+    radial-gradient(circle at 12% 86%, rgba(64, 158, 255, 0.12) 0%, transparent 26%),
+    linear-gradient(135deg, #0e1a29 0%, var(--seven-bg-page) 48%, #111d2b 100%);
 }
 
 .login-bg__mesh {
   position: absolute;
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.36;
   background-image:
-    linear-gradient(var(--seven-border-light) 1px, transparent 1px),
-    linear-gradient(90deg, var(--seven-border-light) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(rgba(64, 158, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 158, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 48%, rgba(64, 158, 255, 0.08) 49%, transparent 50%);
+  background-size: 36px 36px, 36px 36px, 180px 180px;
+}
+
+.login-bg::before {
+  content: '';
+  position: absolute;
+  width: 68vw;
+  height: 68vw;
+  min-width: 520px;
+  min-height: 520px;
+  max-width: 980px;
+  max-height: 980px;
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(64, 158, 255, 0.14);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 28px rgba(64, 158, 255, 0.04),
+    0 0 0 56px rgba(64, 158, 255, 0.025);
+  pointer-events: none;
 }
 
 .login-bg__glow {
@@ -254,7 +282,7 @@ async function handleLogin() {
   height: 340px;
   top: -120px;
   right: 12%;
-  background: var(--seven-accent-soft);
+  background: rgba(64, 158, 255, 0.18);
 }
 
 .login-bg__glow--b {
@@ -262,7 +290,7 @@ async function handleLogin() {
   height: 240px;
   bottom: -70px;
   left: 10%;
-  background: var(--seven-status-info-soft);
+  background: rgba(51, 126, 204, 0.12);
 }
 
 .login-shell {
