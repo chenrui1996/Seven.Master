@@ -1,7 +1,7 @@
 <template>
   <el-container class="layout-container" :class="{ 'is-content-fullscreen': isContentFullscreen }">
     <el-aside :width="sidebarWidth" class="aside dual-rail">
-      <nav class="icon-rail" aria-label="primary">
+      <nav class="icon-rail" aria-label="Primary navigation">
         <div class="rail-logo" :title="t('layout.logoTitle')">
           <img src="../assets/icons/logo-master.svg" alt="Seven Master" class="logo-icon" />
         </div>
@@ -12,6 +12,7 @@
           :class="{ active: activeRailKey === 'home' }"
           :title="t('common.home')"
           :aria-label="t('common.home')"
+          :aria-current="activeRailKey === 'home' ? 'page' : undefined"
           @click="selectHome"
         >
           <el-icon :size="20"><HomeFilled /></el-icon>
@@ -26,6 +27,7 @@
           :class="{ active: activeRailKey === String(menu.menu_Id) }"
           :title="menuLabel(menu.menuName)"
           :aria-label="menuLabel(menu.menuName)"
+          :aria-current="activeRailKey === String(menu.menu_Id) ? 'page' : undefined"
           @click="selectRail(menu)"
         >
           <el-icon :size="20">
@@ -44,6 +46,7 @@
           :class="{ active: activeRailKey === String(menu.menu_Id) }"
           :title="menuLabel(menu.menuName)"
           :aria-label="menuLabel(menu.menuName)"
+          :aria-current="activeRailKey === String(menu.menu_Id) ? 'page' : undefined"
           @click="selectRail(menu)"
         >
           <el-icon :size="20">
@@ -67,6 +70,7 @@
             clearable
             size="default"
             :placeholder="t('layout.menuFilter')"
+            :aria-label="t('layout.menuFilter')"
           />
         </div>
 
@@ -85,6 +89,8 @@
                 type="button"
                 class="menu-leaf is-nested"
                 :class="{ active: isLeafActive(leaf) }"
+                :title="menuLabel(leaf.menuName)"
+                :aria-label="menuLabel(leaf.menuName)"
                 :aria-current="isLeafActive(leaf) ? 'page' : undefined"
                 @click="onMenuClick(leaf)"
               >
@@ -99,6 +105,8 @@
               type="button"
               class="menu-leaf"
               :class="{ active: isLeafActive(node.menu) }"
+              :title="menuLabel(node.menu.menuName)"
+              :aria-label="menuLabel(node.menu.menuName)"
               :aria-current="isLeafActive(node.menu) ? 'page' : undefined"
               @click="onMenuClick(node.menu)"
             >
@@ -118,54 +126,81 @@
     <el-container class="main-wrap">
       <el-header class="header">
         <div class="header-left">
-          <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/home' }">{{ t('common.home') }}</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="currentTitle">{{ currentTitle }}</el-breadcrumb-item>
-          </el-breadcrumb>
+          <div class="header-context">
+            <el-breadcrumb class="context-trail" separator="/">
+              <el-breadcrumb-item :to="{ path: '/home' }">{{ t('common.home') }}</el-breadcrumb-item>
+              <el-breadcrumb-item v-if="currentTitle">{{ currentTitle }}</el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
         </div>
         <div class="header-right">
-          <div class="header-meta">
-            <span class="meta-item"><el-icon><Clock /></el-icon>{{ currentTime }}</span>
-            <span class="meta-item"><el-icon><Connection /></el-icon>{{ onlineLabel }}</span>
-          </div>
-          <AlarmBell v-if="featureStore.alarmEnabled" />
-          <LocaleSwitch />
-          <ThemeToggle />
-          <el-dropdown trigger="click" @command="handleCommand">
-            <div class="user-block cursor-pointer">
-              <el-avatar :size="32" class="user-avatar">{{ avatarText }}</el-avatar>
-              <span class="user-name">{{ userStore.userTrueName || userStore.userName }}</span>
-              <el-icon><ArrowDown /></el-icon>
+          <div class="header-status" aria-label="System status">
+            <div class="header-meta">
+              <span class="meta-item"><el-icon><Clock /></el-icon>{{ currentTime }}</span>
+              <span class="meta-item"><el-icon><Connection /></el-icon>{{ onlineLabel }}</span>
             </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>{{ t('userInfo.title') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="logout" divided>
-                  <el-icon><SwitchButton /></el-icon>{{ t('common.logout') }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          </div>
+          <div class="header-utilities" aria-label="Shell controls">
+            <AlarmBell v-if="featureStore.alarmEnabled" />
+            <LocaleSwitch />
+            <ThemeToggle />
+          </div>
+          <div class="header-operator">
+            <el-dropdown trigger="click" @command="handleCommand">
+              <button
+                type="button"
+                class="user-block cursor-pointer"
+                :title="operatorName"
+                :aria-label="operatorName"
+                aria-haspopup="menu"
+              >
+                <el-avatar :size="32" class="user-avatar">{{ avatarText }}</el-avatar>
+                <span class="user-name">{{ operatorName }}</span>
+                <el-icon><ArrowDown /></el-icon>
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="profile">
+                    <el-icon><User /></el-icon>{{ t('userInfo.title') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="logout" divided>
+                    <el-icon><SwitchButton /></el-icon>{{ t('common.logout') }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </div>
       </el-header>
 
-      <div class="tabs-bar">
+      <div class="tabs-bar" aria-label="Open pages">
         <div
           v-for="tab in tabsStore.tabs"
           :key="tab.path"
-          class="tab-item cursor-pointer"
+          class="tab-item"
           :class="{ active: tabsStore.activeTab === tab.path }"
-          @click="switchTab(tab.path)"
           @contextmenu.prevent="openTabMenu($event, tab.path)"
         >
-          {{ tabLabel(tab) }}
-          <el-icon
+          <button
+            type="button"
+            class="tab-button"
+            :title="tabLabel(tab)"
+            :aria-label="tabLabel(tab)"
+            :aria-current="tabsStore.activeTab === tab.path ? 'page' : undefined"
+            @click="switchTab(tab.path)"
+          >
+            <span class="tab-label">{{ tabLabel(tab) }}</span>
+          </button>
+          <button
             v-if="tab.path !== '/home'"
             class="tab-close"
+            type="button"
+            :title="tabCloseLabel(tab)"
+            :aria-label="tabCloseLabel(tab)"
             @click.stop="closeTab(tab.path)"
-          ><Close /></el-icon>
+          >
+            <el-icon><Close /></el-icon>
+          </button>
         </div>
       </div>
 
@@ -401,6 +436,8 @@ const avatarText = computed(() => {
   return name.charAt(0).toUpperCase()
 })
 
+const operatorName = computed(() => userStore.userTrueName || userStore.userName || 'Operator')
+
 const currentTitle = computed(() => {
   if (route.path === '/home') return ''
   const tab = tabsStore.tabs.find((item) => item.path === route.path)
@@ -410,6 +447,10 @@ const currentTitle = computed(() => {
 function tabLabel(tab: { title: string; path: string }) {
   if (tab.path === '/home') return t('layout.homeTab')
   return menuLabel(tab.title)
+}
+
+function tabCloseLabel(tab: { title: string; path: string }) {
+  return `${t('layout.tabMenu.close')} ${tabLabel(tab)}`
 }
 
 function updateTime() {
@@ -578,257 +619,14 @@ onUnmounted(() => {
 <style scoped>
 .layout-container {
   height: 100vh;
-  background: var(--seven-bg-page);
-}
-
-.aside.dual-rail {
-  display: flex;
-  flex-direction: row;
-  padding: 0;
-  background: var(--seven-bg-charcoal);
-  border-right: 1px solid var(--seven-rail-border);
-  overflow: hidden;
-}
-
-.icon-rail {
-  width: var(--seven-rail-width, 84px);
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 8px 5px 10px;
-  background: var(--seven-bg-charcoal);
-  border-right: 1px solid rgba(148, 163, 184, 0.1);
-}
-
-.rail-spacer {
-  flex: 1 1 auto;
-  min-height: 8px;
-  width: 100%;
-}
-
-.rail-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 40px;
-  margin-bottom: 4px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-}
-
-.logo-icon {
-  width: 26px;
-  height: 26px;
-}
-
-.rail-item {
-  width: 100%;
-  min-height: 52px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 6px 3px 5px;
-  border: 1px solid transparent;
-  border-radius: var(--seven-radius-sm);
-  background: transparent;
-  color: var(--seven-rail-text);
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-
-.rail-item :deep(.el-icon) {
-  font-size: 20px;
-}
-
-.rail-item:hover {
-  background: var(--seven-bg-charcoal-hover);
-  color: var(--seven-rail-text-hover);
-}
-
-.rail-item:focus-visible {
-  outline: 2px solid var(--seven-accent-gold);
-  outline-offset: 1px;
-}
-
-.rail-item.active {
-  color: var(--seven-accent-gold);
-  background: var(--seven-bg-charcoal-active);
-  border-color: var(--seven-accent-gold-strong);
-  box-shadow: inset 0 0 0 1px rgba(201, 162, 39, 0.2);
-}
-
-.rail-label {
-  max-width: 74px;
-  font-size: 11px;
-  line-height: 1.2;
-  font-weight: 500;
-  text-align: center;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  word-break: break-all;
-}
-
-.secondary-panel {
-  width: var(--seven-secondary-menu-width, 200px);
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--seven-bg-secondary-menu);
-  border-right: 1px solid var(--seven-border-light);
-}
-
-.panel-title-bar {
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  background: var(--seven-panel-title-bg);
-  color: var(--seven-panel-title-text);
-  border-bottom: 2px solid var(--seven-accent-gold);
-}
-
-.panel-title-icon {
-  flex-shrink: 0;
-  color: var(--seven-accent-gold);
-}
-
-.panel-title {
-  font-family: var(--seven-font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--seven-panel-title-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.panel-filter {
-  padding: 8px 10px;
-  background: var(--seven-bg-secondary-menu);
-  border-bottom: 1px solid var(--seven-border-light);
-}
-
-.panel-scroll {
-  flex: 1;
-  padding: 8px 6px 12px;
-}
-
-.menu-group {
-  margin: 0 0 8px;
-  padding: 6px 0 4px;
-  border: 1px solid var(--seven-border-light);
-  border-left: 3px solid var(--seven-accent-gold);
-  background: var(--seven-bg-group-soft);
-  border-radius: var(--seven-radius-sm);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-.menu-group-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 8px 4px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--seven-border-light);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--seven-group-title);
-}
-
-.group-icon {
-  color: var(--seven-accent-gold-strong);
-  flex-shrink: 0;
-}
-
-.menu-leaf {
-  width: calc(100% - 6px);
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  margin: 0 3px 1px;
-  border: none;
-  border-radius: var(--seven-radius-sm);
-  background: transparent;
-  color: var(--seven-primary-dark);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.menu-leaf.is-nested {
-  padding-left: 12px;
-}
-
-.menu-leaf:hover {
-  background: rgba(15, 23, 42, 0.05);
-  color: var(--seven-primary-dark);
-}
-
-.menu-leaf:hover .leaf-icon {
-  color: var(--seven-accent-gold-strong);
-}
-
-.menu-leaf:focus-visible {
-  outline: 2px solid var(--seven-accent-gold);
-  outline-offset: 1px;
-}
-
-.menu-leaf.active {
-  background: var(--seven-accent-gold-soft);
-  color: var(--seven-leaf-active-text);
-  font-weight: 600;
-  box-shadow: inset 2px 0 0 var(--seven-accent-gold);
-}
-
-.leaf-icon {
-  flex-shrink: 0;
-  color: var(--seven-leaf-icon);
-  transition: color 0.2s ease;
-}
-
-.menu-leaf.active .leaf-icon {
-  color: var(--seven-accent-gold-strong);
-}
-
-.leaf-text {
-  flex: 1;
   min-width: 0;
-  font-size: 12.5px;
-  line-height: 1.35;
+  background: var(--seven-bg-page);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.panel-empty {
-  padding: 14px 8px;
-  font-size: 12px;
-  color: var(--seven-text-muted);
-  text-align: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rail-item,
-  .menu-leaf,
-  .leaf-icon {
-    transition: none;
-  }
 }
 
 .main-wrap {
   min-width: 0;
+  overflow: hidden;
 }
 
 .header {
@@ -836,26 +634,73 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--seven-space-4);
   padding: 0 16px;
   background: var(--seven-bg-panel);
   border-bottom: 1px solid var(--seven-border-light);
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--seven-border) 40%, transparent);
+}
+
+.header-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.header-context {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 5px 10px;
+  border: 1px solid var(--seven-border-light);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--seven-bg-subtle) 78%, var(--seven-bg-panel) 22%);
+}
+
+.header-left :deep(.el-breadcrumb) {
+  min-width: 0;
 }
 
 .header-left :deep(.el-breadcrumb__inner) {
-  font-family: var(--seven-font-mono);
+  font-family: var(--seven-font-body);
   font-size: 13px;
+}
+
+.header-left :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  display: inline-block;
+  max-width: min(40vw, 360px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .header-right {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 8px;
+}
+
+.header-status,
+.header-utilities,
+.header-operator {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--seven-border-light);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--seven-bg-subtle) 72%, var(--seven-bg-panel) 28%);
+}
+
+.header-utilities {
+  gap: 6px;
 }
 
 .header-meta {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .meta-item {
@@ -865,14 +710,19 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--seven-text-muted);
   font-family: var(--seven-font-mono);
+  white-space: nowrap;
 }
 
 .user-block {
   display: flex;
   align-items: center;
   gap: 8px;
+  border: 0;
   padding: 4px 8px;
+  background: transparent;
   border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
@@ -880,8 +730,13 @@ onUnmounted(() => {
   background: var(--seven-accent-soft);
 }
 
+.user-block:focus-visible {
+  outline: 2px solid var(--seven-focus-ring);
+  outline-offset: 2px;
+}
+
 .user-avatar {
-  background: var(--seven-primary);
+  background: var(--seven-accent);
   color: #fff;
   font-family: var(--seven-font-mono);
   font-size: 14px;
@@ -891,59 +746,107 @@ onUnmounted(() => {
   font-size: 13px;
   font-weight: 500;
   color: var(--seven-text);
+  max-width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tabs-bar {
   display: flex;
   align-items: center;
   gap: var(--seven-space-1);
+  min-width: 0;
   height: var(--seven-tabs-height);
   padding: 0 var(--seven-space-3);
   background: var(--seven-bg-subtle);
   border-bottom: 1px solid var(--seven-border-light);
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable both-edges;
 }
 
 .tab-item {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
+  gap: 0;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 220px;
+  padding: 5px 8px 5px 10px;
   font-size: 12px;
   color: var(--seven-text-muted);
   background: transparent;
-  border-radius: 4px 4px 0 0;
+  border-radius: 4px 0 0 0;
   border: 1px solid transparent;
   white-space: nowrap;
+  cursor: pointer;
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.tab-item:hover {
+.tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-button:hover,
+.tab-item:hover .tab-close {
   color: var(--seven-text);
   background: var(--seven-bg-panel);
   opacity: 0.85;
 }
 
-.tab-item.active {
+.tab-button:focus-visible,
+.tab-close:focus-visible {
+  outline: 2px solid var(--seven-focus-ring);
+  outline-offset: 2px;
+}
+
+.tab-item.active .tab-button,
+.tab-item.active .tab-close {
   color: var(--seven-accent);
   background: var(--seven-bg-panel);
   border-color: var(--seven-border-light);
-  border-bottom-color: var(--seven-bg-panel);
+}
+
+.tab-item.active .tab-button {
+  border-bottom: 2px solid var(--seven-accent);
   font-weight: 600;
 }
 
 .tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: -1px;
+  padding: 0;
   font-size: 12px;
-  border-radius: 2px;
-  transition: color 0.2s ease;
+  color: var(--seven-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0 4px 0 0;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .tab-close:hover {
   color: var(--seven-danger);
+  background: color-mix(in srgb, var(--seven-danger) 10%, var(--seven-bg-panel));
 }
 
 .main-content {
-  padding: var(--seven-space-3) var(--seven-space-4) var(--seven-space-5);
+  min-width: 0;
+  padding: 8px;
   background: var(--seven-bg-page);
   overflow: auto;
 }
@@ -962,12 +865,30 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  .header-meta {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header-status {
     display: none;
   }
 
-  .rail-label {
+  .header-context,
+  .header-utilities,
+  .header-operator {
+    padding-inline: 6px;
+  }
+
+  .user-name {
     display: none;
+  }
+
+  .tabs-bar {
+    padding: 0 8px;
+  }
+
+  .tab-button {
+    max-width: 160px;
   }
 }
 </style>
@@ -981,7 +902,7 @@ onUnmounted(() => {
   min-width: 148px;
   list-style: none;
   background: var(--seven-bg-panel, #fff);
-  border: 1px solid var(--seven-border-light, #e2e8f0);
+  border: 1px solid var(--seven-border-light, #ebeef5);
   border-radius: 6px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
@@ -991,12 +912,12 @@ onUnmounted(() => {
   gap: 8px;
   padding: 8px 14px;
   font-size: 13px;
-  color: var(--seven-text, #0f172a);
+  color: var(--seven-text, #606266);
   cursor: pointer;
 }
 .tab-context-menu li:hover:not(.disabled) {
-  color: var(--seven-accent, #f97316);
-  background: rgba(249, 115, 22, 0.08);
+  color: var(--seven-accent, #409eff);
+  background: var(--seven-accent-soft, rgba(64, 158, 255, 0.12));
 }
 .tab-context-menu li.disabled {
   opacity: 0.4;
