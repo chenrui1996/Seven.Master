@@ -228,7 +228,7 @@ async function handleLogin() {
   inset: 0;
   background:
     radial-gradient(circle at top right, var(--seven-accent-soft) 0%, transparent 28%),
-    radial-gradient(circle at bottom left, var(--seven-status-info-soft) 0%, transparent 24%),
+    radial-gradient(circle at bottom left, var(--seven-status-danger-soft) 0%, transparent 24%),
     linear-gradient(145deg, var(--seven-bg-panel) 0%, var(--seven-bg-page) 46%, var(--seven-bg-subtle) 100%);
 }
 
@@ -307,11 +307,11 @@ async function handleLogin() {
 
 .login-brand h1 {
   margin: 0 0 8px;
-  font-family: var(--seven-font-body);
-  font-size: 24px;
+  font-family: var(--seven-font-mono);
+  font-size: 26px;
   font-weight: 700;
   color: var(--seven-panel-title-text);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 .brand-tagline {
@@ -354,6 +354,7 @@ async function handleLogin() {
   margin-top: 36px;
   font-size: 12px;
   color: var(--seven-rail-text);
+  font-family: var(--seven-font-mono);
 }
 
 .login-panel {
@@ -416,8 +417,8 @@ async function handleLogin() {
 
 .panel-header h2 {
   margin: 0;
-  font-family: var(--seven-font-body);
-  font-size: 20px;
+  font-family: var(--seven-font-mono);
+  font-size: 22px;
   font-weight: 600;
   color: var(--seven-primary-dark);
 }
