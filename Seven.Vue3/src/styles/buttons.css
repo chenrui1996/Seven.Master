@@ -1,13 +1,12 @@
 /**
- * 全局按钮与工具栏（紧凑 Data-Dense · ui-ux-pro-max）
+ * 全局按钮与工具栏（蓝白 ERP · Data-Dense）
  *
- * 文字色策略：
- * - 实心深底（primary / danger / success / info / warning）→ 始终白字（--seven-btn-on-solid）
- * - 浅底（default）→ 深色字，保证对比度
- * - 链接型（is-link）→ 语义色字，适配表格白底/浅底行
+ * - primary：查询蓝
+ * - create（.is-create / danger 实心新建）：珊瑚红
+ * - default：白底描边
+ * - link：语义色字
  */
 
-/* 工具栏 */
 .toolbar {
   display: flex;
   align-items: center;
@@ -34,7 +33,6 @@
   gap: 6px;
 }
 
-/* Element Plus 按钮 — 紧凑尺寸（Data-Dense） */
 .el-button {
   --el-button-size: 28px;
   font-family: var(--seven-font-body);
@@ -52,14 +50,14 @@
 .el-button:not(.is-link):not(.is-text) {
   height: 28px;
   min-height: 28px;
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
 .el-button--small:not(.is-link):not(.is-text) {
   --el-button-size: 26px;
   height: 26px;
   min-height: 26px;
-  padding: 0 9px;
+  padding: 0 10px;
   font-size: var(--seven-text-xs);
 }
 
@@ -87,21 +85,37 @@
 }
 
 .el-button:focus-visible {
-  outline: 2px solid var(--seven-accent);
-  outline-offset: 1px;
+  outline: 2px solid var(--seven-focus-ring);
+  outline-offset: 2px;
 }
 
 .el-button.is-disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  pointer-events: none;
 }
 
-/* 实心深底按钮 — 统一白字（对比度以按钮自身底色为准，与页面浅/深背景无关） */
+.el-button.is-disabled,
+.el-button.is-disabled:hover,
+.el-button.is-disabled:focus,
+.el-button.is-disabled:focus-visible,
+.el-button.is-disabled:active {
+  box-shadow: none;
+  transform: none;
+  --el-button-hover-bg-color: var(--el-button-disabled-bg-color, var(--el-button-bg-color));
+  --el-button-hover-border-color: var(--el-button-disabled-border-color, var(--el-button-border-color));
+  --el-button-hover-text-color: var(--el-button-disabled-text-color, var(--el-button-text-color));
+  --el-button-active-bg-color: var(--el-button-disabled-bg-color, var(--el-button-bg-color));
+  --el-button-active-border-color: var(--el-button-disabled-border-color, var(--el-button-border-color));
+  --el-button-active-text-color: var(--el-button-disabled-text-color, var(--el-button-text-color));
+}
+
 .el-button--primary:not(.is-link):not(.is-text),
 .el-button--danger:not(.is-link):not(.is-text),
 .el-button--success:not(.is-link):not(.is-text),
 .el-button--info:not(.is-link):not(.is-text),
-.el-button--warning:not(.is-link):not(.is-text) {
+.el-button--warning:not(.is-link):not(.is-text),
+.el-button.is-create:not(.is-link):not(.is-text) {
   --el-button-text-color: var(--seven-btn-on-solid);
   --el-button-hover-text-color: var(--seven-btn-on-solid);
   --el-button-active-text-color: var(--seven-btn-on-solid);
@@ -112,13 +126,11 @@
 
 .el-button--primary:not(.is-link):not(.is-text) .el-icon,
 .el-button--danger:not(.is-link):not(.is-text) .el-icon,
-.el-button--success:not(.is-link):not(.is-text) .el-icon,
-.el-button--info:not(.is-link):not(.is-text) .el-icon,
-.el-button--warning:not(.is-link):not(.is-text) .el-icon {
+.el-button.is-create:not(.is-link):not(.is-text) .el-icon {
   color: currentColor;
 }
 
-/* 主色 — 安全橙实心 CTA（全站实心 primary 强制白字） */
+/* 主色 — 查询蓝 */
 .el-button--primary:not(.is-link):not(.is-text) {
   --el-button-bg-color: var(--seven-btn-primary-bg);
   --el-button-border-color: var(--seven-btn-primary-border);
@@ -130,8 +142,8 @@
   --el-button-hover-border-color: var(--seven-btn-primary-hover);
   --el-button-active-bg-color: var(--seven-btn-primary-active);
   --el-button-active-border-color: var(--seven-btn-primary-active);
-  --el-button-disabled-bg-color: #fdba74;
-  --el-button-disabled-border-color: #fdba74;
+  --el-button-disabled-bg-color: #a0cfff;
+  --el-button-disabled-border-color: #a0cfff;
   color: #ffffff !important;
   box-shadow: var(--seven-btn-primary-shadow);
 }
@@ -145,62 +157,62 @@
 .el-button--primary:not(.is-link):not(.is-text):focus,
 .el-button--primary:not(.is-link):not(.is-text):active {
   color: #ffffff !important;
-  --el-button-text-color: #ffffff;
-  --el-button-hover-text-color: #ffffff;
-  --el-button-active-text-color: #ffffff;
 }
 
-.el-button--primary:not(.is-link):not(.is-text):hover span,
-.el-button--primary:not(.is-link):not(.is-text):focus span,
-.el-button--primary:not(.is-link):not(.is-text):active span,
-.el-button--primary:not(.is-link):not(.is-text):hover .el-icon,
-.el-button--primary:not(.is-link):not(.is-text):focus .el-icon,
-.el-button--primary:not(.is-link):not(.is-text):active .el-icon {
-  color: #ffffff !important;
-}
-
-.el-button--primary:not(.is-link):not(.is-text):hover {
-  box-shadow: var(--seven-btn-primary-hover-shadow);
-}
-
-.el-button--primary:not(.is-link):not(.is-text):active {
-  box-shadow: none;
-}
-
-/* plain primary 同样白字（底色用主色实心，避免浅底白字看不清） */
 .el-button--primary.is-plain:not(.is-link):not(.is-text) {
-  --el-button-bg-color: var(--seven-btn-primary-bg);
-  --el-button-border-color: var(--seven-btn-primary-border);
-  --el-button-text-color: #ffffff;
-  --el-button-hover-bg-color: var(--seven-btn-primary-hover);
-  --el-button-hover-border-color: var(--seven-btn-primary-hover);
+  --el-button-bg-color: var(--el-color-primary-light-9);
+  --el-button-border-color: var(--el-color-primary-light-5);
+  --el-button-text-color: var(--seven-accent);
+  --el-button-hover-bg-color: var(--seven-btn-primary-bg);
+  --el-button-hover-border-color: var(--seven-btn-primary-bg);
   --el-button-hover-text-color: #ffffff;
-  color: #ffffff !important;
+  color: var(--seven-accent) !important;
 }
 
-.el-button--primary.is-plain:not(.is-link):not(.is-text) span,
-.el-button--primary.is-plain:not(.is-link):not(.is-text) .el-icon {
+.el-button--primary.is-plain:not(.is-link):not(.is-text):hover {
   color: #ffffff !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .el-button--primary:not(.is-link):not(.is-text):active {
+  .el-button--primary:not(.is-link):not(.is-text):active,
+  .el-button.is-create:not(.is-link):not(.is-text):active {
     transform: translateY(0.5px);
   }
 }
 
-/* 默认 — 浅灰底 + 深灰字 */
+/* 默认 — 白底描边 */
 .el-button--default {
   --el-button-bg-color: var(--seven-btn-default-bg);
   --el-button-border-color: var(--seven-btn-default-border);
   --el-button-text-color: var(--seven-btn-default-text);
   --el-button-hover-bg-color: var(--seven-btn-default-hover);
   --el-button-hover-border-color: var(--seven-btn-default-border-hover);
-  --el-button-hover-text-color: var(--seven-btn-default-text);
+  --el-button-hover-text-color: var(--seven-accent);
   --el-button-active-bg-color: var(--seven-btn-default-active);
 }
 
-/* 危险 — 深红实心 + 强制白字（含 plain） */
+/* 新建 create */
+.el-button.is-create:not(.is-link):not(.is-text) {
+  --el-button-bg-color: var(--seven-btn-create-bg);
+  --el-button-border-color: var(--seven-btn-create-border);
+  --el-button-text-color: #ffffff;
+  --el-button-hover-text-color: #ffffff;
+  --el-button-active-text-color: #ffffff;
+  --el-button-hover-bg-color: var(--seven-btn-create-hover);
+  --el-button-hover-border-color: var(--seven-btn-create-hover);
+  --el-button-active-bg-color: var(--seven-btn-create-active);
+  --el-button-active-border-color: var(--seven-btn-create-active);
+  color: #ffffff !important;
+  background-color: var(--seven-btn-create-bg);
+  border-color: var(--seven-btn-create-border);
+}
+
+.el-button.is-create:not(.is-link):not(.is-text) span,
+.el-button.is-create:not(.is-link):not(.is-text) .el-icon {
+  color: #ffffff !important;
+}
+
+/* 危险 — 珊瑚红实心 */
 .el-button--danger:not(.is-link):not(.is-text) {
   --el-button-bg-color: var(--seven-btn-danger-bg);
   --el-button-border-color: var(--seven-btn-danger-border);
@@ -212,8 +224,8 @@
   --el-button-hover-border-color: var(--seven-btn-danger-hover-border);
   --el-button-active-bg-color: var(--seven-btn-danger-active);
   --el-button-active-border-color: var(--seven-btn-danger-active);
-  --el-button-disabled-bg-color: var(--seven-btn-danger-disabled-bg, #f87171);
-  --el-button-disabled-border-color: var(--seven-btn-danger-disabled-border, #f87171);
+  --el-button-disabled-bg-color: var(--seven-btn-danger-disabled-bg, #fab6b6);
+  --el-button-disabled-border-color: var(--seven-btn-danger-disabled-border, #fab6b6);
   color: #ffffff !important;
 }
 
@@ -222,95 +234,35 @@
   color: #ffffff !important;
 }
 
-.el-button--danger:not(.is-link):not(.is-text):hover,
-.el-button--danger:not(.is-link):not(.is-text):focus,
-.el-button--danger:not(.is-link):not(.is-text):active {
-  color: #ffffff !important;
-  --el-button-text-color: #ffffff;
-  --el-button-hover-text-color: #ffffff;
-  --el-button-active-text-color: #ffffff;
-}
-
-.el-button--danger:not(.is-link):not(.is-text):hover span,
-.el-button--danger:not(.is-link):not(.is-text):focus span,
-.el-button--danger:not(.is-link):not(.is-text):active span,
-.el-button--danger:not(.is-link):not(.is-text):hover .el-icon,
-.el-button--danger:not(.is-link):not(.is-text):focus .el-icon,
-.el-button--danger:not(.is-link):not(.is-text):active .el-icon {
-  color: #ffffff !important;
-}
-
 .el-button--danger.is-plain:not(.is-link):not(.is-text) {
-  --el-button-bg-color: var(--seven-btn-danger-bg);
+  --el-button-bg-color: #ffffff;
   --el-button-border-color: var(--seven-btn-danger-border);
-  --el-button-text-color: #ffffff;
-  --el-button-hover-bg-color: var(--seven-btn-danger-hover);
-  --el-button-hover-border-color: var(--seven-btn-danger-hover-border);
-  --el-button-hover-text-color: #ffffff;
-  color: #ffffff !important;
+  --el-button-text-color: var(--seven-danger);
+  --el-button-hover-bg-color: #fef0f0;
+  --el-button-hover-border-color: var(--seven-btn-danger-hover);
+  --el-button-hover-text-color: var(--seven-btn-danger-hover);
+  color: var(--seven-danger) !important;
 }
 
 .el-button--danger.is-plain:not(.is-link):not(.is-text) span,
 .el-button--danger.is-plain:not(.is-link):not(.is-text) .el-icon {
-  color: #ffffff !important;
+  color: currentColor !important;
 }
 
 .el-button--danger.is-link {
   --el-button-text-color: var(--seven-danger);
 }
 
-/* 警告 — 实心琥珀黄 + 强制白字（含 plain） */
 .el-button--warning:not(.is-link):not(.is-text) {
   --el-button-bg-color: var(--seven-btn-warning-bg);
   --el-button-border-color: var(--seven-btn-warning-border);
   --el-button-text-color: #ffffff;
   --el-button-hover-text-color: #ffffff;
   --el-button-active-text-color: #ffffff;
-  --el-button-disabled-text-color: #ffffff;
   --el-button-hover-bg-color: var(--seven-btn-warning-hover);
   --el-button-hover-border-color: var(--seven-btn-warning-border-hover);
-  --el-button-disabled-bg-color: #fde047;
-  --el-button-disabled-border-color: #facc15;
   color: #ffffff !important;
   font-weight: 600;
-}
-
-.el-button--warning:not(.is-link):not(.is-text) span,
-.el-button--warning:not(.is-link):not(.is-text) .el-icon {
-  color: #ffffff !important;
-}
-
-.el-button--warning:not(.is-link):not(.is-text):hover,
-.el-button--warning:not(.is-link):not(.is-text):focus,
-.el-button--warning:not(.is-link):not(.is-text):active {
-  color: #ffffff !important;
-  --el-button-text-color: #ffffff;
-  --el-button-hover-text-color: #ffffff;
-  --el-button-active-text-color: #ffffff;
-}
-
-.el-button--warning:not(.is-link):not(.is-text):hover span,
-.el-button--warning:not(.is-link):not(.is-text):focus span,
-.el-button--warning:not(.is-link):not(.is-text):active span,
-.el-button--warning:not(.is-link):not(.is-text):hover .el-icon,
-.el-button--warning:not(.is-link):not(.is-text):focus .el-icon,
-.el-button--warning:not(.is-link):not(.is-text):active .el-icon {
-  color: #ffffff !important;
-}
-
-.el-button--warning.is-plain:not(.is-link):not(.is-text) {
-  --el-button-bg-color: var(--seven-btn-warning-bg);
-  --el-button-border-color: var(--seven-btn-warning-border);
-  --el-button-text-color: #ffffff;
-  --el-button-hover-bg-color: var(--seven-btn-warning-hover);
-  --el-button-hover-border-color: var(--seven-btn-warning-border-hover);
-  --el-button-hover-text-color: #ffffff;
-  color: #ffffff !important;
-}
-
-.el-button--warning.is-plain:not(.is-link):not(.is-text) span,
-.el-button--warning.is-plain:not(.is-link):not(.is-text) .el-icon {
-  color: #ffffff !important;
 }
 
 .el-button--warning.is-link {
@@ -321,7 +273,6 @@ html.dark .el-button--warning.is-link {
   --el-button-text-color: #fbbf24;
 }
 
-/* 链接型主色 — 安全橙（表格行内操作，非实心） */
 .el-button--primary.is-link {
   --el-button-text-color: var(--seven-accent);
   font-weight: 500;
@@ -359,7 +310,6 @@ html.dark .el-button--warning.is-link {
   border-top: 1px solid var(--seven-border-light);
 }
 
-/* 移动端保持 36px 触控目标 */
 @media (max-width: 768px) {
   .toolbar {
     flex-direction: column;
