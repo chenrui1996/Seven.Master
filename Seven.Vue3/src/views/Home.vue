@@ -366,12 +366,11 @@ function pickLatestTimestamp(values: Array<string | undefined>) {
   for (const value of values) {
     if (!value) continue
     const parsed = Date.parse(value)
-    if (!Number.isNaN(parsed) && parsed > latestTime) {
+    if (Number.isNaN(parsed)) continue
+    if (parsed > latestTime) {
       latestTime = parsed
       latestValue = value
-      continue
     }
-    if (!latestValue) latestValue = value
   }
   return latestValue
 }
@@ -380,6 +379,14 @@ function readCssVar(name: string) {
   if (typeof window === 'undefined') return ''
   const value = window.getComputedStyle(document.documentElement).getPropertyValue(name).trim()
   return value
+}
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
 }
 
 function renderOccupancyChart() {
@@ -396,6 +403,7 @@ function renderOccupancyChart() {
     surface: readCssVar('--seven-bg-panel'),
   }
   occupancyChart.setOption({
+    animation: !prefersReducedMotion(),
     color: [palette.used, palette.free],
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0, textStyle: { color: palette.text } },
