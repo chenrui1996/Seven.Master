@@ -1,7 +1,24 @@
 <template>
   <div class="wcs-ops seven-page">
-    <h1 class="ops-title">{{ t('wcsOps.stackerTrigger.title') }}</h1>
-    <p class="ops-sub">{{ t('wcsOps.stackerTrigger.subtitle') }}</p>
+    <div class="ops-header">
+      <div class="ops-heading">
+        <h1 class="ops-title">{{ t('wcsOps.stackerTrigger.title') }}</h1>
+        <p class="ops-sub">{{ t('wcsOps.stackerTrigger.subtitle') }}</p>
+      </div>
+    </div>
+
+    <div class="ops-status-grid">
+      <div class="ops-status-card" :class="destBusy ? 'ops-status-card--warning' : 'ops-status-card--success'">
+        <div class="ops-status-card__label">{{ t('wcsOps.stackerTrigger.destTitle') }}</div>
+        <div class="ops-status-card__value ops-mono">{{ destForm.sourcePointCode || t('wcsOps.stackerTrigger.sourcePlaceholder') }}</div>
+        <div class="ops-status-card__meta">{{ t(destBusy ? 'wcsOps.stackerTrigger.submittingDestMeta' : 'wcsOps.stackerTrigger.readyDestMeta') }}</div>
+      </div>
+      <div class="ops-status-card" :class="segBusy ? 'ops-status-card--warning' : 'ops-status-card--success'">
+        <div class="ops-status-card__label">{{ t('wcsOps.stackerTrigger.segTitle') }}</div>
+        <div class="ops-status-card__value ops-mono">{{ segForm.segmentPointCode || '—' }}</div>
+        <div class="ops-status-card__meta">{{ t(segBusy ? 'wcsOps.stackerTrigger.submittingSegMeta' : 'wcsOps.stackerTrigger.readySegMeta') }}</div>
+      </div>
+    </div>
 
     <div class="ops-grid">
       <div class="ops-panel">

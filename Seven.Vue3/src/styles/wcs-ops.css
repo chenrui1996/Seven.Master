@@ -19,12 +19,29 @@
   --ops-surface: var(--seven-bg-panel, #ffffff);
   --ops-surface-subtle: var(--seven-bg-subtle, #f5f7fa);
   --ops-bg: var(--seven-bg-page, #f3f7fb);
+  --ops-focus-ring: var(--seven-focus-ring, #2563eb);
+  --ops-shadow-soft: 0 12px 28px color-mix(in srgb, var(--ops-primary) 10%, transparent);
   font-family: var(--seven-font-body, 'Source Sans 3', 'Segoe UI', system-ui, sans-serif);
   color: var(--ops-text);
   background: var(--ops-bg);
   min-height: 100%;
   padding: 8px;
   border-radius: 4px;
+  scroll-padding-top: 24px;
+}
+
+.wcs-ops .ops-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wcs-ops .ops-heading {
+  flex: 1 1 240px;
+  min-width: 0;
 }
 
 .wcs-ops .ops-title {
@@ -67,13 +84,88 @@
   margin-bottom: 12px;
 }
 
-.wcs-ops .ops-toolbar .el-button {
-  min-height: 28px;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+.wcs-ops .ops-header .ops-toolbar {
+  margin-bottom: 0;
+}
+
+.wcs-ops .ops-toolbar .el-button,
+.wcs-ops .ops-panel,
+.wcs-ops .ops-status-card {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .wcs-ops .ops-toolbar .el-button:not(.is-disabled) {
   cursor: pointer;
+}
+
+.wcs-ops .ops-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wcs-ops .ops-status-card {
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--ops-border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ops-surface) 92%, transparent), var(--ops-surface));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--ops-text) 4%, transparent);
+}
+
+.wcs-ops .ops-status-card__label {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ops-muted);
+}
+
+.wcs-ops .ops-status-card__value {
+  margin-top: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ops-text);
+  word-break: break-word;
+}
+
+.wcs-ops .ops-status-card__meta {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ops-muted);
+}
+
+.wcs-ops .ops-status-card--accent {
+  border-color: color-mix(in srgb, var(--ops-primary) 20%, var(--ops-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ops-primary-soft) 80%, var(--ops-surface) 20%), var(--ops-surface));
+}
+
+.wcs-ops .ops-status-card--success {
+  border-color: color-mix(in srgb, var(--ops-success) 22%, var(--ops-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ops-success-soft) 86%, var(--ops-surface) 14%), var(--ops-surface));
+}
+
+.wcs-ops .ops-status-card--warning {
+  border-color: color-mix(in srgb, var(--ops-warning) 24%, var(--ops-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ops-warning-soft) 86%, var(--ops-surface) 14%), var(--ops-surface));
+}
+
+.wcs-ops .ops-status-card--danger {
+  border-color: color-mix(in srgb, var(--ops-danger) 24%, var(--ops-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ops-danger-soft) 86%, var(--ops-surface) 14%), var(--ops-surface));
+}
+
+.wcs-ops .ops-status-card--info {
+  border-color: color-mix(in srgb, var(--ops-info) 24%, var(--ops-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ops-info-soft) 88%, var(--ops-surface) 12%), var(--ops-surface));
 }
 
 .wcs-ops .ops-grid {
@@ -87,6 +179,7 @@
   border: 1px solid var(--ops-border);
   border-radius: 4px;
   padding: 12px 14px;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--ops-text) 4%, transparent);
 }
 
 .wcs-ops .ops-panel h3 {
@@ -96,14 +189,85 @@
   font-weight: 600;
 }
 
+.wcs-ops .ops-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.wcs-ops .ops-panel__sub {
+  margin: 0;
+  color: var(--ops-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .wcs-ops .ops-split {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
   gap: 12px;
 }
 
+.wcs-ops .ops-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 4px;
+}
+
+.wcs-ops .ops-table-wrap > .el-table {
+  min-width: 640px;
+}
+
+.wcs-ops :where(.el-button, a, button, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 2px solid var(--ops-focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.wcs-ops :where(.el-input__wrapper, .el-select__wrapper, .el-textarea__inner, .el-input-number):focus-within {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ops-focus-ring) 35%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--ops-focus-ring) 16%, transparent);
+}
+
+.wcs-ops .ops-button--execution {
+  --el-button-bg-color: var(--ops-execution);
+  --el-button-border-color: var(--ops-execution);
+  --el-button-hover-bg-color: color-mix(in srgb, var(--ops-execution) 88%, white);
+  --el-button-hover-border-color: color-mix(in srgb, var(--ops-execution) 88%, white);
+  --el-button-active-bg-color: color-mix(in srgb, var(--ops-execution) 82%, black);
+  --el-button-active-border-color: color-mix(in srgb, var(--ops-execution) 82%, black);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wcs-ops *,
+  .wcs-ops *::before,
+  .wcs-ops *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media (max-width: 960px) {
   .wcs-ops .ops-split {
+    grid-template-columns: 1fr;
+  }
+
+  .wcs-ops .ops-table-wrap > .el-table {
+    min-width: 560px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wcs-ops .ops-grid,
+  .wcs-ops .ops-status-grid {
     grid-template-columns: 1fr;
   }
 }

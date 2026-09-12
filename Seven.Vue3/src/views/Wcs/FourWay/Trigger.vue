@@ -1,7 +1,24 @@
 <template>
   <div class="wcs-ops seven-page">
-    <h1 class="ops-title">{{ t('wcsOps.fourWayTrigger.title') }}</h1>
-    <p class="ops-sub">{{ t('wcsOps.fourWayTrigger.subtitle') }}</p>
+    <div class="ops-header">
+      <div class="ops-heading">
+        <h1 class="ops-title">{{ t('wcsOps.fourWayTrigger.title') }}</h1>
+        <p class="ops-sub">{{ t('wcsOps.fourWayTrigger.subtitle') }}</p>
+      </div>
+    </div>
+
+    <div class="ops-status-grid">
+      <div class="ops-status-card" :class="destBusy ? 'ops-status-card--warning' : 'ops-status-card--accent'">
+        <div class="ops-status-card__label">{{ t('wcsOps.fourWayTrigger.destTitle') }}</div>
+        <div class="ops-status-card__value ops-mono">{{ destForm.sourcePointCode || t('wcsOps.fourWayTrigger.sourcePlaceholder') }}</div>
+        <div class="ops-status-card__meta">{{ t(destBusy ? 'wcsOps.stackerTrigger.submittingDestMeta' : 'wcsOps.stackerTrigger.readyDestMeta') }}</div>
+      </div>
+      <div class="ops-status-card" :class="segBusy ? 'ops-status-card--warning' : 'ops-status-card--info'">
+        <div class="ops-status-card__label">{{ t('wcsOps.fourWayTrigger.segTitle') }}</div>
+        <div class="ops-status-card__value ops-mono">{{ segForm.segmentPointCode || t('wcsOps.fourWayTrigger.segmentPlaceholder') }}</div>
+        <div class="ops-status-card__meta">{{ t(segBusy ? 'wcsOps.stackerTrigger.submittingSegMeta' : 'wcsOps.stackerTrigger.readySegMeta') }}</div>
+      </div>
+    </div>
 
     <div class="ops-grid">
       <div class="ops-panel">
@@ -26,7 +43,7 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :loading="destBusy" style="--el-color-primary: #f97316" @click="submitDest">
+            <el-button type="primary" class="ops-button--execution" :loading="destBusy" @click="submitDest">
               {{ t('wcsOps.stackerTrigger.submitDest') }}
             </el-button>
           </el-form-item>
@@ -53,7 +70,7 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :loading="segBusy" style="--el-color-primary: #f97316" @click="submitSeg">
+            <el-button type="primary" class="ops-button--execution" :loading="segBusy" @click="submitSeg">
               {{ t('wcsOps.stackerTrigger.submitSeg') }}
             </el-button>
           </el-form-item>
