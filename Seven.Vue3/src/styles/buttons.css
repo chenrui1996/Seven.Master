@@ -92,7 +92,6 @@
 .el-button.is-disabled {
   cursor: not-allowed;
   opacity: 0.55;
-  pointer-events: none;
 }
 
 .el-button.is-disabled,
@@ -167,6 +166,11 @@
   --el-button-hover-border-color: var(--seven-btn-primary-bg);
   --el-button-hover-text-color: #ffffff;
   color: var(--seven-accent) !important;
+}
+
+.el-button--primary.is-plain:not(.is-link):not(.is-text) span,
+.el-button--primary.is-plain:not(.is-link):not(.is-text) .el-icon {
+  color: currentColor !important;
 }
 
 .el-button--primary.is-plain:not(.is-link):not(.is-text):hover {
