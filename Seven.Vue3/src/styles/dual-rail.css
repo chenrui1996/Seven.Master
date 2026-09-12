@@ -258,7 +258,13 @@
 @media (prefers-reduced-motion: reduce) {
   .aside.dual-rail .rail-item,
   .aside.dual-rail .menu-leaf,
-  .aside.dual-rail .leaf-icon {
+  .aside.dual-rail .leaf-icon,
+  .header .alarm-bell,
+  .header .locale-switch,
+  .header .theme-toggle,
+  .header .user-block,
+  .tabs-bar .tab-button,
+  .tabs-bar .tab-close {
     transition: none;
   }
 }

@@ -1,9 +1,9 @@
 <template>
   <el-container class="layout-container" :class="{ 'is-content-fullscreen': isContentFullscreen }">
     <el-aside :width="sidebarWidth" class="aside dual-rail">
-      <nav class="icon-rail" aria-label="Primary navigation">
+      <nav class="icon-rail" :aria-label="primaryNavigationLabel">
         <div class="rail-logo" :title="t('layout.logoTitle')">
-          <img src="../assets/icons/logo-master.svg" alt="Seven Master" class="logo-icon" />
+          <img src="../assets/icons/logo-master.svg" :alt="t('layout.logoTitle')" class="logo-icon" />
         </div>
 
         <button
@@ -134,13 +134,13 @@
           </div>
         </div>
         <div class="header-right">
-          <div class="header-status" aria-label="System status">
+          <div class="header-status" :aria-label="headerStatusLabel">
             <div class="header-meta">
               <span class="meta-item"><el-icon><Clock /></el-icon>{{ currentTime }}</span>
               <span class="meta-item"><el-icon><Connection /></el-icon>{{ onlineLabel }}</span>
             </div>
           </div>
-          <div class="header-utilities" aria-label="Shell controls">
+          <div class="header-utilities" :aria-label="headerUtilitiesLabel">
             <AlarmBell v-if="featureStore.alarmEnabled" />
             <LocaleSwitch />
             <ThemeToggle />
@@ -150,8 +150,8 @@
               <button
                 type="button"
                 class="user-block cursor-pointer"
-                :title="operatorName"
-                :aria-label="operatorName"
+                :title="operatorMenuLabel"
+                :aria-label="operatorMenuLabel"
                 aria-haspopup="menu"
               >
                 <el-avatar :size="32" class="user-avatar">{{ avatarText }}</el-avatar>
@@ -173,7 +173,7 @@
         </div>
       </el-header>
 
-      <div class="tabs-bar" aria-label="Open pages">
+      <div class="tabs-bar" :aria-label="tabsBarLabel">
         <div
           v-for="tab in tabsStore.tabs"
           :key="tab.path"
@@ -436,7 +436,27 @@ const avatarText = computed(() => {
   return name.charAt(0).toUpperCase()
 })
 
-const operatorName = computed(() => userStore.userTrueName || userStore.userName || 'Operator')
+const primaryNavigationLabel = computed(
+  () => secondaryTitle.value || menuLabel(activeRailMenu.value?.menuName || '') || t('common.home'),
+)
+
+const headerStatusLabel = computed(() => [currentTime.value, onlineLabel.value].filter(Boolean).join(' · '))
+
+const headerUtilitiesLabel = computed(() =>
+  [
+    featureStore.alarmEnabled ? t('alarm.bellLabel') : '',
+    t('locale.label'),
+    t('theme.label'),
+  ]
+    .filter(Boolean)
+    .join(' · '),
+)
+
+const operatorName = computed(
+  () => userStore.userTrueName || userStore.userName || t('userInfo.userName'),
+)
+
+const operatorMenuLabel = computed(() => `${t('userInfo.title')}: ${operatorName.value}`)
 
 const currentTitle = computed(() => {
   if (route.path === '/home') return ''
@@ -448,6 +468,12 @@ function tabLabel(tab: { title: string; path: string }) {
   if (tab.path === '/home') return t('layout.homeTab')
   return menuLabel(tab.title)
 }
+
+const tabsBarLabel = computed(() => {
+  const activePath = tabsStore.activeTab || route.path
+  const activeTab = tabsStore.tabs.find((tab) => tab.path === activePath)
+  return activeTab ? tabLabel(activeTab) : t('layout.homeTab')
+})
 
 function tabCloseLabel(tab: { title: string; path: string }) {
   return `${t('layout.tabMenu.close')} ${tabLabel(tab)}`
