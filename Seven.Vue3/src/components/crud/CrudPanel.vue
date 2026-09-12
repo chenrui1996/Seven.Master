@@ -1,347 +1,401 @@
 <template>
   <div class="crud-panel" :class="{ 'crud-panel--nested': depth > 0 }">
-    <el-card v-if="showCard">
+    <el-card v-if="showCard" shadow="never" class="crud-main-card">
       <template #header>
-        <div class="toolbar">
-          <span>{{ panelTitle }}</span>
-          <div class="toolbar-actions">
-            <template v-if="depth === 0 && extension">
-              <el-button
-                v-for="btn in toolbarButtons"
-                :key="btn.key"
-                size="small"
-                :type="btn.type === 'default' ? undefined : (btn.type || undefined)"
-                :icon="btn.icon"
-                :disabled="!!btn.requireSelection && selectedIds.length === 0"
-                @click="onExtButton(btn)"
-              >{{ btn.label }}</el-button>
-            </template>
-            <el-button
-              v-if="userStore.hasPermission(`${tableName}.Delete`)"
+        <div class="crud-header-row">
+          <div class="crud-header-left">
+            <div class="seven-section-title">
+              <span class="seven-section-title__bar" aria-hidden="true" />
+              <el-icon class="crud-title-icon"><component :is="ActionIcons.model" /></el-icon>
+              <span class="toolbar-title">{{ panelTitle }}</span>
+            </div>
+            <el-form
+              v-if="resolvedSearchFields.length"
+              :model="searchModel"
+              inline
               size="small"
-              type="danger"
-              plain
-              :icon="ActionIcons.batchDelete"
-              :disabled="selectedIds.length === 0"
-              @click="batchRemove"
-            >{{ t('common.batchDelete') }}</el-button>
-            <template v-if="depth === 0">
-              <el-button
-                v-if="userStore.hasPermission(`${tableName}.Import`)"
-                size="small"
-                :icon="ActionIcons.import"
-                @click="triggerImport"
-              >{{ t('common.import') }}</el-button>
-              <el-button
-                v-if="userStore.hasPermission(`${tableName}.Export`)"
-                size="small"
-                :icon="ActionIcons.export"
-                @click="doExport"
-              >{{ t('common.export') }}</el-button>
-              <el-button
-                v-if="userStore.hasPermission(`${tableName}.Import`)"
-                size="small"
-                link
-                type="primary"
-                @click="downloadTemplate"
-              >{{ t('common.downloadTemplate') }}</el-button>
-            </template>
-            <el-button
+              class="search-bar search-bar--inline"
+              role="search"
+              :aria-label="panelActionLabel(t('common.search'))"
+              @submit.prevent="onSearch"
+            >
+              <el-form-item v-for="f in resolvedSearchFields" :key="f.prop" :label="searchFieldLabel(f)">
+                <el-select
+                  v-if="f.kind === 'enum' || f.kind === 'bool'"
+                  v-model="searchModel[f.prop]"
+                  clearable
+                  style="width:140px"
+                >
+                  <el-option
+                    v-for="o in searchFieldOptions(f)"
+                    :key="String(o.value)"
+                    :label="o.label"
+                    :value="o.value"
+                  />
+                </el-select>
+                <el-date-picker
+                  v-else-if="f.kind === 'date'"
+                  v-model="searchModel[f.prop]"
+                  type="datetime"
+                  value-format="YYYY-MM-DDTHH:mm:ss"
+                  clearable
+                  style="width:180px"
+                />
+                <el-input-number
+                  v-else-if="f.kind === 'number'"
+                  v-model="searchModel[f.prop]"
+                  controls-position="right"
+                  style="width:140px"
+                />
+                <el-input
+                  v-else
+                  v-model="searchModel[f.prop]"
+                  clearable
+                  style="width:140px"
+                  @keyup.enter="onSearch"
+                />
+              </el-form-item>
+            </el-form>
+          </div>
+          <div
+            class="toolbar-actions crud-toolbar"
+            role="toolbar"
+            :aria-label="panelActionLabel(t(`${i18nKey}.actions`))"
+          >
+            <div class="crud-toolbar__group crud-toolbar__group--primary" role="group" :aria-label="panelActionLabel(t('common.search'))">
+              <el-button size="small" type="primary" :icon="ActionIcons.sync" @click="onSearch">
+                {{ t('common.search') }}
+              </el-button>
+            </div>
+            <div
               v-if="userStore.hasPermission(`${tableName}.Add`)"
-              size="small"
-              type="primary"
-              :icon="ActionIcons.add"
-              @click="openForm()"
-            >{{ t('common.add') }}</el-button>
-            <el-button size="small" :icon="ActionIcons.columnSettings" @click="openColumnSettings" />
+              class="crud-toolbar__group crud-toolbar__group--create"
+              role="group"
+              :aria-label="panelActionLabel(t('common.add'))"
+            >
+              <el-button
+                size="small"
+                class="is-create"
+                :icon="ActionIcons.add"
+                @click="openForm()"
+              >{{ t('common.add') }}</el-button>
+            </div>
+            <div
+              v-if="userStore.hasPermission(`${tableName}.Update`) || (depth === 0 && toolbarButtons.length)"
+              class="crud-toolbar__group crud-toolbar__group--primary"
+              role="group"
+              :aria-label="panelActionLabel(t(`${i18nKey}.actions`))"
+            >
+              <el-button
+                v-if="userStore.hasPermission(`${tableName}.Update`)"
+                size="small"
+                :icon="ActionIcons.edit"
+                :disabled="!singleSelectedRow"
+                @click="openForm(singleSelectedRow || undefined)"
+              >{{ t(`${i18nKey}.edit`) }}</el-button>
+              <template v-if="depth === 0 && extension">
+                <el-button
+                  v-for="btn in toolbarButtons"
+                  :key="btn.key"
+                  size="small"
+                  :type="btn.type === 'default' ? undefined : (btn.type || undefined)"
+                  :icon="btn.icon"
+                  :disabled="!!btn.requireSelection && selectedIds.length === 0"
+                  @click="onExtButton(btn)"
+                >{{ btn.label }}</el-button>
+              </template>
+            </div>
+            <div
+              v-if="userStore.hasPermission(`${tableName}.Delete`)"
+              class="crud-toolbar__group crud-toolbar__group--destructive"
+              role="group"
+              :aria-label="panelActionLabel(t('common.delete'))"
+            >
+              <el-button
+                size="small"
+                :disabled="selectedIds.length === 0"
+                @click="toolbarDelete"
+              >{{ t('common.delete') }}</el-button>
+            </div>
+            <div class="crud-toolbar__group crud-toolbar__group--utility" role="group" :aria-label="panelActionLabel(t('common.more'))">
+              <el-dropdown v-if="depth === 0 && hasMoreActions" trigger="click">
+                <el-button size="small" class="crud-toolbar__menu" :title="panelActionLabel(t('common.more'))">
+                  {{ t('common.more') }}
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-if="userStore.hasPermission(`${tableName}.Delete`)"
+                      :disabled="selectedIds.length === 0"
+                      @click="batchRemove"
+                    >{{ t('common.batchDelete') }}</el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="userStore.hasPermission(`${tableName}.Import`)"
+                      @click="triggerImport"
+                    >{{ t('common.import') }}</el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="userStore.hasPermission(`${tableName}.Export`)"
+                      @click="doExport"
+                    >{{ t('common.export') }}</el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="userStore.hasPermission(`${tableName}.Import`)"
+                      @click="downloadTemplate"
+                    >{{ t('common.downloadTemplate') }}</el-dropdown-item>
+                    <el-dropdown-item @click="onResetSearch">{{ t('common.reset') }}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-button
+                size="small"
+                class="crud-toolbar__icon"
+                :icon="ActionIcons.sync"
+                circle
+                :aria-label="panelActionLabel(t('common.refresh'))"
+                :title="panelActionLabel(t('common.refresh'))"
+                @click="loadData"
+              />
+              <el-button
+                size="small"
+                class="crud-toolbar__icon"
+                :icon="ActionIcons.columnSettings"
+                circle
+                :aria-label="panelActionLabel(t('common.columnSettings'))"
+                :title="panelActionLabel(t('common.columnSettings'))"
+                @click="openColumnSettings"
+              />
+            </div>
           </div>
         </div>
       </template>
 
-      <el-form
-        v-if="resolvedSearchFields.length"
-        :model="searchModel"
-        inline
-        size="small"
-        class="search-bar"
-        @submit.prevent="onSearch"
-      >
-        <el-form-item v-for="f in resolvedSearchFields" :key="f.prop" :label="searchFieldLabel(f)">
-          <el-select
-            v-if="f.kind === 'enum' || f.kind === 'bool'"
-            v-model="searchModel[f.prop]"
-            clearable
-            style="width:160px"
+      <div class="table-wrap" role="region" :aria-label="panelTitle" :aria-busy="loading ? 'true' : 'false'">
+        <el-table
+          class="crud-table"
+          :data="tableData"
+          v-loading="loading"
+          :element-loading-text="t('common.loading')"
+          border
+          stripe
+          highlight-current-row
+          table-layout="auto"
+          @sort-change="onSortChange"
+          @selection-change="onSelectionChange"
+          @current-change="onCurrentChange"
+          @row-dblclick="onRowDblClick"
+        >
+          <el-table-column
+            type="selection"
+            width="48"
+            class-name="crud-table__selection-cell"
+            label-class-name="crud-table__selection-head"
+          />
+          <el-table-column
+            v-for="(col, colIdx) in visibleColumns"
+            :key="col.prop"
+            :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
+            :label="columnLabel(col.prop)"
+            :sortable="col.sortable ? 'custom' : false"
+            :align="col.kind === 'number' ? 'right' : undefined"
+            :class-name="tableColumnClassName(col, colIdx)"
+            :label-class-name="tableHeaderClassName(col, colIdx)"
+            show-overflow-tooltip
           >
-            <el-option
-              v-for="o in searchFieldOptions(f)"
-              :key="String(o.value)"
-              :label="o.label"
-              :value="o.value"
-            />
-          </el-select>
-          <el-date-picker
-            v-else-if="f.kind === 'date'"
-            v-model="searchModel[f.prop]"
-            type="datetime"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-            clearable
-            style="width:200px"
-          />
-          <el-input-number
-            v-else-if="f.kind === 'number'"
-            v-model="searchModel[f.prop]"
-            controls-position="right"
-            style="width:160px"
-          />
-          <el-input
-            v-else
-            v-model="searchModel[f.prop]"
-            clearable
-            style="width:160px"
-            @keyup.enter="onSearch"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button size="small" type="primary" @click="onSearch">{{ t('common.search') }}</el-button>
-          <el-button size="small" @click="onResetSearch">{{ t('common.reset') }}</el-button>
-        </el-form-item>
-      </el-form>
-
-      <el-table
-        :data="tableData"
-        v-loading="loading"
-        border
-        highlight-current-row
-        @sort-change="onSortChange"
-        @selection-change="onSelectionChange"
-        @current-change="onCurrentChange"
-      >
-        <el-table-column type="selection" width="48" />
-        <el-table-column
-          v-for="col in visibleColumns"
-          :key="col.prop"
-          :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
-          :label="columnLabel(col.prop)"
-          :sortable="col.sortable ? 'custom' : false"
-          :align="col.kind === 'number' ? 'right' : undefined"
-        >
-          <template v-if="col.kind === 'enum'" #default="{ row }">
-            {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
-          </template>
-          <template v-else-if="col.kind === 'bool'" #default="{ row }">
-            {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
-          </template>
-          <template v-else-if="col.kind === 'date'" #default="{ row }">
-            {{ formatDate(row[col.prop]) }}
-          </template>
-        </el-table-column>
-
-        <el-table-column
-          v-if="entryDetailTables.length"
-          :label="t('common.detailTables')"
-          :min-width="detailTablesColumnWidth"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <div class="row-actions">
-              <el-button
-                v-for="dt in entryDetailTables"
-                :key="'detail-' + dt.key"
-                link
-                type="primary"
-                @click="onDetailEntry(dt, row)"
-              >{{ dt.buttonLabel || dt.title }}</el-button>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column :label="t(`${i18nKey}.actions`)" :min-width="actionsColumnWidth" fixed="right">
-          <template #default="{ row }">
-            <div class="row-actions">
-              <el-button
-                v-if="userStore.hasPermission(`${tableName}.Update`)"
-                link
-                type="primary"
-                :icon="ActionIcons.edit"
-                @click="openForm(row)"
-              >{{ t(`${i18nKey}.edit`) }}</el-button>
-              <template v-if="depth === 0">
-                <el-button
-                  v-for="btn in rowButtonsFor(row)"
-                  :key="btn.key"
-                  link
-                  :type="btn.type === 'default' ? 'primary' : (btn.type || 'primary')"
-                  :icon="btn.icon"
-                  :disabled="!!btn.disabled?.(row)"
-                  @click="onRowExtButton(btn, row)"
-                >{{ btn.label }}</el-button>
-                <el-button
-                  v-if="extension?.hooks?.submitAudit"
-                  link
-                  type="success"
-                  @click="onSubmitAudit(row)"
-                >{{ t('common.submitAudit') }}</el-button>
-                <el-button
-                  v-if="featureStore.flags.workFlow && hasAuditStatus(row)"
-                  link
-                  type="primary"
-                  @click="openAudit(row)"
-                >{{ t('sysWorkFlow.viewAudit') }}</el-button>
+            <template #default="{ row }">
+              <template v-if="col.kind === 'enum'">
+                {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
               </template>
-              <el-button
-                v-if="userStore.hasPermission(`${tableName}.Delete`)"
-                link
-                type="danger"
-                :icon="ActionIcons.delete"
-                @click="remove(row)"
-              >{{ t('common.delete') }}</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+              <template v-else-if="col.kind === 'bool'">
+                {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
+              </template>
+              <template v-else-if="col.kind === 'date'">
+                {{ formatDate(row[col.prop]) }}
+              </template>
+              <span
+                v-else-if="colIdx === 0 && userStore.hasPermission(`${tableName}.Update`)"
+                class="seven-link-cell"
+                role="button"
+                tabindex="0"
+                :title="displayCellValue(row[col.prop])"
+                :aria-label="editRowLabel(row, col.prop)"
+                @click.stop="openForm(row)"
+                @keydown.enter.prevent="openForm(row)"
+                @keydown.space.prevent="openForm(row)"
+              >{{ row[col.prop] == null ? '' : String(row[col.prop]) }}</span>
+              <template v-else>
+                {{ row[col.prop] == null ? '' : String(row[col.prop]) }}
+              </template>
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            v-if="rowActionsVisible"
+            :label="t(`${i18nKey}.actions`)"
+            :min-width="actionsColumnWidth"
+            class-name="crud-table__operations-cell"
+            label-class-name="crud-table__operations-head"
+            fixed="right"
+          >
+            <template #default="{ row }">
+              <div class="row-actions" role="group" :aria-label="rowActionGroupLabel(row)">
+                <template v-if="depth === 0">
+                  <el-button
+                    v-for="btn in rowButtonsFor(row)"
+                    :key="btn.key"
+                    link
+                    :type="btn.type === 'default' ? 'primary' : (btn.type || 'primary')"
+                    :icon="btn.icon"
+                    :disabled="!!btn.disabled?.(row)"
+                    @click="onRowExtButton(btn, row)"
+                  >{{ btn.label }}</el-button>
+                  <el-button
+                    v-if="extension?.hooks?.submitAudit"
+                    link
+                    type="success"
+                    @click="onSubmitAudit(row)"
+                  >{{ t('common.submitAudit') }}</el-button>
+                  <el-button
+                    v-if="featureStore.flags.workFlow && hasAuditStatus(row)"
+                    link
+                    type="primary"
+                    @click="openAudit(row)"
+                  >{{ t('sysWorkFlow.viewAudit') }}</el-button>
+                </template>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
       <el-pagination
         v-model:current-page="page"
+        v-model:page-size="innerPageSize"
         size="small"
-        :page-size="pageSize"
+        :page-sizes="[20, 30, 50, 100]"
         :total="total"
+        background
+        layout="total, sizes, prev, pager, next"
         @change="loadData"
+        @size-change="onPageSizeChange"
         class="crud-pagination"
       />
     </el-card>
 
-    <!-- below：apiRoute → 嵌套 CrudPanel；仅 load → 只读表 -->
+    <!-- below：主子表同页 -->
     <template v-if="canRenderDetails">
       <template v-for="dt in belowDetailTables" :key="'below-' + dt.key">
-        <CrudPanel
-          v-if="dt.apiRoute && activeMasterRow"
-          :key="`${dt.key}-${masterIdOf(dt, activeMasterRow)}`"
-          v-bind="nestedPanelProps(dt, activeMasterRow)"
-        />
-        <el-card v-else class="detail-card" shadow="never">
-          <template #header>
-            <div class="detail-header">
-              <span class="detail-title">{{ dt.title }}</span>
-              <span v-if="!activeMasterRow" class="detail-hint">{{ t('common.selectRowForDetail') }}</span>
+        <div class="detail-section">
+          <div class="detail-section__head">
+            <div class="seven-section-title">
+              <span class="seven-section-title__bar" aria-hidden="true" />
+              <h3 class="detail-section__title">{{ dt.title }}</h3>
             </div>
-          </template>
-          <el-table
-            v-if="activeMasterRow && !dt.apiRoute"
-            :data="detailState(dt.key).rows"
-            v-loading="detailState(dt.key).loading"
-            border
-            max-height="320"
-          >
-            <el-table-column
-              v-for="col in dt.columns"
-              :key="col.prop"
-              :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
-              :label="detailColLabel(col)"
-              :width="col.width"
-            >
-              <template v-if="col.kind === 'enum'" #default="{ row }">
-                {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
-              </template>
-              <template v-else-if="col.kind === 'bool'" #default="{ row }">
-                {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
-              </template>
-              <template v-else-if="col.kind === 'date'" #default="{ row }">
-                {{ formatDate(row[col.prop]) }}
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
+            <span v-if="!activeMasterRow" class="detail-hint">{{ t('common.selectRowForDetail') }}</span>
+          </div>
+          <div class="detail-section__body" :aria-busy="detailBusy(dt) ? 'true' : 'false'">
+            <CrudPanel
+              v-if="dt.apiRoute && activeMasterRow"
+              :key="`${dt.key}-${masterIdOf(dt, activeMasterRow)}`"
+              v-bind="nestedPanelProps(dt, activeMasterRow)"
+            />
+            <el-card v-else class="detail-card" shadow="never">
+              <el-table
+                v-if="activeMasterRow && !dt.apiRoute"
+                class="crud-table crud-table--detail"
+                :data="detailState(dt.key).rows"
+                v-loading="detailState(dt.key).loading"
+                :element-loading-text="t('common.loading')"
+                border
+                stripe
+                table-layout="auto"
+                max-height="320"
+              >
+                <el-table-column
+                  v-for="(col, detailColIdx) in dt.columns"
+                  :key="col.prop"
+                  :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
+                  :label="detailColLabel(col)"
+                  :width="col.width"
+                  :class-name="detailTableColumnClassName(col, detailColIdx)"
+                  :label-class-name="detailTableHeaderClassName(col, detailColIdx)"
+                  show-overflow-tooltip
+                >
+                  <template v-if="col.kind === 'enum'" #default="{ row }">
+                    {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
+                  </template>
+                  <template v-else-if="col.kind === 'bool'" #default="{ row }">
+                    {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
+                  </template>
+                  <template v-else-if="col.kind === 'date'" #default="{ row }">
+                    {{ formatDate(row[col.prop]) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div v-else-if="!activeMasterRow" class="detail-empty">{{ t('common.selectRowForDetail') }}</div>
+            </el-card>
+          </div>
+        </div>
       </template>
     </template>
 
     <el-dialog
       v-model="dialogVisible"
       :title="Number(form[keyField] ?? 0) > 0 ? t(`${i18nKey}.edit`) : t(`${i18nKey}.add`)"
-      width="520px"
+      width="720px"
       destroy-on-close
+      class="crud-edit-dialog"
     >
-      <el-form :model="form" label-width="100px">
-        <el-form-item v-for="f in formFields" :key="f.prop" :label="t(`${i18nKey}.${f.prop}`)">
-          <el-select
-            v-if="f.kind === 'enum' || f.kind === 'bool'"
-            v-model="form[f.prop]"
-            style="width:100%"
-            clearable
-          >
-            <el-option
-              v-for="o in formFieldOptions(f)"
-              :key="String(o.value)"
-              :label="o.label"
-              :value="o.value"
-            />
-          </el-select>
-          <el-date-picker
-            v-else-if="f.kind === 'date'"
-            v-model="form[f.prop]"
-            type="datetime"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-            style="width:100%"
-            clearable
-          />
-          <el-input-number
-            v-else-if="f.kind === 'number'"
-            v-model="form[f.prop]"
-            :precision="f.isDecimal ? 2 : 0"
-            controls-position="right"
-            style="width:100%"
-          />
-          <FileUploadField
-            v-else-if="f.kind === 'upload'"
-            v-model="form[f.prop] as string"
-          />
-          <el-input v-else v-model="form[f.prop]" clearable />
-        </el-form-item>
+      <el-form :model="form" label-width="110px" class="crud-edit-form">
+        <el-row :gutter="12">
+          <el-col v-for="f in formFields" :key="f.prop" :span="12">
+            <el-form-item :label="t(`${i18nKey}.${f.prop}`)">
+              <el-select
+                v-if="f.kind === 'enum' || f.kind === 'bool'"
+                v-model="form[f.prop]"
+                style="width:100%"
+                clearable
+              >
+                <el-option
+                  v-for="o in formFieldOptions(f)"
+                  :key="String(o.value)"
+                  :label="o.label"
+                  :value="o.value"
+                />
+              </el-select>
+              <el-date-picker
+                v-else-if="f.kind === 'date'"
+                v-model="form[f.prop]"
+                type="datetime"
+                value-format="YYYY-MM-DDTHH:mm:ss"
+                style="width:100%"
+                clearable
+              />
+              <el-input-number
+                v-else-if="f.kind === 'number'"
+                v-model="form[f.prop]"
+                :precision="f.isDecimal ? 2 : 0"
+                controls-position="right"
+                style="width:100%"
+              />
+              <FileUploadField
+                v-else-if="f.kind === 'upload'"
+                v-model="form[f.prop] as string"
+              />
+              <el-input v-else v-model="form[f.prop]" clearable />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer-actions">
           <el-button size="small" @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button size="small" type="primary" :icon="ActionIcons.save" @click="save">{{ t('common.confirm') }}</el-button>
+          <el-button
+            size="small"
+            type="primary"
+            :icon="ActionIcons.save"
+            :loading="saving"
+            @click="save"
+          >{{ t('common.confirm') }}</el-button>
         </div>
       </template>
-    </el-dialog>
-
-    <el-dialog
-      v-model="detailDialogVisible"
-      :title="detailDialogCfg?.title || ''"
-      width="900px"
-      destroy-on-close
-    >
-      <CrudPanel
-        v-if="detailDialogCfg?.apiRoute && detailDialogMaster"
-        :key="`dlg-${detailDialogCfg.key}-${masterIdOf(detailDialogCfg, detailDialogMaster)}`"
-        v-bind="nestedPanelProps(detailDialogCfg, detailDialogMaster)"
-        :show-card="true"
-      />
-      <el-table
-        v-else
-        :data="detailDialogRows"
-        v-loading="detailDialogLoading"
-        border
-        max-height="420"
-      >
-        <el-table-column
-          v-for="col in (detailDialogCfg?.columns ?? [])"
-          :key="col.prop"
-          :prop="col.kind === 'enum' || col.kind === 'bool' || col.kind === 'date' ? undefined : col.prop"
-          :label="detailColLabel(col)"
-          :width="col.width"
-        >
-          <template v-if="col.kind === 'enum'" #default="{ row }">
-            {{ enumLabel(mergedEnumOptionsMap[col.prop], row[col.prop]) }}
-          </template>
-          <template v-else-if="col.kind === 'bool'" #default="{ row }">
-            {{ row[col.prop] ? t('common.enabled') : t('common.disabled') }}
-          </template>
-          <template v-else-if="col.kind === 'date'" #default="{ row }">
-            {{ formatDate(row[col.prop]) }}
-          </template>
-        </el-table-column>
-      </el-table>
     </el-dialog>
 
     <TableColumnSettings
@@ -440,9 +494,11 @@ const dictStore = useDictStore()
 const featureStore = useFeatureStore()
 
 const loading = ref(false)
+const saving = ref(false)
 const tableData = ref<Record<string, unknown>[]>([])
 const total = ref(0)
 const page = ref(1)
+const innerPageSize = ref(props.pageSize)
 const sort = ref('')
 const order = ref('')
 const dialogVisible = ref(false)
@@ -488,23 +544,45 @@ const permittedDetails = computed(() =>
   ),
 )
 
+/** 主子表强制同页 below（dialog/page 归一） */
+function normalizeDetailMode(d: DetailTableConfig): DetailTableConfig {
+  if (d.mode === 'below') return d
+  return { ...d, mode: 'below' }
+}
+
 const belowDetailTables = computed(() =>
   canRenderDetails.value
-    ? permittedDetails.value.filter((d) => d.mode === 'below')
+    ? permittedDetails.value.map(normalizeDetailMode)
     : [],
 )
 
-const entryDetailTables = computed(() =>
-  canRenderDetails.value
-    ? permittedDetails.value.filter((d) => d.mode === 'dialog' || d.mode === 'page')
-    : [],
-)
+const entryDetailTables = computed(() => [] as DetailTableConfig[])
 
 const selectedIds = computed(() =>
   selectedRows.value
     .map((r) => Number(r[props.keyField] ?? 0))
     .filter((id) => id > 0),
 )
+
+const singleSelectedRow = computed(() =>
+  selectedRows.value.length === 1 ? selectedRows.value[0] : null,
+)
+
+const hasMoreActions = computed(
+  () =>
+    userStore.hasPermission(`${props.tableName}.Delete`) ||
+    userStore.hasPermission(`${props.tableName}.Import`) ||
+    userStore.hasPermission(`${props.tableName}.Export`),
+)
+
+const rowActionsVisible = computed(() => {
+  if (props.depth !== 0) return false
+  return (
+    rowButtons.value.length > 0 ||
+    !!props.extension?.hooks?.submitAudit ||
+    !!featureStore.flags.workFlow
+  )
+})
 
 const toolbarButtons = computed(() =>
   (props.extension?.toolbarButtons ?? []).filter(
@@ -519,10 +597,10 @@ const rowButtons = computed(() =>
 )
 
 const actionsColumnWidth = computed(() => {
-  const base = 2
   const submitAuditExtra = props.depth === 0 && props.extension?.hooks?.submitAudit ? 1 : 0
   const extra = props.depth === 0 ? rowButtons.value.length + submitAuditExtra : 0
-  return Math.max(180, (base + extra) * 88)
+  if (extra <= 0) return 120
+  return Math.max(140, extra * 88)
 })
 
 const detailTablesColumnWidth = computed(() =>
@@ -553,6 +631,10 @@ function formatDate(v: unknown) {
   return String(v).replace('T', ' ').slice(0, 19)
 }
 
+function displayCellValue(v: unknown) {
+  return v == null ? '' : String(v)
+}
+
 function enumLabel(
   options: { value: number | string; label: string }[] | null | undefined,
   v: unknown,
@@ -563,6 +645,53 @@ function enumLabel(
 
 function columnLabel(prop: string) {
   return t(`${props.i18nKey}.${prop}`)
+}
+
+function panelActionLabel(action: string) {
+  return `${panelTitle.value} ${action}`
+}
+
+function editRowLabel(row: Record<string, unknown>, prop: string) {
+  const value = displayCellValue(row[prop]) || columnLabel(prop)
+  return `${t(`${props.i18nKey}.edit`)} ${value}`
+}
+
+function rowActionGroupLabel(row: Record<string, unknown>) {
+  const actionLabel = t(`${props.i18nKey}.actions`)
+  const rowKey = displayCellValue(row[props.keyField])
+  return rowKey ? `${actionLabel} ${rowKey}` : actionLabel
+}
+
+function tableColumnClassName(col: ColumnDef, colIdx: number) {
+  return [
+    'crud-table__cell',
+    col.kind === 'number' ? 'crud-table__cell--numeric' : '',
+    colIdx === 0 ? 'crud-table__cell--primary' : '',
+  ].filter(Boolean).join(' ')
+}
+
+function tableHeaderClassName(col: ColumnDef, colIdx: number) {
+  return [
+    'crud-table__head',
+    col.kind === 'number' ? 'crud-table__head--numeric' : '',
+    colIdx === 0 ? 'crud-table__head--primary' : '',
+  ].filter(Boolean).join(' ')
+}
+
+function detailTableColumnClassName(col: DetailColumnConfig, colIdx: number) {
+  return [
+    'crud-table__cell',
+    col.kind === 'number' ? 'crud-table__cell--numeric' : '',
+    colIdx === 0 ? 'crud-table__cell--primary' : '',
+  ].filter(Boolean).join(' ')
+}
+
+function detailTableHeaderClassName(col: DetailColumnConfig, colIdx: number) {
+  return [
+    'crud-table__head',
+    col.kind === 'number' ? 'crud-table__head--numeric' : '',
+    colIdx === 0 ? 'crud-table__head--primary' : '',
+  ].filter(Boolean).join(' ')
 }
 
 function searchFieldLabel(f: SearchFieldConfig) {
@@ -649,6 +778,10 @@ function formFieldOptions(f: FormFieldDef) {
 function detailState(key: string) {
   if (!detailDataMap[key]) detailDataMap[key] = { loading: false, rows: [] }
   return detailDataMap[key]
+}
+
+function detailBusy(dt: DetailTableConfig) {
+  return !!activeMasterRow.value && !dt.apiRoute && detailState(dt.key).loading
 }
 
 function buildWheresJson() {
@@ -914,7 +1047,7 @@ async function loadData() {
   try {
     const res = await getPageData(`/api/${props.apiRoute}/getPageData`, {
       page: page.value,
-      rows: props.pageSize,
+      rows: innerPageSize.value,
       sort: sort.value || undefined,
       order: order.value || undefined,
       wheres: buildWheresJson(),
@@ -961,6 +1094,12 @@ async function openForm(row?: Record<string, unknown>) {
   dialogVisible.value = true
 }
 
+function onRowDblClick(row: Record<string, unknown>) {
+  if (userStore.hasPermission(`${props.tableName}.Update`)) {
+    void openForm(row)
+  }
+}
+
 async function save() {
   const key = Number(form[props.keyField] ?? 0)
   const mode = key > 0 ? 'edit' : 'add'
@@ -972,15 +1111,37 @@ async function save() {
       : `/api/${props.apiRoute}/add`
   const payload = { ...form, [props.keyField]: key }
   if (props.fixedFilter) Object.assign(payload, props.fixedFilter)
-  const res = await http.post(url, payload)
-  if (res.status) {
-    ElMessage.success(t('common.success'))
-    dialogVisible.value = false
-    await props.extension?.hooks?.afterSave?.({ mode, form })
-    await loadData()
-  } else {
-    ElMessage.error(res.message || t('common.operationFailed'))
+  saving.value = true
+  try {
+    const res = await http.post(url, payload)
+    if (res.status) {
+      ElMessage.success(t('common.success'))
+      dialogVisible.value = false
+      await props.extension?.hooks?.afterSave?.({ mode, form })
+      await loadData()
+    } else {
+      ElMessage.error(res.message || t('common.operationFailed'))
+    }
+  } finally {
+    saving.value = false
   }
+}
+
+function onPageSizeChange() {
+  page.value = 1
+  void loadData()
+}
+
+async function toolbarDelete() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning(t('common.selectRequired'))
+    return
+  }
+  if (selectedRows.value.length === 1) {
+    await remove(selectedRows.value[0])
+    return
+  }
+  await batchRemove()
 }
 
 async function remove(row: Record<string, unknown>) {
@@ -1117,54 +1278,202 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--seven-space-2);
-  min-height: 28px;
+.crud-panel,
+.crud-main-card {
+  min-width: 0;
+  max-width: 100%;
 }
-.toolbar-actions {
+
+.crud-main-card :deep(.el-card__header) {
+  padding: 8px 12px;
+}
+.crud-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.crud-header-left {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 8px 16px;
+  min-width: 0;
+  flex: 1;
+}
+.crud-title-icon {
+  color: var(--seven-accent);
+  font-size: 15px;
+}
+.search-bar--inline {
+  margin-bottom: 0;
+  min-width: min(100%, 720px);
+}
+.search-bar--inline :deep(.el-form-item) {
+  margin-bottom: 0;
+  margin-right: 8px;
+}
+.search-bar--inline :deep(.el-form-item__content) {
+  max-width: 100%;
+}
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--seven-table-border, var(--seven-border-light));
+  border-radius: var(--seven-radius);
+  background: var(--seven-bg-panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.table-wrap :deep(.crud-table) {
+  min-width: 100%;
+}
+.table-wrap :deep(.el-table__inner-wrapper) {
+  min-width: fit-content;
+}
+.crud-panel :deep(.el-loading-mask) {
+  background: var(--seven-loading-surface, rgba(255, 255, 255, 0.76));
+  backdrop-filter: blur(1px);
+}
+.crud-panel :deep(.el-loading-spinner .el-loading-text) {
+  margin-top: 10px;
+  color: var(--seven-primary-dark);
+  font-size: var(--seven-text-xs);
+  letter-spacing: 0.02em;
+}
+.crud-panel :deep(.crud-table__head .cell) {
+  color: var(--seven-table-header-text, var(--seven-primary-dark));
+}
+.crud-panel :deep(.crud-table__head--numeric .cell),
+.crud-panel :deep(.crud-table__cell--numeric .cell) {
+  font-family: var(--seven-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.crud-panel :deep(.crud-table__head--primary .cell),
+.crud-panel :deep(.crud-table__cell--primary .cell) {
+  font-weight: 600;
+}
+.crud-panel :deep(.crud-table__selection-head),
+.crud-panel :deep(.crud-table__selection-cell) {
+  background: var(--seven-table-selection-surface, var(--seven-bg-subtle));
+}
+.crud-panel :deep(.crud-table__operations-head),
+.crud-panel :deep(.crud-table__operations-cell) {
+  border-left: 1px solid var(--seven-table-border-strong, var(--seven-border));
+}
+.crud-panel :deep(.crud-table__operations-head .cell) {
+  font-weight: 700;
+}
+.crud-panel :deep(.el-table__body tr.current-row > td.crud-table__selection-cell),
+.crud-panel :deep(.el-table__body tr.current-row > td.crud-table__operations-cell) {
+  background-color: var(--seven-table-row-current, var(--seven-row-selected)) !important;
 }
 .row-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 2px;
-}
-.search-bar {
-  margin-bottom: var(--seven-space-2);
+  gap: 4px 8px;
+  min-height: var(--seven-table-row-height);
 }
 .crud-pagination {
-  margin-top: var(--seven-space-3);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--seven-border-light);
+  justify-content: flex-end;
 }
-.detail-card {
-  margin-top: var(--seven-space-3);
+.detail-section {
+  margin-top: 12px;
+  background: var(--seven-detail-surface, var(--seven-bg-panel));
+  border: 1px solid var(--seven-detail-border, var(--seven-border-light));
+  border-radius: var(--seven-radius);
+  padding: 10px 12px 12px;
+  box-shadow: var(--seven-shadow);
 }
-.detail-header {
+.detail-section__head {
   display: flex;
   align-items: center;
-  gap: var(--seven-space-2);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--seven-detail-border, var(--seven-border-light));
 }
-.detail-title {
-  font-weight: 600;
-  padding-left: 8px;
-  border-left: 3px solid var(--el-color-primary);
+.detail-section__title {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.detail-section__body {
+  min-height: var(--seven-empty-min-height, 136px);
+}
+.detail-card {
+  margin-top: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+.detail-card :deep(.el-card__body) {
+  padding: 0;
 }
 .detail-hint {
-  color: var(--el-text-color-secondary);
+  color: var(--seven-text-muted);
   font-size: 12px;
 }
+.detail-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--seven-empty-min-height, 136px);
+  padding: 24px;
+  text-align: center;
+  color: var(--seven-text-muted);
+  font-size: 13px;
+  background: var(--seven-empty-surface, var(--seven-bg-subtle));
+  border: 1px dashed var(--seven-detail-border, var(--seven-border));
+  border-radius: calc(var(--seven-radius) - 1px);
+  overflow-wrap: anywhere;
+}
 .crud-panel--nested {
-  margin-top: var(--seven-space-3);
+  margin-top: 0;
+}
+.seven-link-cell {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.crud-edit-form :deep(.el-form-item) {
+  margin-bottom: 12px;
 }
 .dialog-footer-actions {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
+}
+
+@media (max-width: 960px) {
+  .crud-header-left {
+    align-items: stretch;
+  }
+
+  .search-bar--inline {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .crud-pagination {
+    justify-content: flex-start;
+  }
+
+  .row-actions {
+    gap: 6px;
+  }
 }
 </style>

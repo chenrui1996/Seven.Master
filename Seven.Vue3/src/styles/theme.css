@@ -60,6 +60,19 @@
   --seven-create-hover: #e85d5d;
   --seven-row-selected: #e0e8ff;
   --seven-title-bar: #409eff;
+  --seven-table-header-bg: #f7f9fc;
+  --seven-table-header-text: #303133;
+  --seven-table-border: #e4eaf2;
+  --seven-table-border-strong: #d7deea;
+  --seven-table-row-hover: rgba(64, 158, 255, 0.08);
+  --seven-table-row-current: #e8f1ff;
+  --seven-table-selection-surface: #f5f8fc;
+  --seven-detail-surface: #fcfdff;
+  --seven-detail-border: #dfe6f0;
+  --seven-empty-surface: #f7f9fc;
+  --seven-loading-surface: rgba(255, 255, 255, 0.76);
+  --seven-toolbar-group-border: #e3e8f0;
+  --seven-empty-min-height: 136px;
 
   --seven-font-body: 'Source Sans 3', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --seven-font-mono: 'Fira Code', ui-monospace, Consolas, monospace;
@@ -198,6 +211,18 @@ html.dark {
   --seven-border: #363637;
   --seven-border-light: #2b2b2c;
   --seven-row-selected: rgba(64, 158, 255, 0.22);
+  --seven-table-header-bg: #1f2430;
+  --seven-table-header-text: #edf2f7;
+  --seven-table-border: #343b49;
+  --seven-table-border-strong: #495366;
+  --seven-table-row-hover: rgba(64, 158, 255, 0.18);
+  --seven-table-row-current: rgba(64, 158, 255, 0.26);
+  --seven-table-selection-surface: #1a202b;
+  --seven-detail-surface: #171c25;
+  --seven-detail-border: #343b49;
+  --seven-empty-surface: #1a202b;
+  --seven-loading-surface: rgba(16, 20, 27, 0.72);
+  --seven-toolbar-group-border: #343b49;
 
   --seven-text: #cfd3dc;
   --seven-text-muted: #a3a6ad;
@@ -485,17 +510,19 @@ body {
 }
 
 .el-table {
-  --el-table-header-bg-color: var(--seven-bg-subtle);
-  --el-table-header-text-color: var(--seven-primary-dark);
+  --el-table-header-bg-color: var(--seven-table-header-bg);
+  --el-table-header-text-color: var(--seven-table-header-text);
   --el-table-bg-color: var(--seven-bg-panel);
   --el-table-tr-bg-color: var(--seven-bg-panel);
-  --el-table-row-hover-bg-color: var(--seven-accent-soft);
-  --el-table-current-row-bg-color: var(--seven-row-selected);
+  --el-table-row-hover-bg-color: var(--seven-table-row-hover);
+  --el-table-current-row-bg-color: var(--seven-table-row-current);
   font-size: var(--seven-text-sm);
+  border-color: var(--seven-table-border);
 }
 
 .el-table .el-table__cell {
   padding: 6px 0;
+  border-bottom-color: var(--seven-table-border);
 }
 
 .el-table th.el-table__cell {
@@ -504,14 +531,45 @@ body {
   font-weight: 600;
   font-size: var(--seven-text-xs);
   letter-spacing: 0.02em;
+  border-bottom-color: var(--seven-table-border-strong);
 }
 
 .el-table__body tr.current-row > td.el-table__cell {
-  background-color: var(--seven-row-selected) !important;
+  background-color: var(--seven-table-row-current) !important;
 }
 
 .el-table__body tr:has(.el-table-column--selection .is-checked) td.el-table__cell {
-  background-color: var(--seven-row-selected) !important;
+  background-color: var(--seven-table-row-current) !important;
+}
+
+.el-table::before {
+  background-color: var(--seven-table-border);
+}
+
+.el-table .el-table__empty-block {
+  min-height: var(--seven-empty-min-height);
+  padding: var(--seven-space-5);
+  background: var(--seven-empty-surface);
+}
+
+.el-table .el-table__empty-text {
+  color: var(--seven-text-muted);
+  font-size: var(--seven-text-sm);
+  line-height: var(--seven-leading-normal);
+}
+
+.el-table .el-loading-mask {
+  background: var(--seven-loading-surface);
+}
+
+.el-pagination {
+  row-gap: var(--seven-space-2);
+}
+
+.el-pagination .btn-prev,
+.el-pagination .btn-next,
+.el-pagination .el-pager li {
+  border-radius: var(--seven-radius-sm);
 }
 
 .el-form-item {
