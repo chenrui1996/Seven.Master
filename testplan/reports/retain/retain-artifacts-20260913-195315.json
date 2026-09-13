@@ -1,0 +1,16 @@
+{
+    "RunId":  "RETAIN-20260913-195315",
+    "Stamp":  "20260913-195315",
+    "Created":  {
+                    "RequestPoint":  {
+                                         "Code":  "RETAIN.RP-01",
+                                         "Id":  1,
+                                         "Enabled":  true
+                                     },
+                    "WarehouseId":  1,
+                    "StockSnapshot":  [
+
+                                      ],
+                    "WarehouseCode":  "RETAIN_WH"
+                }
+}

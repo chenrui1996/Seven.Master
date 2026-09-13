@@ -192,7 +192,8 @@ API：`api/WmsCycleCount`。Vue：`CycleCount.vue`。
 ## 8. 运维前端与总线
 
 Vue3：`Location` / `Stock` / `InboundOrder` / `OutboundOrder` / `CycleCount`；总线 `Wcs/Bus/TransportOrder`。  
-Features 仅隐藏菜单，不卸载后端服务。
+包内运维页：`Wcs/Stacker/Ops/*`、`Wcs/FourWay/Ops/*`（监控 / 强制完成 / 联锁等）。接口日志在 **系统管理**，不再使用顶栏「执行运维」。  
+API 契约见 [24-运维Ops与联锁](./24-运维Ops与联锁.md)；Features 仅隐藏菜单，不卸载后端服务。
 
 总线：
 

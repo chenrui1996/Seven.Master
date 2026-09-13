@@ -476,27 +476,32 @@ public static class DbSeeder
         var wms = await EnsureFolderAsync("仓储WMS", "WmsFolder", "Box", 6);
         var wcs = await EnsureFolderAsync("立库WCS", "WcsFolder", "Cpu", 7);
         var fw = await EnsureFolderAsync("四向车WCS", "FourWayFolder", "Van", 8);
-        // OrderNo≥90：前端双轨菜单钉在轨底部
-        var plat = await EnsureFolderAsync("执行运维", "WcsOpsFolder", "Tools", 99);
 
         var wmsMaster = await EnsureFolderAsync("主数据", "WmsMasterFolder", "OfficeBuilding", 1, wms);
         var wmsStockFolder = await EnsureFolderAsync("库存容器", "WmsStockFolder", "TakeawayBox", 2, wms);
         var wmsOrder = await EnsureFolderAsync("单据作业", "WmsOrderFolder", "Document", 3, wms);
 
-        var wcsSim = await EnsureFolderAsync("仿真与监控", "WcsSimFolder", "Monitor", 1, wcs);
+        // 运维置顶（OrderNo=0）；仿真/策略/主数据/任务顺延
+        var stkOps = await EnsureFolderAsync("运维", "StkOpsFolder", "Tools", 0, wcs);
+        var wcsSim = await EnsureFolderAsync("仿真", "WcsSimFolder", "Monitor", 1, wcs);
         var wcsPolicy = await EnsureFolderAsync("策略", "WcsPolicyFolder", "Setting", 2, wcs);
         var wcsMaster = await EnsureFolderAsync("主数据", "WcsMasterFolder", "OfficeBuilding", 3, wcs);
         var wcsTask = await EnsureFolderAsync("任务", "WcsTaskFolder", "Collection", 4, wcs);
 
+        var fwOps = await EnsureFolderAsync("运维", "FwOpsFolder", "Tools", 0, fw);
         var fwSim = await EnsureFolderAsync("仿真", "FwSimFolder", "Operation", 1, fw);
         var fwPolicy = await EnsureFolderAsync("策略", "FwPolicyFolder", "Setting", 2, fw);
         var fwMaster = await EnsureFolderAsync("主数据", "FwMasterFolder", "OfficeBuilding", 3, fw);
         var fwTask = await EnsureFolderAsync("任务", "FwTaskFolder", "Collection", 4, fw);
 
+        var systemMenu = await db.Sys_Menus.FirstOrDefaultAsync(m => m.ParentId == 0 && m.MenuName == "系统管理")
+            ?? await db.Sys_Menus.FirstOrDefaultAsync(m => m.ParentId == 0 && m.TableName == null && m.MenuName == "系统管理");
+
         const string AuthCrud = "Search,Add,Update,Delete,Import,Export";
         const string AuthRu = "Search,Update,Export";
         const string AuthR = "Search,Export";
         const string AuthOrder = "Search,Add,Update,Import,Export";
+        const string AuthOps = "Search,Add,Update,Export";
 
         var items = new (Sys_Menu Parent, string MenuName, string Url, string TableName, string Auth, int OrderNo)[]
         {
@@ -519,6 +524,11 @@ public static class DbSeeder
             (wmsOrder, "入库快捷", "/Wms/InboundOrder", "WmsInboundOrderOps", AuthOrder, 11),
             (wmsOrder, "出库快捷", "/Wms/OutboundOrder", "WmsOutboundOrderOps", AuthOrder, 12),
 
+            (stkOps, "监控面板", "/Wcs/Stacker/Ops/Monitor", "StkOpsMonitor", AuthRu, 1),
+            (stkOps, "堆垛机运维", "/Wcs/Stacker/Ops/Srm", "StkOpsSrm", AuthRu, 2),
+            (stkOps, "申请点运维", "/Wcs/Stacker/Ops/RequestPoint", "StkOpsRequest", AuthRu, 3),
+            (stkOps, "联锁与模式", "/Wcs/Stacker/Ops/ControlMode", "StkOpsCtlMode", AuthRu, 4),
+
             (wcsSim, "堆垛仿真触发", "/Wcs/Stacker/Trigger", "StackerTrigger", AuthRu, 1),
             (wcsSim, "运输单监控", "/Wcs/Bus/TransportOrder", "BusTransportOrder", AuthR, 2),
             (wcsPolicy, "巷道策略", "/Wcs/Stacker/StkAssignmentPolicy", "StkAssignmentPolicy", AuthCrud, 1),
@@ -529,6 +539,12 @@ public static class DbSeeder
             (wcsTask, "上架任务", "/Wcs/Stacker/StkPutAwayTask", "StkPutAwayTask", AuthRu, 1),
             (wcsTask, "取货任务", "/Wcs/Stacker/StkRetrievalTask", "StkRetrievalTask", AuthRu, 2),
             (wcsTask, "设备段任务", "/Wcs/Stacker/StkDeviceTask", "StkDeviceTask", AuthRu, 3),
+
+            (fwOps, "监控面板", "/Wcs/FourWay/Ops/Monitor", "FwOpsMonitor", AuthRu, 1),
+            (fwOps, "入库", "/Wcs/FourWay/Ops/Inbound", "FwOpsInbound", AuthOps, 2),
+            (fwOps, "穿梭车运维", "/Wcs/FourWay/Ops/Shuttle", "FwOpsShuttle", AuthRu, 3),
+            (fwOps, "提升机运维", "/Wcs/FourWay/Ops/Hoist", "FwOpsHoist", AuthRu, 4),
+            (fwOps, "联锁与模式", "/Wcs/FourWay/Ops/ControlMode", "FwOpsCtlMode", AuthRu, 5),
 
             (fwSim, "四向仿真触发", "/Wcs/FourWay/Trigger", "FourWayTrigger", AuthRu, 1),
             (fwPolicy, "层策略", "/Wcs/FourWay/FwLayerPolicy", "FwLayerPolicy", AuthCrud, 1),
@@ -545,11 +561,15 @@ public static class DbSeeder
             (fwTask, "穿梭任务", "/Wcs/FourWay/FwShuttleTask", "FwShuttleTask", AuthRu, 3),
             (fwTask, "提升任务", "/Wcs/FourWay/FwHoistTask", "FwHoistTask", AuthRu, 4),
             (fwTask, "提升执行段", "/Wcs/FourWay/FwHoistExecTask", "FwHoistExecTask", AuthRu, 5),
-
-            (plat, "运行模式/联锁", "/Platform/ControlMode", "CtlMode", AuthRu, 1),
-            (plat, "接口日志", "/Platform/InterfaceLog", "IfcApiLog", AuthR, 2),
-            (plat, "2D看板", "/Scada/Floor2d", "ScadaFolder", AuthR, 3),
         };
+
+        if (systemMenu != null)
+        {
+            items = items.Concat(new[]
+            {
+                (systemMenu, "接口日志", "/Platform/InterfaceLog", "IfcApiLog", AuthR, 20),
+            }).ToArray();
+        }
 
         var adminRole = await db.Sys_Roles.OrderBy(r => r.Role_Id).FirstOrDefaultAsync();
         var added = 0;
@@ -629,6 +649,9 @@ public static class DbSeeder
         if (added > 0 || authFixed > 0)
             logger.LogInformation("WMS/WCS 菜单：新增 {Added}，补授权 {AuthFixed}", added, authFixed);
 
+        // 取消「执行运维」：禁用目录与旧叶子（CtlMode / Scada）；接口日志已迁系统管理
+        await RetireLegacyOpsMenusAsync(db, logger);
+
         static string? ResolveWmsLeafIcon(string menuName) => menuName switch
         {
             "仓库" or "部门管理" => "OfficeBuilding",
@@ -640,20 +663,61 @@ public static class DbSeeder
             "容器" or "上架任务" => "TakeawayBox",
             "交接位" or "路网" or "路网边" or "通讯连接" => "Connection",
             "库存流水" or "运输单监控" or "接口日志" => "DataLine",
-            "入库单" or "入库快捷" => "ShoppingCart",
+            "入库单" or "入库快捷" or "入库" => "ShoppingCart",
             "出库单" or "出库快捷" or "取货任务" or "四向车WCS" => "Van",
             "盘点单" or "停车账本" => "Notebook",
             "拣选任务" => "Collection",
             "堆垛仿真触发" or "四向仿真触发" or "提升任务" => "Operation",
-            "设备段任务" or "提升机" or "立库WCS" => "Cpu",
-            "穿梭任务" => "Van",
-            "提升执行段" => "Files",
-            "运行模式/联锁" => "Setting",
-            "2D看板" => "Monitor",
+            "设备段任务" or "提升机" or "立库WCS" or "堆垛机运维" => "Cpu",
+            "穿梭任务" or "穿梭车运维" => "Van",
+            "提升执行段" or "提升机运维" => "Files",
+            "运行模式/联锁" or "联锁与模式" => "Setting",
+            "监控面板" or "2D看板" => "Monitor",
+            "申请点运维" => "Location",
+            "运维" => "Tools",
             "点码映射" => "List",
             "地图版本" => "Document",
             _ => null
         };
+    }
+
+    /// <summary>禁用旧「执行运维」目录与已下沉的叶子，避免双入口。</summary>
+    static async Task RetireLegacyOpsMenusAsync(SevenDbContext db, ILogger logger)
+    {
+        var retireTableNames = new[] { "WcsOpsFolder", "CtlMode", "ScadaFolder", "ScadaFloor2d" };
+        var retired = 0;
+        foreach (var table in retireTableNames)
+        {
+            var rows = await db.Sys_Menus.Where(m => m.TableName == table && m.Enable == 1).ToListAsync();
+            foreach (var row in rows)
+            {
+                row.Enable = 0;
+                retired++;
+            }
+        }
+
+        // 仍挂在已禁用运维目录下的其它叶子一并禁用（兜底）
+        var opsFolderIds = await db.Sys_Menus
+            .Where(m => m.TableName == "WcsOpsFolder")
+            .Select(m => m.Menu_Id)
+            .ToListAsync();
+        if (opsFolderIds.Count > 0)
+        {
+            var orphans = await db.Sys_Menus
+                .Where(m => opsFolderIds.Contains(m.ParentId) && m.Enable == 1 && m.TableName != "IfcApiLog")
+                .ToListAsync();
+            foreach (var row in orphans)
+            {
+                row.Enable = 0;
+                retired++;
+            }
+        }
+
+        if (retired > 0)
+        {
+            await db.SaveChangesAsync();
+            logger.LogInformation("已退役旧运维菜单 {Count} 项（WcsOpsFolder/CtlMode/Scada）", retired);
+        }
     }
 
     /// <summary>业务扩展菜单（doc/23 样板：仓内调拨）。独立轨，不塞进标准仓储WMS。</summary>
@@ -698,7 +762,7 @@ public static class DbSeeder
             return folder;
         }
 
-        // OrderNo=9：排在四向车(8)之后、执行运维(99)之前
+        // OrderNo=9：排在四向车(8)之后
         var biz = await EnsureFolderAsync("业务扩展", "BizFolder", "Files", 9);
         const string AuthOrder = "Search,Add,Update,Delete,Import,Export";
 

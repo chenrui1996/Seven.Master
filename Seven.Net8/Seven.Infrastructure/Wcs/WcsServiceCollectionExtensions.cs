@@ -98,6 +98,8 @@ public static class WcsServiceCollectionExtensions
         services.AddHostedService<FourWaySchedulerHostedService>();
 
         services.AddScoped<IWcsLocationAllocatorResolver, WcsLocationAllocatorResolver>();
+        services.AddScoped<IFourWayOpsService, Seven.Infrastructure.Wcs.Ops.FourWayOpsService>();
+        services.AddScoped<IStackerOpsService, Seven.Infrastructure.Wcs.Ops.StackerOpsService>();
 
         return services;
     }

@@ -1,0 +1,202 @@
+﻿[
+    {
+        "Api":  "WmsWarehouse",
+        "Total":  1,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsZone",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsLayer",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsAisle",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsLocation",
+        "Total":  2,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsContainer",
+        "Total":  2,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsContainerType",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsStock",
+        "Total":  2,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsStockLedger",
+        "Total":  5,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsHandoverLink",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsInboundOrder",
+        "Total":  5,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsOutboundOrder",
+        "Total":  2,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsCycleCount",
+        "Total":  2,
+        "Ok":  true
+    },
+    {
+        "Api":  "WmsPickingTask",
+        "Total":  1,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkRequestPoint",
+        "Total":  1,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkAssignmentPolicy",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkLocationProfile",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkRoute",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkDeviceCoder",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkPutAwayTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkRetrievalTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "StkDeviceTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwRequestPoint",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwLayerPolicy",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwAislePolicy",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwMapVersion",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwNode",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwRoute",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwShuttleTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwHoistTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwHoistExecTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwPutAwayTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwRetrievalTask",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwParkingLedger",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwHoistDevice",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "FwHoistLayerPoint",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "BusTransportOrder",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "BusTransportLeg",
+        "Total":  0,
+        "Ok":  true
+    },
+    {
+        "Api":  "IfcApiLog",
+        "Total":  "ERR404",
+        "Ok":  false
+    },
+    {
+        "Api":  "TransferOrder",
+        "Total":  0,
+        "Ok":  true
+    }
+]

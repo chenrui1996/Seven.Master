@@ -1,50 +1,62 @@
-/* 工业物流运维页局部 token（对齐 Seven 金橙工业风） */
+/* 工业物流运维页局部 token（对齐蓝白 ERP） */
 .wcs-ops {
-  --ops-primary: var(--seven-accent, #f97316);
-  --ops-primary-soft: rgba(249, 115, 22, 0.08);
-  --ops-accent: var(--seven-accent-gold, #d4af37);
-  --ops-text: #0f172a;
-  --ops-muted: #475569;
-  --ops-border: #e2e8f0;
-  --ops-bg: #f8fafc;
-  font-family: 'Fira Sans', 'Segoe UI', system-ui, sans-serif;
-  color: #0f172a;
-  background: linear-gradient(180deg, var(--ops-primary-soft) 0%, var(--ops-bg) 120px);
+  --ops-primary: var(--seven-accent, #409eff);
+  --ops-primary-soft: rgba(64, 158, 255, 0.08);
+  --ops-accent: var(--seven-accent, #409eff);
+  --ops-text: var(--seven-primary-dark, #303133);
+  --ops-muted: var(--seven-text-muted, #909399);
+  --ops-border: var(--seven-border-light, #ebeef5);
+  --ops-bg: var(--seven-bg-page, #f3f7fb);
+  font-family: var(--seven-font-body, 'Source Sans 3', 'Segoe UI', system-ui, sans-serif);
+  color: var(--ops-text);
+  background: var(--ops-bg);
   min-height: 100%;
-  padding: 16px 16px 24px;
-  border-radius: 8px;
+  padding: 8px;
+  border-radius: 4px;
 }
 
 .wcs-ops .ops-title {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
   color: var(--ops-text);
   margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wcs-ops .ops-title::before {
+  content: '';
+  width: 4px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--ops-primary);
+  flex-shrink: 0;
 }
 
 .wcs-ops .ops-sub {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   color: var(--ops-muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .wcs-ops .ops-mono {
-  font-family: 'Fira Code', ui-monospace, monospace;
+  font-family: var(--seven-font-mono, 'Fira Code', ui-monospace, monospace);
   font-size: 0.9em;
 }
 
 .wcs-ops .ops-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .wcs-ops .ops-toolbar .el-button {
-  min-height: 44px;
+  min-height: 28px;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -52,36 +64,67 @@
 .wcs-ops .ops-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .wcs-ops .ops-panel {
   background: #fff;
   border: 1px solid var(--ops-border);
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 4px;
+  padding: 12px 14px;
 }
 
 .wcs-ops .ops-panel h3 {
-  margin: 0 0 12px;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  font-size: 0.9rem;
   color: var(--ops-text);
+  font-weight: 600;
 }
 
 .wcs-ops .ops-split {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.wcs-ops .ops-split--board-primary {
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+}
+
+.wcs-ops .ops-panel--board {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.wcs-ops .ops-panel--board .scada-embed,
+.wcs-ops .ops-panel--board :deep(.scada-embed) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.wcs-ops .ops-tree {
+  margin-top: 12px;
+  max-height: 220px;
+  overflow: auto;
 }
 
 @media (max-width: 960px) {
-  .wcs-ops .ops-split {
+  .wcs-ops .ops-split,
+  .wcs-ops .ops-split--board-primary {
     grid-template-columns: 1fr;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .wcs-ops .ops-toolbar .el-button {
-    transition: none;
-  }
+html.dark .wcs-ops {
+  --ops-text: var(--seven-primary-dark);
+  --ops-muted: var(--seven-text-muted);
+  --ops-border: var(--seven-border-light);
+  --ops-bg: var(--seven-bg-page);
+  color: var(--ops-text);
+}
+
+html.dark .wcs-ops .ops-panel {
+  background: var(--seven-bg-panel);
 }

@@ -1,0 +1,38 @@
+﻿{
+    "RunId":  "COV-20260913-210902",
+    "TablesTouched":  [
+                          "Wms_Warehouse",
+                          "Wms_Zone",
+                          "Wms_Layer",
+                          "Wms_Aisle",
+                          "Wms_ContainerType",
+                          "Wms_Location",
+                          "Wms_HandoverLink",
+                          "Stk_AssignmentPolicy",
+                          "Stk_RequestPoint",
+                          "Stk_LocationProfile",
+                          "Stk_DeviceCoder",
+                          "Stk_Route",
+                          "Fw_MapVersion",
+                          "Fw_Node",
+                          "Fw_Route",
+                          "Fw_LayerPolicy",
+                          "Fw_AislePolicy",
+                          "Fw_RequestPoint",
+                          "Fw_ParkingLedger",
+                          "Fw_HoistDevice",
+                          "Fw_HoistLayerPoint",
+                          "Wms_OutboundOrder",
+                          "Wms_OutboundOrderLine",
+                          "Wms_PickingTask",
+                          "Biz_TransferOrder",
+                          "Biz_TransferOrderLine",
+                          "Ctl_Mode",
+                          "Scd_View",
+                          "Ifc_ApiLog"
+                      ],
+    "Notes":  [
+                  "nonZeroApis=33/40",
+                  "empty=StkRetrievalTask,StkDeviceTask,FwShuttleTask,FwHoistTask,FwHoistExecTask,FwPutAwayTask,FwRetrievalTask"
+              ]
+}

@@ -44,8 +44,11 @@ else
 builder.Services
     .AddControllers()
     .AddJsonOptions(o =>
-        o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-    );
+    {
+        o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // Wms*Order ↔ Lines 导航在 Create 返回实体时会环；忽略循环避免 SYS.UNHANDLED 500
+        o.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

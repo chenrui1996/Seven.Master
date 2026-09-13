@@ -115,6 +115,8 @@ const menuFeatureMap: Record<string, keyof FeatureFlags> = {
   BusTransportOrder: 'orchestrationBus',
   CtlMode: 'orchestrationBus',
   IfcApiLog: 'orchestrationBus',
+  StkOpsFolder: 'orchestrationBus',
+  FwOpsFolder: 'orchestrationBus',
 }
 
 export const useFeatureStore = defineStore('features', () => {
@@ -179,7 +181,10 @@ export const useFeatureStore = defineStore('features', () => {
       return !!flags.value.wcsPacks.fourWay
     if (key === 'WcsFolder')
       return !!flags.value.orchestrationBus || !!flags.value.wcsPacks.stacker
-    if (key === 'WcsOpsFolder')
+    // 已取消「执行运维」：恒隐藏
+    if (key === 'WcsOpsFolder' || key === 'CtlMode' || key === 'ScadaFolder' || key === 'ScadaFloor2d')
+      return false
+    if (key === 'IfcApiLog' || path.includes('/Platform/InterfaceLog'))
       return !!flags.value.orchestrationBus || !!flags.value.wms
 
     const feature = menuFeatureMap[key]

@@ -1,0 +1,65 @@
+﻿[
+    {
+        "CaseId":  "TC-LOC-000",
+        "Title":  "Login",
+        "Status":  "PASS",
+        "Detail":  "LOC-20260913-224321",
+        "At":  "2026-09-13T22:43:22.0919133+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-001",
+        "Title":  "Ensure warehouse RETAIN_WH",
+        "Status":  "PASS",
+        "Detail":  "id=1",
+        "At":  "2026-09-13T22:43:22.2574554+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-010",
+        "Title":  "Stacker zone + aisles",
+        "Status":  "FAIL",
+        "Detail":  "Method invocation failed because [System.String] does not contain a method named \u0027Add\u0027.",
+        "At":  "2026-09-13T22:43:22.5850362+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-011",
+        "Title":  "Seed SRM Demo locations",
+        "Status":  "FAIL",
+        "Detail":  "Method invocation failed because [System.String] does not contain a method named \u0027Add\u0027.",
+        "At":  "2026-09-13T22:43:22.5874747+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-020",
+        "Title":  "FourWay zone/layer/aisle",
+        "Status":  "FAIL",
+        "Detail":  "Method invocation failed because [System.String] does not contain a method named \u0027Add\u0027.",
+        "At":  "2026-09-13T22:43:22.6271982+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-021",
+        "Title":  "Seed Singapore FW locations",
+        "Status":  "FAIL",
+        "Detail":  "Method invocation failed because [System.String] does not contain a method named \u0027Add\u0027.",
+        "At":  "2026-09-13T22:43:22.6283924+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-030",
+        "Title":  "WmsLocation total probe",
+        "Status":  "FAIL",
+        "Detail":  "after=7 baseline=50",
+        "At":  "2026-09-13T22:43:22.6634616+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-031",
+        "Title":  "Seed stock on map recv KEEP",
+        "Status":  "SKIP",
+        "Detail":  "buildPallet biz:库位不存在: Stk.RECV-MAP",
+        "At":  "2026-09-13T22:43:23.5478148+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-040",
+        "Title":  "UI checklist written",
+        "Status":  "PASS",
+        "Detail":  "see report",
+        "At":  "2026-09-13T22:43:23.5498055+08:00"
+    }
+]

@@ -1,0 +1,29 @@
+﻿{
+    "RunId":  "LOC-20260913-224343",
+    "Stamp":  "20260913-224343",
+    "BaseUrl":  "http://localhost:5000",
+    "Pack":  "all",
+    "MaxLocations":  0,
+    "Counts":  {
+                   "LocationTotalBefore":  7,
+                   "WarehouseId":  1,
+                   "StackerAttempted":  320,
+                   "StackerDepth1InBatch":  132,
+                   "StackerDepth2InBatch":  131,
+                   "LocationTotalAfter":  -1,
+                   "CreatedStackerApprox":  263,
+                   "CreatedFourWayApprox":  0,
+                   "FailedStacker":  57,
+                   "FailedFourWay":  0
+               },
+    "Samples":  {
+                    "Stacker":  [
+                                    "Stk.l101011",
+                                    "Stk.l101012",
+                                    "Stk.l101021",
+                                    "Stk.l101022",
+                                    "Stk.l101031"
+                                ]
+                },
+    "Policy":  "KEEP"
+}

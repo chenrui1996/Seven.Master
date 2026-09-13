@@ -1,0 +1,20 @@
+﻿{
+    "RunId":  "LOC-20260913-224321",
+    "Stamp":  "20260913-224321",
+    "BaseUrl":  "http://localhost:5000",
+    "Pack":  "all",
+    "MaxLocations":  0,
+    "Counts":  {
+                   "LocationTotalBefore":  7,
+                   "WarehouseId":  1,
+                   "LocationTotalAfter":  7,
+                   "CreatedStackerApprox":  0,
+                   "CreatedFourWayApprox":  0,
+                   "FailedStacker":  0,
+                   "FailedFourWay":  0
+               },
+    "Samples":  {
+
+                },
+    "Policy":  "KEEP"
+}

@@ -1,0 +1,7 @@
+2026-09-13 19:35:41.708 +08:00 [INF] User profile is available. Using 'C:\Users\15009\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-09-13 19:35:41.841 +08:00 [INF] OrchestrationBus hosted service started
+2026-09-13 19:35:41.870 +08:00 [INF] Stacker destination subscriptions started
+2026-09-13 19:35:41.872 +08:00 [INF] FourWay destination subscriptions started
+2026-09-13 19:35:41.917 +08:00 [INF] FourWay hoist scan woke 0 exec(s) (startup)
+2026-09-13 19:35:44.591 +08:00 [INF] Route matched with {action = "Get", controller = "Health"}. Executing controller action with signature Seven.Domain.Common.WebResponseContent Get() on controller Seven.WebApi.Controllers.HealthController (Seven.WebApi).
+2026-09-13 19:35:44.618 +08:00 [INF] Executed action Seven.WebApi.Controllers.HealthController.Get (Seven.WebApi) in 22.5657ms

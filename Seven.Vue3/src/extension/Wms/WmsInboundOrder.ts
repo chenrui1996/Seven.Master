@@ -1,23 +1,26 @@
 import type { PageActionContext, PageExtension } from '../types'
 import { ActionIcons } from '../../constants/actionIcons'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import i18n from '../../locales'
+
+const t = i18n.global.t
 
 const lineColumns = [
-  { prop: 'lineNo', label: '行号', kind: 'number' as const, width: 70 },
-  { prop: 'materialCode', label: '物料' },
-  { prop: 'qty', label: '计划', kind: 'number' as const, width: 90 },
-  { prop: 'completedQty', label: '完成', kind: 'number' as const, width: 90 },
-  { prop: 'containerCode', label: '容器', width: 120 },
+  { prop: 'lineNo', label: t('wmsOps.inbound.lineNo'), kind: 'number' as const, width: 70 },
+  { prop: 'materialCode', label: t('wmsOps.material') },
+  { prop: 'qty', label: t('wmsOps.inbound.planned'), kind: 'number' as const, width: 90 },
+  { prop: 'completedQty', label: t('wmsOps.inbound.completed'), kind: 'number' as const, width: 90 },
+  { prop: 'containerCode', label: t('wmsOps.container'), width: 120 },
 ]
 
 const detailColumns = [
   { prop: 'detailNo', label: '#', kind: 'number' as const, width: 60 },
-  { prop: 'materialCode', label: '物料' },
-  { prop: 'qty', label: '数量', kind: 'number' as const, width: 80 },
-  { prop: 'containerCode', label: '容器', width: 120 },
-  { prop: 'receiveLocationCode', label: '收货位', width: 120 },
-  { prop: 'targetLocationCode', label: '目标位', width: 120 },
-  { prop: 'status', label: '状态', kind: 'enum' as const, width: 90 },
+  { prop: 'materialCode', label: t('wmsOps.material') },
+  { prop: 'qty', label: t('wmsOps.qty'), kind: 'number' as const, width: 80 },
+  { prop: 'containerCode', label: t('wmsOps.container'), width: 120 },
+  { prop: 'receiveLocationCode', label: t('wmsOps.inbound.receiveLoc'), width: 120 },
+  { prop: 'targetLocationCode', label: t('wmsOps.inbound.targetLoc'), width: 120 },
+  { prop: 'status', label: t('wmsOps.status'), kind: 'enum' as const, width: 90 },
 ]
 
 type ApiResult = { status: boolean; message?: string }
@@ -46,7 +49,7 @@ const extension: PageExtension = {
   detailTables: [
     {
       key: 'WmsInboundOrderLine',
-      title: '入库行',
+      title: t('wmsOps.inboundLines'),
       mode: 'below',
       apiRoute: 'WmsInboundOrderLine',
       keyField: 'id',
@@ -62,7 +65,7 @@ const extension: PageExtension = {
       children: [
         {
           key: 'WmsInboundDetail',
-          title: '组盘明细',
+          title: t('wmsOps.inbound.palletDetails'),
           mode: 'below',
           apiRoute: 'WmsInboundDetail',
           keyField: 'id',
@@ -86,7 +89,7 @@ const extension: PageExtension = {
   toolbarButtons: [
     {
       key: 'approve',
-      label: '审核',
+      label: t('wmsOps.approve'),
       icon: ActionIcons.acknowledge,
       type: 'primary',
       requireSelection: true,
@@ -99,7 +102,7 @@ const extension: PageExtension = {
     },
     {
       key: 'receive',
-      label: '收货',
+      label: t('wmsOps.inbound.receive'),
       icon: ActionIcons.confirm,
       type: 'success',
       requireSelection: true,
@@ -112,7 +115,7 @@ const extension: PageExtension = {
     },
     {
       key: 'buildPallet',
-      label: '组盘',
+      label: t('wmsOps.inbound.pallet'),
       icon: ActionIcons.add,
       type: 'warning',
       requireSelection: true,

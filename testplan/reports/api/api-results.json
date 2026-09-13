@@ -1,0 +1,272 @@
+﻿[
+    {
+        "CaseId":  "TC-AUTH-API-001",
+        "Title":  "Health 探针",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "Seven API is running",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:48.6502567+08:00"
+    },
+    {
+        "CaseId":  "TC-AUTH-API-002",
+        "Title":  "Captcha/create 返回 key+code",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "key=bc551abcf5f140fcb44524a556ff4fd6 code=5138",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:48.6801022+08:00"
+    },
+    {
+        "CaseId":  "TC-AUTH-API-003",
+        "Title":  "登录 admin+验证码",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "token length=372",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.1586442+08:00"
+    },
+    {
+        "CaseId":  "TC-AUTH-API-004",
+        "Title":  "错误密码拒绝",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "用户名或密码错误",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.6955160+08:00"
+    },
+    {
+        "CaseId":  "TC-X-013",
+        "Title":  "Features API 与期望包开关",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "{\"workFlow\":true,\"quartz\":false,\"signalR\":true,\"alarm\":true,\"messageQueue\":false,\"outbox\":false,\"mail\":false,\"minIO\":false,\"tenant\":false,\"captcha\":true,\"rateLimit\":true,\"idempotency\":true,\"dataScope\":true,\"auditInterceptor\":true,\"builder\":true,\"hotStore\":false,\"deviceComm\":false,\"simulator\":true,\"wms\":true,\"orchestrationBus\":true,\"wcsPacks\":{\"stacker\":true,\"fourWay\":true,\"boxSort\":true}}",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.7184545+08:00"
+    },
+    {
+        "CaseId":  "TC-X-012",
+        "Title":  "Dual：双边运维 + 无执行运维(getMenu)",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "ops folders present; 执行运维 hidden",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8119835+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-020",
+        "Title":  "五页菜单可见(API)",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "FwOps* present",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8129834+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-008",
+        "Title":  "运维四页菜单可见(API)",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "StkOps* present",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8139831+08:00"
+    },
+    {
+        "CaseId":  "TC-X-040",
+        "Title":  "DbSeeder 退役执行运维(enable=0)",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "rows=1",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8271069+08:00"
+    },
+    {
+        "CaseId":  "TC-WMS-041",
+        "Title":  "接口日志菜单在系统管理",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "parentId=19",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8330996+08:00"
+    },
+    {
+        "CaseId":  "TC-X-041",
+        "Title":  "权限码 Search 可进运维页",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "all Search perms present",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8380976+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-001",
+        "Title":  "meta 与 canAcceptLegs",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.8909702+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-002",
+        "Title":  "board 活动集",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.9253444+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-006",
+        "Title":  "指定货位 map",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.9455809+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-013",
+        "Title":  "联锁 scope=FourWay GET",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.9665459+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-003",
+        "Title":  "task-tree 无参返回业务错误",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "未找到任务树",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:49.9815050+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-FW-010",
+        "Title":  "强制完成空 GUID 拒批",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "Shuttle 不存在",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.0217430+08:00"
+    },
+    {
+        "CaseId":  "TC-X-021",
+        "Title":  "包专属模式可写 FourWay",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "set Manual(1) then restore 0",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.2583972+08:00"
+    },
+    {
+        "CaseId":  "TC-X-020",
+        "Title":  "仓级急停可开关(经 FourWay control-mode)",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "toggled globalEStop",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.3524497+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-001",
+        "Title":  "board 返回活动任务",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.3818081+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-002",
+        "Title":  "task-tree 可达",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "未找到任务树",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.3965520+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-006",
+        "Title":  "申请点列表",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.4175391+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-007",
+        "Title":  "联锁 GET Stacker",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.4396201+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-003",
+        "Title":  "强制完成空 GUID 拒批",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "DeviceTask 不存在",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.4666581+08:00"
+    },
+    {
+        "CaseId":  "TC-OPS-STK-006b",
+        "Title":  "申请点停用/启用往返",
+        "Status":  "SKIP",
+        "Automation":  "ApiHttp",
+        "Detail":  "no request points in DB",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.4706715+08:00"
+    },
+    {
+        "CaseId":  "TC-WMS-API-001",
+        "Title":  "入库单分页",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.4982464+08:00"
+    },
+    {
+        "CaseId":  "TC-WMS-API-002",
+        "Title":  "出库单分页",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.5255497+08:00"
+    },
+    {
+        "CaseId":  "TC-WMS-API-003",
+        "Title":  "盘点单分页",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.5507319+08:00"
+    },
+    {
+        "CaseId":  "TC-WMS-API-004",
+        "Title":  "库存分页",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "HTTP 200",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.5772236+08:00"
+    },
+    {
+        "CaseId":  "TC-AUTH-API-005",
+        "Title":  "Ops 无 Token → 401",
+        "Status":  "PASS",
+        "Automation":  "ApiHttp",
+        "Detail":  "401",
+        "Evidence":  "",
+        "At":  "2026-09-13T19:42:50.5992054+08:00"
+    }
+]

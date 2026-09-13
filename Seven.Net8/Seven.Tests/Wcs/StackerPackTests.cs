@@ -252,6 +252,68 @@ public class StackerPackTests
         device.Status.Should().Be(StkDeviceTaskStatus.Completed);
     }
 
+    [Fact]
+    public async Task SelectAisle_ShouldSkip_WhenHeightExceedsMaxHeight()
+    {
+        var db = CreateDb();
+        SeedPolicies(
+            db,
+            ("A1", true, 2, 100, "EP-A1"),
+            ("A2", true, 5, 100, "EP-A2"));
+        db.WmsLocations.AddRange(
+            new WmsLocation { WarehouseId = 1, PackId = "stacker", Code = "Stk.LOC-A1-01", Aisle = "A1" },
+            new WmsLocation { WarehouseId = 1, PackId = "stacker", Code = "Stk.LOC-A2-01", Aisle = "A2" });
+        await db.SaveChangesAsync();
+
+        var allocator = new StackerAisleAllocator(db);
+        var result = await allocator.SelectAisleAsync(height: 4, weight: 10);
+        result.Should().NotBeNull();
+        result!.AisleCode.Should().Be("A2");
+        result.DestinationPointCode.Should().Be("EP-A2");
+    }
+
+    [Fact]
+    public async Task HandleSegmentFeedback_FeedbackCodeNg_ShouldNotAdvance()
+    {
+        var db = CreateDb();
+        var port = new InMemoryEquipmentTriggerPort();
+        SeedStackerMaster(db);
+        await db.SaveChangesAsync();
+
+        var control = new ControlModeService(db);
+        var pack = new StackerWcsPack(db, control);
+        var bus = new OrchestrationBus(db, new WcsPackResolver([pack]), new RecordingCompletionHandler());
+        var dest = new StackerDestinationService(
+            db,
+            port,
+            new StackerAisleAllocator(db),
+            new StackerLocationAllocator(db),
+            new StackerPathDispatcher(db, port),
+            bus);
+        dest.Subscribe();
+
+        var orderId = await bus.CreateTransportOrderAsync(
+            new CreateTransportOrderRequest("TP-FB-NG", "RECV-01", "LOC-A1-01"));
+        var leg = (await LoadOrderAsync(db, orderId)).Legs.Single();
+
+        await port.SimulateDestinationRequestAsync(new DestinationRequestTrigger(
+            "TP-FB-NG", "RP_IN_01", 1, 10, "OK"));
+        await port.SimulateSegmentFeedbackAsync(new DeviceSegmentFeedback(
+            "TP-FB-NG", "EP-A1", "NG", leg.Id));
+
+        var device = await db.StkDeviceTasks.SingleAsync(x => x.LegId == leg.Id);
+        device.Status.Should().Be(StkDeviceTaskStatus.Dispatched);
+
+        var afterNg = await LoadOrderAsync(db, orderId);
+        afterNg.Status.Should().Be(BusOrderStatus.Executing);
+        afterNg.Legs.Single().Status.Should().NotBe(BusLegStatus.Completed);
+
+        await port.SimulateSegmentFeedbackAsync(new DeviceSegmentFeedback(
+            "TP-FB-NG", "EP-A1", "OK", leg.Id));
+        var afterOk = await LoadOrderAsync(db, orderId);
+        afterOk.Status.Should().Be(BusOrderStatus.Completed);
+    }
+
     private static SevenDbContext CreateDb()
     {
         var options = new DbContextOptionsBuilder<SevenDbContext>()

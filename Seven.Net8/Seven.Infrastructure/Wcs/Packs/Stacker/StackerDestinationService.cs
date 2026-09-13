@@ -180,6 +180,10 @@ public sealed class StackerDestinationService
     {
         ArgumentNullException.ThrowIfNull(feedback);
 
+        // FeedbackCode≠OK：不完成段、不推进（与四向 Hoist 段反馈语义对齐；空码视为 OK）
+        if (!IsOkFeedback(feedback.FeedbackCode))
+            return;
+
         var deviceQuery = _db.StkDeviceTasks.Where(x =>
             x.Status != StkDeviceTaskStatus.Completed && x.Status != StkDeviceTaskStatus.Failed);
         if (feedback.LegId is { } legId)
@@ -231,6 +235,10 @@ public sealed class StackerDestinationService
         if (_pack != null && !string.IsNullOrWhiteSpace(completedGroup))
             await DispatchNextInGroupAsync(completedGroup, ct);
     }
+
+    private static bool IsOkFeedback(string? code) =>
+        string.IsNullOrWhiteSpace(code)
+        || string.Equals(code, "OK", StringComparison.OrdinalIgnoreCase);
 
     private Task<StkPutAwayTask?> FindActivePutAwayAsync(string containerCode, CancellationToken ct) =>
         _db.StkPutAwayTasks.FirstOrDefaultAsync(x => x.ContainerCode == containerCode

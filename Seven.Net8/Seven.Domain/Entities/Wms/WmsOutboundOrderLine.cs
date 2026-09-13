@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Seven.Domain.Common;
 
 namespace Seven.Domain.Entities.Wms;
@@ -16,6 +17,8 @@ public class WmsOutboundOrderLine : BaseEntity
     public string? ToLocation { get; set; }
     /// <summary>组内优先级；0 表示审核时按 LineNo 赋值。</summary>
     public int WcsPri { get; set; }
+    [JsonIgnore]
     public WmsOutboundOrder? Order { get; set; }
+    [JsonIgnore]
     public ICollection<WmsPickingTask> PickingTasks { get; set; } = new List<WmsPickingTask>();
 }
