@@ -1,0 +1,55 @@
+{
+    "RunId":  "RETAIN-20260913-195525",
+    "Stamp":  "20260913-195525",
+    "Created":  {
+                    "Inbound2":  {
+                                     "Qty":  20,
+                                     "Id":  5,
+                                     "Container":  "RETAIN-TP-20260913-195525-02",
+                                     "OrderNo":  "RETAIN-IN-20260913-195525-02"
+                                 },
+                    "CycleCount1":  {
+                                        "CountQty":  25,
+                                        "Id":  2,
+                                        "Container":  "RETAIN-TP-20260913-195525-02",
+                                        "OrderNo":  "RETAIN-CC-20260913-195525-01"
+                                    },
+                    "Inbound1":  {
+                                     "Status":  3,
+                                     "Id":  4,
+                                     "Container":  "RETAIN-TP-20260913-195525-01",
+                                     "OrderNo":  "RETAIN-IN-20260913-195525-01"
+                                 },
+                    "RequestPoint":  {
+                                         "Code":  "RETAIN.RP-01",
+                                         "Id":  1,
+                                         "Enabled":  true
+                                     },
+                    "Locations":  [
+                                      "Stk.RETAIN.RECV-01",
+                                      "Stk.RETAIN.STK-A"
+                                  ],
+                    "Outbound1":  {
+                                      "ShippedQty":  10,
+                                      "Id":  2,
+                                      "Container":  "RETAIN-TP-20260913-195525-01",
+                                      "OrderNo":  "RETAIN-OUT-20260913-195525-01"
+                                  },
+                    "StockSnapshot":  [
+                                          {
+                                              "LocationCode":  "Stk.RETAIN.RECV-01",
+                                              "ContainerCode":  "RETAIN-TP-20260913-195525-01",
+                                              "Qty":  0.0000,
+                                              "AvailableQty":  0.0000
+                                          },
+                                          {
+                                              "LocationCode":  "Stk.RETAIN.RECV-01",
+                                              "ContainerCode":  "RETAIN-TP-20260913-195525-02",
+                                              "Qty":  25.0000,
+                                              "AvailableQty":  25.0000
+                                          }
+                                      ],
+                    "WarehouseCode":  "RETAIN_WH",
+                    "WarehouseId":  1
+                }
+}

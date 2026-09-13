@@ -1,0 +1,72 @@
+﻿[
+    {
+        "CaseId":  "TC-LOC-000",
+        "Title":  "Login",
+        "Status":  "PASS",
+        "Detail":  "LOC-20260913-224343",
+        "At":  "2026-09-13T22:43:43.8453595+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-001",
+        "Title":  "Ensure warehouse RETAIN_WH",
+        "Status":  "PASS",
+        "Detail":  "id=1",
+        "At":  "2026-09-13T22:43:43.9763008+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-010",
+        "Title":  "Stacker zone + aisles",
+        "Status":  "PASS",
+        "Detail":  "zone=2 aisles=4",
+        "At":  "2026-09-13T22:43:44.4499279+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-012",
+        "Title":  "Depth pair sample in batch",
+        "Status":  "PASS",
+        "Detail":  "d1=132 d2=131",
+        "At":  "2026-09-13T22:43:57.6286582+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-011",
+        "Title":  "Seed SRM Demo locations",
+        "Status":  "PASS",
+        "Detail":  "attempted=320 created=263 existed=0 fail=57",
+        "At":  "2026-09-13T22:43:57.6296535+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-020",
+        "Title":  "FourWay zone/layer/aisle",
+        "Status":  "FAIL",
+        "Detail":  "add /api/WmsLayer Fw.L02 : HTTP 429 ",
+        "At":  "2026-09-13T22:43:57.6638260+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-021",
+        "Title":  "Seed Singapore FW locations",
+        "Status":  "FAIL",
+        "Detail":  "add /api/WmsLayer Fw.L02 : HTTP 429 ",
+        "At":  "2026-09-13T22:43:57.6658255+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-030",
+        "Title":  "WmsLocation total probe",
+        "Status":  "FAIL",
+        "Detail":  "after=-1 baseline=50",
+        "At":  "2026-09-13T22:43:57.6796507+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-031",
+        "Title":  "Seed stock on map recv KEEP",
+        "Status":  "SKIP",
+        "Detail":  "inbound create failed: ",
+        "At":  "2026-09-13T22:43:57.6900694+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-040",
+        "Title":  "UI checklist written",
+        "Status":  "PASS",
+        "Detail":  "see report",
+        "At":  "2026-09-13T22:43:57.6920681+08:00"
+    }
+]

@@ -1,0 +1,273 @@
+/**
+ * Dual-rail 导航统一样式（图标轨 + 二级面板）
+ * 与蓝白 ERP token 对齐；由 theme.css 引入，MainLayout 消费 class。
+ *
+ * 分隔原则（ui-ux-pro-max / light-mode borders）：
+ * - 浅色区与内容区用浅灰线或轻阴影，避免硬黑边
+ * - 避免 aside + secondary 双边框叠出深色竖线
+ */
+
+.aside.dual-rail {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+  background: var(--seven-bg-charcoal);
+  /* 外缘改由二级面板软分隔，去掉硬边避免叠出「黑边」 */
+  border-right: none;
+  overflow: hidden;
+  box-shadow: 2px 0 8px color-mix(in srgb, var(--seven-primary-dark) 6%, transparent);
+}
+
+/* Element Plus el-aside 默认右边框，强制取消以免深色竖线 */
+.el-aside.aside.dual-rail {
+  border-right: none !important;
+}
+
+.aside.dual-rail .icon-rail {
+  width: var(--seven-rail-width, 84px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 5px 10px;
+  background: var(--seven-bg-charcoal);
+  /* 深轨 → 白面板：半透明浅分界，不用实心深色线 */
+  border-right: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+}
+
+.aside.dual-rail .rail-spacer {
+  flex: 1 1 auto;
+  min-height: 8px;
+  width: 100%;
+}
+
+.aside.dual-rail .rail-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--seven-rail-text) 16%, transparent);
+}
+
+.aside.dual-rail .logo-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.aside.dual-rail .rail-item {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 3px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--seven-radius-sm);
+  background: transparent;
+  color: var(--seven-rail-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aside.dual-rail .rail-item .el-icon,
+.aside.dual-rail .rail-item .el-icon svg {
+  font-size: 20px;
+}
+
+.aside.dual-rail .rail-item:hover {
+  background: var(--seven-bg-charcoal-hover);
+  color: var(--seven-rail-text-hover);
+}
+
+.aside.dual-rail .rail-item:focus-visible {
+  outline: 2px solid var(--seven-accent);
+  outline-offset: 1px;
+}
+
+.aside.dual-rail .rail-item.active {
+  color: var(--seven-accent);
+  background: var(--seven-bg-charcoal-active);
+  border-color: color-mix(in srgb, var(--seven-accent) 45%, transparent);
+  box-shadow: inset 3px 0 0 var(--seven-accent);
+}
+
+.aside.dual-rail .rail-label {
+  max-width: 74px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 500;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-all;
+}
+
+.aside.dual-rail .secondary-panel {
+  width: var(--seven-secondary-menu-width, 200px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--seven-bg-secondary-menu);
+  /* 白面板 → 内容区：浅分割线 + 极轻阴影，替代硬黑边 */
+  border-right: 1px solid var(--seven-rail-soft-edge, #e4e7ed);
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--seven-primary-dark) 4%, transparent);
+}
+
+.aside.dual-rail .panel-title-bar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--seven-bg-subtle);
+  color: var(--seven-primary-dark);
+  border-bottom: 1px solid var(--seven-border-light);
+}
+
+.aside.dual-rail .panel-title-icon {
+  flex-shrink: 0;
+  color: var(--seven-accent);
+}
+
+.aside.dual-rail .panel-title {
+  font-family: var(--seven-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--seven-primary-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aside.dual-rail .panel-filter {
+  padding: 8px 10px;
+  background: var(--seven-bg-secondary-menu);
+  border-bottom: 1px solid var(--seven-border-light);
+}
+
+.aside.dual-rail .panel-scroll {
+  flex: 1;
+  padding: 8px 6px 12px;
+}
+
+.aside.dual-rail .menu-group {
+  margin: 0 0 8px;
+  padding: 4px 0;
+  background: transparent;
+}
+
+.aside.dual-rail .menu-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 4px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--seven-border-light);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--seven-group-title);
+}
+
+.aside.dual-rail .group-icon {
+  color: var(--seven-text-muted);
+  flex-shrink: 0;
+}
+
+.aside.dual-rail .menu-leaf {
+  width: calc(100% - 6px);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  margin: 0 3px 1px;
+  border: none;
+  border-radius: var(--seven-radius-sm);
+  background: transparent;
+  color: var(--seven-primary-dark);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aside.dual-rail .menu-leaf.is-nested {
+  padding-left: 12px;
+}
+
+.aside.dual-rail .menu-leaf:hover {
+  background: var(--seven-accent-soft);
+  color: var(--seven-primary-dark);
+}
+
+.aside.dual-rail .menu-leaf:hover .leaf-icon {
+  color: var(--seven-accent);
+}
+
+.aside.dual-rail .menu-leaf:focus-visible {
+  outline: 2px solid var(--seven-accent);
+  outline-offset: 1px;
+}
+
+.aside.dual-rail .menu-leaf.active {
+  background: var(--seven-accent-soft);
+  color: var(--seven-leaf-active-text);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--seven-accent);
+}
+
+.aside.dual-rail .leaf-icon {
+  flex-shrink: 0;
+  color: var(--seven-leaf-icon);
+  transition: color 0.2s ease;
+}
+
+.aside.dual-rail .menu-leaf.active .leaf-icon {
+  color: var(--seven-accent);
+}
+
+.aside.dual-rail .leaf-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aside.dual-rail .panel-empty {
+  padding: 14px 8px;
+  font-size: 12px;
+  color: var(--seven-text-muted);
+  text-align: center;
+}
+
+/* 仅图标轨、无二级面板时：外缘用浅分隔，避免炭黑硬边贴内容区 */
+.aside.dual-rail:not(:has(.secondary-panel)) {
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--seven-primary-dark) 10%, transparent),
+    2px 0 10px color-mix(in srgb, var(--seven-primary-dark) 8%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aside.dual-rail .rail-item,
+  .aside.dual-rail .menu-leaf,
+  .aside.dual-rail .leaf-icon {
+    transition: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .aside.dual-rail .rail-label {
+    display: none;
+  }
+}

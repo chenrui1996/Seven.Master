@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import pageExtension from '../../extension/Wms/WmsPickingTask'
 import type { DetailTableConfig, FormFieldDef, SearchFieldConfig } from '../../extension/types'
@@ -30,6 +31,7 @@ import { mergeDetailTables, mergeSearchFields } from '../../components/crud/merg
 import type { ColumnDef } from '../../composables/useTableColumns'
 
 const route = useRoute()
+const { t } = useI18n()
 
 const allColumns: ColumnDef[] = [
   { prop: 'id', kind: 'number', sortable: false },
@@ -74,15 +76,15 @@ const generatedSearchFields: SearchFieldConfig[] = [
 
 const generatedDetailTables: DetailTableConfig[] = []
 const queryFilterKeys: string[] = ['outboundOrderId', 'lineId']
-const enumOptionsMap: Record<string, { value: number | string; label: string }[]> = {
+const enumOptionsMap = computed(() => ({
   status: [
-    { value: 10, label: '已预约' },
-    { value: 20, label: '已确认' },
-    { value: 30, label: '运输中' },
-    { value: 40, label: '已完成' },
-    { value: 90, label: '已取消' },
+    { value: 10, label: t('wmsOps.pickStatus.reserved') },
+    { value: 20, label: t('wmsOps.pickStatus.confirmed') },
+    { value: 30, label: t('wmsOps.pickStatus.inTransit') },
+    { value: 40, label: t('wmsOps.pickStatus.completed') },
+    { value: 90, label: t('wmsOps.pickStatus.cancelled') },
   ],
-}
+}))
 
 const mergedSearchFields = computed(() =>
   mergeSearchFields(generatedSearchFields, pageExtension.searchFields),

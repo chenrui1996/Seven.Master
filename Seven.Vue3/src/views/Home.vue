@@ -39,16 +39,18 @@
                 <div class="inv-stat__label">{{ item.label }}</div>
               </div>
             </div>
-            <el-table :data="inventoryRows" size="small" border stripe max-height="220">
-              <el-table-column prop="zone" :label="t('home.invColZone')" min-width="100" />
-              <el-table-column prop="sku" :label="t('home.invColSku')" min-width="120" />
-              <el-table-column prop="qty" :label="t('home.invColQty')" width="90" align="right" />
-              <el-table-column prop="uom" :label="t('home.invColUom')" width="70" />
-            </el-table>
+            <div class="inventory-table">
+              <el-table :data="inventoryRows" size="small" border stripe max-height="220">
+                <el-table-column prop="zone" :label="t('home.invColZone')" min-width="100" />
+                <el-table-column prop="sku" :label="t('home.invColSku')" min-width="120" />
+                <el-table-column prop="qty" :label="t('home.invColQty')" width="90" align="right" />
+                <el-table-column prop="uom" :label="t('home.invColUom')" width="70" />
+              </el-table>
+            </div>
           </div>
         </div>
 
-        <div class="seven-panel" style="margin-top: 16px">
+        <div class="seven-panel home-panel-stack">
           <div class="seven-panel__header">
             <h3 class="seven-panel__title">{{ t('home.occupancyTitle') }}</h3>
             <span class="panel-meta">{{ occupancyPercent }}%</span>
@@ -81,7 +83,7 @@
           </div>
         </div>
 
-        <div class="seven-panel" style="margin-top: 16px">
+        <div class="seven-panel home-panel-stack">
           <div class="seven-panel__header">
             <h3 class="seven-panel__title">{{ t('home.transferTitle') }}</h3>
             <el-button link type="primary" @click="router.push('/Business/TransferOrder')">{{ t('home.viewAll') }}</el-button>
@@ -100,7 +102,7 @@
           </div>
         </div>
 
-        <div v-if="featureStore.signalREnabled" class="seven-panel notify-panel" style="margin-top: 16px">
+        <div v-if="featureStore.signalREnabled" class="seven-panel notify-panel home-panel-stack">
           <div class="seven-panel__header">
             <h3 class="seven-panel__title">{{ t('home.notifyTitle') }}</h3>
           </div>
@@ -295,7 +297,7 @@ function renderOccupancyChart() {
   const used = occupancyZones.reduce((s, z) => s + z.used, 0)
   const free = occupancyZones.reduce((s, z) => s + (z.total - z.used), 0)
   occupancyChart.setOption({
-    color: ['#f97316', '#94a3b8'],
+    color: ['#409eff', '#94a3b8'],
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0, textStyle: { color: '#64748b' } },
     series: [
@@ -383,6 +385,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-dashboard {
   max-width: 1400px;
+  padding-bottom: 24px;
 }
 
 .home-toolbar {
@@ -390,14 +393,16 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--seven-border-light);
 }
 
 .home-toolbar__title {
   margin: 0;
-  font-size: 20px;
+  font-size: clamp(18px, 1.8vw, 22px);
   font-weight: 700;
-  color: var(--seven-text);
+  color: var(--seven-primary-dark);
   line-height: 1.3;
 }
 
@@ -410,6 +415,14 @@ onBeforeUnmount(() => {
 .home-toolbar__docs {
   flex-shrink: 0;
   text-decoration: none;
+}
+
+.home-toolbar__docs .el-button {
+  min-height: 34px;
+}
+
+.home-panel-stack {
+  margin-top: 16px;
 }
 
 .panel-meta {
@@ -430,6 +443,12 @@ onBeforeUnmount(() => {
   background: var(--seven-bg-subtle);
   border: 1px solid var(--seven-border-light);
   border-radius: var(--seven-radius);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.inv-stat:hover {
+  border-color: var(--seven-accent);
+  background: var(--seven-accent-soft);
 }
 
 .inv-stat__value {
@@ -448,7 +467,11 @@ onBeforeUnmount(() => {
 
 .occupancy-chart {
   width: 100%;
-  height: 280px;
+  height: 260px;
+}
+
+.inventory-table {
+  overflow-x: auto;
 }
 
 .alarm-list,
@@ -471,6 +494,13 @@ onBeforeUnmount(() => {
   background: var(--seven-bg-subtle);
   border: 1px solid var(--seven-border-light);
   border-radius: 4px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.alarm-row:hover,
+.device-row:hover {
+  border-color: var(--seven-accent);
+  background: var(--seven-accent-soft);
 }
 
 .alarm-row__main {
@@ -516,6 +546,7 @@ onBeforeUnmount(() => {
   background: var(--seven-bg-subtle);
   border-radius: 4px;
   border: 1px solid var(--seven-border-light);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .device-info {
@@ -537,9 +568,54 @@ onBeforeUnmount(() => {
   color: var(--seven-text-muted);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .inv-stat,
+  .alarm-row,
+  .device-row {
+    transition: none;
+  }
+}
+
 @media (max-width: 640px) {
+  .home-dashboard {
+    padding-bottom: 16px;
+  }
+
+  .home-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .home-toolbar__docs .el-button {
+    width: 100%;
+  }
+
   .inv-summary {
     grid-template-columns: 1fr;
+  }
+
+  .seven-panel__body {
+    padding: 12px;
+  }
+
+  .alarm-row__main {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .alarm-msg {
+    flex-basis: calc(100% - 8px);
+  }
+
+  .alarm-row__meta {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  .occupancy-chart {
+    height: 220px;
   }
 }
 </style>

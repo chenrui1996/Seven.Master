@@ -1,0 +1,162 @@
+﻿[
+    {
+        "Api":  "WmsWarehouse",
+        "Total":  1
+    },
+    {
+        "Api":  "WmsZone",
+        "Total":  1
+    },
+    {
+        "Api":  "WmsLayer",
+        "Total":  1
+    },
+    {
+        "Api":  "WmsAisle",
+        "Total":  2
+    },
+    {
+        "Api":  "WmsLocation",
+        "Total":  7
+    },
+    {
+        "Api":  "WmsContainer",
+        "Total":  6
+    },
+    {
+        "Api":  "WmsContainerType",
+        "Total":  1
+    },
+    {
+        "Api":  "WmsStock",
+        "Total":  8
+    },
+    {
+        "Api":  "WmsStockLedger",
+        "Total":  17
+    },
+    {
+        "Api":  "WmsHandoverLink",
+        "Total":  1
+    },
+    {
+        "Api":  "WmsInboundOrder",
+        "Total":  9
+    },
+    {
+        "Api":  "WmsOutboundOrder",
+        "Total":  4
+    },
+    {
+        "Api":  "WmsCycleCount",
+        "Total":  2
+    },
+    {
+        "Api":  "WmsPickingTask",
+        "Total":  3
+    },
+    {
+        "Api":  "StkRequestPoint",
+        "Total":  2
+    },
+    {
+        "Api":  "StkAssignmentPolicy",
+        "Total":  1
+    },
+    {
+        "Api":  "StkLocationProfile",
+        "Total":  1
+    },
+    {
+        "Api":  "StkRoute",
+        "Total":  2
+    },
+    {
+        "Api":  "StkDeviceCoder",
+        "Total":  1
+    },
+    {
+        "Api":  "StkPutAwayTask",
+        "Total":  1
+    },
+    {
+        "Api":  "StkRetrievalTask",
+        "Total":  1
+    },
+    {
+        "Api":  "StkDeviceTask",
+        "Total":  1
+    },
+    {
+        "Api":  "FwRequestPoint",
+        "Total":  1
+    },
+    {
+        "Api":  "FwLayerPolicy",
+        "Total":  1
+    },
+    {
+        "Api":  "FwAislePolicy",
+        "Total":  1
+    },
+    {
+        "Api":  "FwMapVersion",
+        "Total":  1
+    },
+    {
+        "Api":  "FwNode",
+        "Total":  2
+    },
+    {
+        "Api":  "FwRoute",
+        "Total":  1
+    },
+    {
+        "Api":  "FwShuttleTask",
+        "Total":  1
+    },
+    {
+        "Api":  "FwHoistTask",
+        "Total":  1
+    },
+    {
+        "Api":  "FwHoistExecTask",
+        "Total":  1
+    },
+    {
+        "Api":  "FwPutAwayTask",
+        "Total":  1
+    },
+    {
+        "Api":  "FwRetrievalTask",
+        "Total":  1
+    },
+    {
+        "Api":  "FwParkingLedger",
+        "Total":  1
+    },
+    {
+        "Api":  "FwHoistDevice",
+        "Total":  1
+    },
+    {
+        "Api":  "FwHoistLayerPoint",
+        "Total":  1
+    },
+    {
+        "Api":  "BusTransportOrder",
+        "Total":  4
+    },
+    {
+        "Api":  "BusTransportLeg",
+        "Total":  2
+    },
+    {
+        "Api":  "TransferOrder",
+        "Total":  1
+    },
+    {
+        "Api":  "ScdView",
+        "Total":  1
+    }
+]

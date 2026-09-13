@@ -1,0 +1,37 @@
+﻿{
+    "RunId":  "LOC-20260913-224447",
+    "Stamp":  "20260913-224447",
+    "BaseUrl":  "http://localhost:5000",
+    "Pack":  "all",
+    "MaxLocations":  0,
+    "Counts":  {
+                   "LocationTotalBefore":  271,
+                   "WarehouseId":  1,
+                   "StackerAttempted":  320,
+                   "StackerDepth1InBatch":  160,
+                   "StackerDepth2InBatch":  160,
+                   "FourWayAttempted":  24,
+                   "LocationTotalAfter":  353,
+                   "CreatedStackerApprox":  57,
+                   "CreatedFourWayApprox":  24,
+                   "FailedStacker":  0,
+                   "FailedFourWay":  0
+               },
+    "Samples":  {
+                    "Stacker":  [
+                                    "Stk.l101011",
+                                    "Stk.l101012",
+                                    "Stk.l101021",
+                                    "Stk.l101022",
+                                    "Stk.l101031"
+                                ],
+                    "FourWay":  [
+                                    "Fw.SW1_1Z001A0505_0505_0504_01.S1",
+                                    "Fw.SW1_1Z001A0505_0505_0504_01.S2",
+                                    "Fw.SW1_1Z001A0405_0405_0404_01.S1",
+                                    "Fw.SW1_1Z001A0405_0405_0404_01.S2",
+                                    "Fw.SW1_1Z001A0304_0304_0305_01.S1"
+                                ]
+                },
+    "Policy":  "KEEP"
+}

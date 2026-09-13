@@ -1,0 +1,18 @@
+﻿{
+    "Stamp":  "20260913-225328",
+    "Results":  [
+                    {
+                        "View":  "MAP-STK-FLOOR",
+                        "Id":  2,
+                        "Nodes":  317,
+                        "Created":  317
+                    },
+                    {
+                        "View":  "MAP-FW-FLOOR",
+                        "Id":  3,
+                        "Nodes":  53,
+                        "Created":  53
+                    }
+                ],
+    "Hint":  "Ops Monitor: prefer MAP-STK-FLOOR / MAP-FW-FLOOR"
+}

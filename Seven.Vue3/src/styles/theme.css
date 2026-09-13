@@ -1,67 +1,74 @@
 /**
- * Seven Master 设计令牌 · 字体 · 布局 · 双主题
+ * Seven Master 设计令牌 · 蓝白 ERP（对齐 Vol / Element Plus 企业风）
  */
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 @import './buttons.css';
+@import './dual-rail.css';
 
 :root {
-  --seven-primary: #475569;
-  --seven-primary-dark: #0f172a;
-  --seven-accent: #f97316;
-  --seven-accent-hover: #ea580c;
-  --seven-accent-soft: rgba(249, 115, 22, 0.12);
-  --seven-accent-gold: #c9a227;
-  --seven-accent-gold-soft: rgba(201, 162, 39, 0.16);
-  --seven-accent-gold-strong: #a8841a;
+  --seven-primary: #606266;
+  --seven-primary-dark: #303133;
+  --seven-accent: #409eff;
+  --seven-accent-hover: #337ecc;
+  --seven-accent-soft: rgba(64, 158, 255, 0.12);
+  --seven-accent-gold: #94a3b8;
+  --seven-accent-gold-soft: rgba(148, 163, 184, 0.16);
+  --seven-accent-gold-strong: #64748b;
 
-  --seven-bg-page: #eef2f6;
+  --seven-bg-page: #f3f7fb;
   --seven-bg-panel: #ffffff;
-  --seven-bg-panel-header: linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
-  --seven-bg-subtle: #f8fafc;
+  --seven-bg-panel-header: #ffffff;
+  --seven-bg-subtle: #f5f7fa;
   --seven-bg-sidebar: #0b1220;
   --seven-bg-sidebar-hover: #151d2e;
-  /* 双轨菜单：炭轨 + 浅面板 */
-  --seven-bg-charcoal: #141416;
-  --seven-bg-charcoal-hover: #222226;
-  --seven-bg-charcoal-active: rgba(201, 162, 39, 0.14);
-  --seven-bg-secondary-menu: #f4f5f7;
-  --seven-bg-group-soft: #ffffff;
+  /* 双轨菜单：深蓝轨 + 白二级面板 */
+  --seven-bg-charcoal: #1d1e2c;
+  --seven-bg-charcoal-hover: #2a2f42;
+  --seven-bg-charcoal-active: rgba(64, 158, 255, 0.2);
+  --seven-bg-secondary-menu: #ffffff;
+  --seven-bg-group-soft: #f8fafc;
   --seven-rail-text: #a8b2c1;
   --seven-rail-text-hover: #f1f5f9;
-  --seven-rail-border: rgba(201, 162, 39, 0.22);
-  --seven-panel-title-bg: #1c1c1e;
+  --seven-rail-border: rgba(64, 158, 255, 0.22);
+  /* 二级菜单贴内容区的软边（避免硬黑竖线） */
+  --seven-rail-soft-edge: #e4e7ed;
+  --seven-panel-title-bg: #1d1e2c;
   --seven-panel-title-text: #f8fafc;
-  --seven-leaf-icon: #475569;
-  --seven-leaf-active-text: #8b6914;
-  --seven-group-title: #334155;
-  --seven-border: #cbd5e1;
-  --seven-border-light: #e2e8f0;
+  --seven-leaf-icon: #606266;
+  --seven-leaf-active-text: #409eff;
+  --seven-group-title: #909399;
+  --seven-border: #dcdfe6;
+  --seven-border-light: #ebeef5;
   --seven-rail-width: 84px;
   --seven-secondary-menu-width: 200px;
   --seven-sidebar-width: 284px;
 
-  --seven-text: #334155;
-  --seven-text-muted: #64748b;
-  --seven-text-inverse: #f8fafc;
+  --seven-text: #606266;
+  --seven-text-muted: #909399;
+  --seven-text-inverse: #ffffff;
 
-  --seven-success: #16a34a;
-  --seven-warning: #eab308;
-  --seven-danger: #dc2626;
-  --seven-info: #0ea5e9;
+  --seven-success: #67c23a;
+  --seven-warning: #e6a23c;
+  --seven-danger: #f56c6c;
+  --seven-info: #909399;
+  --seven-create: #f56c6c;
+  --seven-create-hover: #e85d5d;
+  --seven-row-selected: #e0e8ff;
+  --seven-title-bar: #409eff;
 
-  --seven-font-body: 'Fira Sans', 'Segoe UI', system-ui, sans-serif;
+  --seven-font-body: 'Source Sans 3', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --seven-font-mono: 'Fira Code', ui-monospace, Consolas, monospace;
 
   --seven-text-xs: 0.75rem;
   --seven-text-sm: 0.8125rem;
-  --seven-text-base: 0.9375rem;
+  --seven-text-base: 0.875rem;
   --seven-text-md: 1rem;
   --seven-text-lg: 1.125rem;
   --seven-text-xl: 1.375rem;
   --seven-text-2xl: 1.625rem;
 
   --seven-leading-tight: 1.3;
-  --seven-leading-normal: 1.55;
+  --seven-leading-normal: 1.5;
   --seven-leading-relaxed: 1.65;
 
   --seven-space-1: 4px;
@@ -72,56 +79,64 @@
   --seven-space-6: 20px;
   --seven-space-8: 28px;
 
-  --seven-sidebar-width: 284px;
   --seven-header-height: 48px;
   --seven-tabs-height: 34px;
   --seven-content-max-width: 1440px;
-  --seven-radius: 5px;
+  --seven-radius: 4px;
   --seven-radius-sm: 4px;
-  --seven-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --seven-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --seven-table-row-height: 36px;
 
-  /* 实心深底按钮统一前景色（浅色/深色主题均适用） */
   --seven-btn-on-solid: #ffffff;
 
-  /* 按钮配色 — 浅色模式（Primary=安全橙 CTA） */
-  --seven-btn-primary-bg: #ea580c;
-  --seven-btn-primary-border: #c2410c;
+  /* Primary = 查询蓝 */
+  --seven-btn-primary-bg: #409eff;
+  --seven-btn-primary-border: #409eff;
   --seven-btn-primary-text: var(--seven-btn-on-solid);
-  --seven-btn-primary-hover: #c2410c;
-  --seven-btn-primary-active: #9a3412;
-  --seven-btn-primary-shadow: 0 1px 2px rgba(234, 88, 12, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --seven-btn-primary-hover-shadow: 0 2px 8px rgba(234, 88, 12, 0.36);
+  --seven-btn-primary-hover: #66b1ff;
+  --seven-btn-primary-active: #337ecc;
+  --seven-btn-primary-shadow: none;
+  --seven-btn-primary-hover-shadow: none;
 
-  --seven-btn-default-bg: #f1f5f9;
-  --seven-btn-default-border: #cbd5e1;
-  --seven-btn-default-text: #334155;
-  --seven-btn-default-hover: #e2e8f0;
-  --seven-btn-default-border-hover: #94a3b8;
-  --seven-btn-default-active: #cbd5e1;
+  --seven-btn-default-bg: #ffffff;
+  --seven-btn-default-border: #dcdfe6;
+  --seven-btn-default-text: #606266;
+  --seven-btn-default-hover: #ecf5ff;
+  --seven-btn-default-border-hover: #c6e2ff;
+  --seven-btn-default-active: #d9ecff;
 
-  --seven-btn-danger-bg: #dc2626;
-  --seven-btn-danger-border: #b91c1c;
+  /* Create / 新建 = 珊瑚红 */
+  --seven-btn-create-bg: #f56c6c;
+  --seven-btn-create-border: #f56c6c;
+  --seven-btn-create-hover: #e85d5d;
+  --seven-btn-create-active: #dd6161;
+
+  --seven-btn-danger-bg: #f56c6c;
+  --seven-btn-danger-border: #f56c6c;
   --seven-btn-danger-text: var(--seven-btn-on-solid);
-  --seven-btn-danger-hover: #b91c1c;
-  --seven-btn-danger-hover-border: #991b1b;
+  --seven-btn-danger-hover: #e85d5d;
+  --seven-btn-danger-hover-border: #e85d5d;
   --seven-btn-danger-text-hover: var(--seven-btn-on-solid);
-  --seven-btn-danger-active: #991b1b;
-  --seven-btn-danger-disabled-bg: #f87171;
-  --seven-btn-danger-disabled-border: #f87171;
+  --seven-btn-danger-active: #dd6161;
+  --seven-btn-danger-disabled-bg: #fab6b6;
+  --seven-btn-danger-disabled-border: #fab6b6;
 
-  --seven-btn-warning-bg: #eab308;
-  --seven-btn-warning-border: #ca8a04;
+  --seven-btn-warning-bg: #e6a23c;
+  --seven-btn-warning-border: #e6a23c;
   --seven-btn-warning-text: var(--seven-btn-on-solid);
-  --seven-btn-warning-hover: #ca8a04;
-  --seven-btn-warning-border-hover: #a16207;
+  --seven-btn-warning-hover: #ebb563;
+  --seven-btn-warning-border-hover: #ebb563;
 
-  --el-color-primary: #f97316;
-  --el-color-primary-light-3: #fb923c;
-  --el-color-primary-light-5: #fdba74;
-  --el-color-primary-light-7: #fed7aa;
-  --el-color-primary-light-8: #ffedd5;
-  --el-color-primary-light-9: #fff7ed;
-  --el-color-primary-dark-2: #ea580c;
+  --el-color-primary: #409eff;
+  --el-color-primary-light-3: #79bbff;
+  --el-color-primary-light-5: #a0cfff;
+  --el-color-primary-light-7: #c6e2ff;
+  --el-color-primary-light-8: #d9ecff;
+  --el-color-primary-light-9: #ecf5ff;
+  --el-color-primary-dark-2: #337ecc;
+  --el-color-danger: #f56c6c;
+  --el-color-success: #67c23a;
+  --el-color-warning: #e6a23c;
   --el-font-family: var(--seven-font-body);
   --el-border-radius-base: var(--seven-radius-sm);
   --el-component-size: 28px;
@@ -148,72 +163,87 @@
 }
 
 html.dark {
-  --seven-primary: #94a3b8;
-  --seven-primary-dark: #f1f5f9;
-  --seven-accent-soft: rgba(249, 115, 22, 0.18);
-  --seven-accent-gold: #e0c35c;
-  --seven-accent-gold-soft: rgba(224, 195, 92, 0.2);
-  --seven-accent-gold-strong: #c9a227;
+  --seven-primary: #a3a6ad;
+  --seven-primary-dark: #e5eaf3;
+  --seven-accent: #409eff;
+  --seven-accent-hover: #66b1ff;
+  --seven-accent-soft: rgba(64, 158, 255, 0.2);
+  --seven-accent-gold: #64748b;
+  --seven-accent-gold-soft: rgba(100, 116, 139, 0.2);
+  --seven-accent-gold-strong: #94a3b8;
 
-  --seven-bg-page: #0f172a;
-  --seven-bg-panel: #1e293b;
-  --seven-bg-panel-header: linear-gradient(180deg, #1e293b 0%, #172033 100%);
-  --seven-bg-subtle: #172033;
-  --seven-bg-charcoal: #0e0e10;
-  --seven-bg-charcoal-hover: #1c1c20;
-  --seven-bg-charcoal-active: rgba(224, 195, 92, 0.16);
-  --seven-bg-secondary-menu: #151b28;
+  --seven-bg-page: #0f1419;
+  --seven-bg-panel: #1a1d24;
+  --seven-bg-panel-header: #1a1d24;
+  --seven-bg-subtle: #22262f;
+  --seven-bg-charcoal: #12141c;
+  --seven-bg-charcoal-hover: #1c2030;
+  --seven-bg-charcoal-active: rgba(64, 158, 255, 0.24);
+  --seven-bg-secondary-menu: #151820;
   --seven-bg-group-soft: rgba(255, 255, 255, 0.04);
   --seven-rail-text: #94a3b8;
   --seven-rail-text-hover: #f8fafc;
-  --seven-rail-border: rgba(224, 195, 92, 0.28);
-  --seven-panel-title-bg: #0e0e10;
+  --seven-rail-border: rgba(64, 158, 255, 0.3);
+  --seven-rail-soft-edge: #2f333c;
+  --seven-panel-title-bg: #0e0e12;
   --seven-panel-title-text: #f8fafc;
   --seven-leaf-icon: #94a3b8;
-  --seven-leaf-active-text: #e0c35c;
-  --seven-group-title: #cbd5e1;
-  --seven-border: #475569;
-  --seven-border-light: #334155;
+  --seven-leaf-active-text: #79bbff;
+  --seven-group-title: #a3a6ad;
+  --seven-border: #363637;
+  --seven-border-light: #2b2b2c;
+  --seven-row-selected: rgba(64, 158, 255, 0.22);
 
-  --seven-text: #cbd5e1;
-  --seven-text-muted: #94a3b8;
+  --seven-text: #cfd3dc;
+  --seven-text-muted: #a3a6ad;
 
-  --seven-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --seven-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.25);
 
-  /* 按钮配色 — 深色模式（实心深底仍用白字，与页面背景无关） */
   --seven-btn-on-solid: #ffffff;
 
-  --seven-btn-primary-bg: #f97316;
-  --seven-btn-primary-border: #ea580c;
+  --seven-btn-primary-bg: #409eff;
+  --seven-btn-primary-border: #409eff;
   --seven-btn-primary-text: var(--seven-btn-on-solid);
-  --seven-btn-primary-hover: #ea580c;
-  --seven-btn-primary-active: #c2410c;
-  --seven-btn-primary-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --seven-btn-primary-hover-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+  --seven-btn-primary-hover: #66b1ff;
+  --seven-btn-primary-active: #337ecc;
+  --seven-btn-primary-shadow: none;
+  --seven-btn-primary-hover-shadow: none;
 
-  --seven-btn-danger-bg: #dc2626;
-  --seven-btn-danger-border: #b91c1c;
+  --seven-btn-danger-bg: #f56c6c;
+  --seven-btn-danger-border: #f56c6c;
   --seven-btn-danger-text: var(--seven-btn-on-solid);
-  --seven-btn-danger-hover: #b91c1c;
-  --seven-btn-danger-hover-border: #991b1b;
+  --seven-btn-danger-hover: #e85d5d;
+  --seven-btn-danger-hover-border: #e85d5d;
   --seven-btn-danger-text-hover: var(--seven-btn-on-solid);
-  --seven-btn-danger-active: #991b1b;
+  --seven-btn-danger-active: #dd6161;
   --seven-btn-danger-disabled-bg: #7f1d1d;
   --seven-btn-danger-disabled-border: #7f1d1d;
 
-  --seven-btn-default-bg: #334155;
-  --seven-btn-default-border: #475569;
-  --seven-btn-default-text: #e2e8f0;
-  --seven-btn-default-hover: #475569;
-  --seven-btn-default-border-hover: #64748b;
-  --seven-btn-default-active: #1e293b;
+  --seven-btn-create-bg: #f56c6c;
+  --seven-btn-create-border: #f56c6c;
+  --seven-btn-create-hover: #e85d5d;
+  --seven-btn-create-active: #dd6161;
 
-  --seven-btn-warning-bg: #ca8a04;
-  --seven-btn-warning-border: #a16207;
+  --seven-btn-default-bg: #2b2b2c;
+  --seven-btn-default-border: #4c4d4f;
+  --seven-btn-default-text: #cfd3dc;
+  --seven-btn-default-hover: #363637;
+  --seven-btn-default-border-hover: #409eff;
+  --seven-btn-default-active: #1d1e1f;
+
+  --seven-btn-warning-bg: #e6a23c;
+  --seven-btn-warning-border: #e6a23c;
   --seven-btn-warning-text: var(--seven-btn-on-solid);
-  --seven-btn-warning-hover: #a16207;
-  --seven-btn-warning-border-hover: #854d0e;
+  --seven-btn-warning-hover: #ebb563;
+  --seven-btn-warning-border-hover: #ebb563;
 
+  --el-color-primary: #409eff;
+  --el-color-primary-light-3: #3375b9;
+  --el-color-primary-light-5: #2a598a;
+  --el-color-primary-light-7: #213d5b;
+  --el-color-primary-light-8: #1d3043;
+  --el-color-primary-light-9: #18222c;
+  --el-color-primary-dark-2: #66b1ff;
   --el-bg-color: var(--seven-bg-panel);
   --el-bg-color-page: var(--seven-bg-page);
   --el-text-color-primary: var(--seven-primary-dark);
@@ -333,40 +363,42 @@ body {
 
 .seven-panel__title {
   margin: 0;
-  font-family: var(--seven-font-mono);
+  font-family: var(--seven-font-body);
   font-size: var(--seven-text-sm);
   font-weight: 600;
   color: var(--seven-primary-dark);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
 }
 
 .seven-panel__body { padding: var(--seven-space-4); }
 
-/* 生成 CRUD 页：Data-Dense — 更紧凑的按钮与区块间距 */
+/* 生成 CRUD 页：Data-Dense */
 .crud-page {
   --el-component-size: 28px;
   --el-component-size-small: 24px;
   --el-component-size-large: 32px;
+  padding: 0;
 }
 
 .crud-page .el-card {
   border: 1px solid var(--seven-border-light);
   border-radius: var(--seven-radius);
-  box-shadow: var(--seven-shadow);
+  box-shadow: none;
   background: var(--seven-bg-panel);
 }
 
 .crud-page .el-card__header {
-  background: var(--seven-bg-panel-header);
+  background: var(--seven-bg-panel);
   border-bottom: 1px solid var(--seven-border-light);
-  padding: 6px 12px;
-}
-
-.crud-page .el-card__body {
   padding: 8px 12px;
 }
 
-.crud-page .toolbar span {
+.crud-page .el-card__body {
+  padding: 8px 12px 12px;
+}
+
+.crud-page .toolbar span,
+.crud-page .toolbar-title {
   font-family: var(--seven-font-body);
   font-size: var(--seven-text-sm);
   font-weight: 600;
@@ -377,7 +409,7 @@ body {
   --el-button-size: 28px;
   height: 28px;
   min-height: 28px;
-  padding: 0 10px;
+  padding: 0 12px;
   font-size: var(--seven-text-xs);
 }
 
@@ -385,7 +417,7 @@ body {
   --el-button-size: 26px;
   height: 26px;
   min-height: 26px;
-  padding: 0 9px;
+  padding: 0 10px;
   font-size: var(--seven-text-xs);
 }
 
@@ -437,6 +469,7 @@ body {
   --el-table-bg-color: var(--seven-bg-panel);
   --el-table-tr-bg-color: var(--seven-bg-panel);
   --el-table-row-hover-bg-color: var(--seven-accent-soft);
+  --el-table-current-row-bg-color: var(--seven-row-selected);
   font-size: var(--seven-text-sm);
 }
 
@@ -446,11 +479,18 @@ body {
 
 .el-table th.el-table__cell {
   padding: 8px 0;
-  font-family: var(--seven-font-mono);
+  font-family: var(--seven-font-body);
   font-weight: 600;
   font-size: var(--seven-text-xs);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.el-table__body tr.current-row > td.el-table__cell {
+  background-color: var(--seven-row-selected) !important;
+}
+
+.el-table__body tr:has(.el-table-column--selection .is-checked) td.el-table__cell {
+  background-color: var(--seven-row-selected) !important;
 }
 
 .el-form-item {
@@ -495,15 +535,43 @@ body {
   border-radius: 50%;
   margin-right: 6px;
   background: var(--seven-success);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+  box-shadow: 0 0 0 3px rgba(103, 194, 58, 0.2);
 }
 
 .seven-status-dot--warn {
   background: var(--seven-warning);
-  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
+  box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.2);
 }
 
 .seven-status-dot--off {
   background: var(--seven-text-muted);
   box-shadow: none;
+}
+
+/* 主子表标题竖条 */
+.seven-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--seven-text-sm);
+  font-weight: 600;
+  color: var(--seven-primary-dark);
+}
+
+.seven-section-title__bar {
+  width: 4px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--seven-title-bar);
+  flex-shrink: 0;
+}
+
+.seven-link-cell {
+  color: var(--seven-accent);
+  cursor: pointer;
+}
+
+.seven-link-cell:hover {
+  color: var(--seven-accent-hover);
+  text-decoration: underline;
 }

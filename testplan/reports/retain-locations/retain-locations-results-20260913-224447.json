@@ -1,0 +1,72 @@
+﻿[
+    {
+        "CaseId":  "TC-LOC-000",
+        "Title":  "Login",
+        "Status":  "PASS",
+        "Detail":  "LOC-20260913-224447",
+        "At":  "2026-09-13T22:44:48.4772470+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-001",
+        "Title":  "Ensure warehouse RETAIN_WH",
+        "Status":  "PASS",
+        "Detail":  "id=1",
+        "At":  "2026-09-13T22:44:48.6093440+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-010",
+        "Title":  "Stacker zone + aisles",
+        "Status":  "PASS",
+        "Detail":  "zone=2 aisles=4",
+        "At":  "2026-09-13T22:44:49.1596180+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-012",
+        "Title":  "Depth pair sample in batch",
+        "Status":  "PASS",
+        "Detail":  "d1=160 d2=160",
+        "At":  "2026-09-13T22:44:55.2869542+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-011",
+        "Title":  "Seed SRM Demo locations",
+        "Status":  "PASS",
+        "Detail":  "attempted=320 created=57 existed=263 fail=0",
+        "At":  "2026-09-13T22:44:55.2898698+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-020",
+        "Title":  "FourWay zone/layer/aisle",
+        "Status":  "PASS",
+        "Detail":  "layers=2",
+        "At":  "2026-09-13T22:44:55.5645809+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-021",
+        "Title":  "Seed Singapore FW locations",
+        "Status":  "PASS",
+        "Detail":  "attempted=24 created=24 existed=0 fail=0",
+        "At":  "2026-09-13T22:44:58.2986164+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-030",
+        "Title":  "WmsLocation total probe",
+        "Status":  "PASS",
+        "Detail":  "before=271 after=353 delta=82",
+        "At":  "2026-09-13T22:44:58.3318376+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-031",
+        "Title":  "Seed stock on map recv KEEP",
+        "Status":  "SKIP",
+        "Detail":  "receive biz:仅已审核或执行中的入库单可收货组盘",
+        "At":  "2026-09-13T22:44:58.6836222+08:00"
+    },
+    {
+        "CaseId":  "TC-LOC-040",
+        "Title":  "UI checklist written",
+        "Status":  "PASS",
+        "Detail":  "see report",
+        "At":  "2026-09-13T22:44:58.6846220+08:00"
+    }
+]

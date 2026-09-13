@@ -15,9 +15,12 @@
 | 3 | [03-安全权限与横切](./03-安全权限与横切.md) | 认证授权、中间件、运维能力 |
 | 4 | [04-HotStore与DeviceComm](./04-HotStore与DeviceComm.md) | **高频深挖**：热数据 ≠ 缓存 |
 | 5 | [05-WMS账本与总线](./05-WMS账本与总线.md) | 业务边界、三层单据、库存一致性 |
-| 6 | [06-立库WCS难点亮点](./06-立库WCS难点亮点.md) | 双深、深浅移库、Dijkstra 拆腿 |
-| 7 | [07-四向车WCS难点亮点](./07-四向车WCS难点亮点.md) | 占边、停车、Hoist 三阶段 |
+| 6 | [06-立库WCS难点亮点](./06-立库WCS难点亮点.md) | 双深、深浅移库、Dijkstra 拆腿（面试速览） |
+| 7 | [07-四向车WCS难点亮点](./07-四向车WCS难点亮点.md) | 占边、停车、Hoist 三阶段（面试速览） |
 | 8 | [08-面试问答与讲述稿](./08-面试问答与讲述稿.md) | 30s / 3min / 追问清单 |
+| 9 | [09-测试方法与落库回归](./09-测试方法与落库回归.md) | **怎么测**：DotNet / ApiHttp / Playwright / `RETAIN*` 落库保留 |
+| 10 | [10-四向车调度完整逻辑](./10-四向车调度完整逻辑.md) | **调度全链路** + 新加坡地图基线 |
+| 11 | [11-立库调度完整逻辑](./11-立库调度完整逻辑.md) | **调度全链路** + SRM Demo 双深地图基线 |
 
 ---
 
@@ -35,7 +38,7 @@
 4. **SUDR 语义统一仿真与真机**：业务不解析 PLC 报文。
 5. **HotStore**：路径占道真相源 + 异步落库，与 CRUD 延迟双删缓存职责分离。
 6. **立库双深 / 深浅移库**、**四向层内占边 + 停车原子预订 + Hoist 包内三阶段**。
-7. **大量命名良好的 E2E 测试**（InboundToStacker、StackerDoubleDeep、FourWayHoist…）。
+7. **大量命名良好的 E2E 测试**（InboundToStacker、StackerDoubleDeep、FourWayHoist…）+ **分层回归**（活库 ApiHttp / Playwright / `RETAIN*` 落库保留，见 [09](./09-测试方法与落库回归.md)）。
 
 ---
 
@@ -45,8 +48,8 @@
 |----|------|------|
 | 平台 | HotStore 与 Cache 边界；单写者约定 | [04](./04-HotStore与DeviceComm.md) |
 | WMS | 预留 AvailableQty vs 正式 Ship；同址平库不建运 | [05](./05-WMS账本与总线.md) |
-| 立库 | 防孤二深 Booking；挡路深位 Pri 抬升 + Transfer | [06](./06-立库WCS难点亮点.md) |
-| 四向 | 跨层不拆多段总线；同口 Hoist 联锁；停车 Free→Reserved→Occupied | [07](./07-四向车WCS难点亮点.md) |
+| 立库 | 防孤二深 Booking；挡路深位 Pri 抬升 + Transfer | [06](./06-立库WCS难点亮点.md) / [11](./11-立库调度完整逻辑.md) |
+| 四向 | 跨层不拆多段总线；同口 Hoist 联锁；停车 Free→Reserved→Occupied | [07](./07-四向车WCS难点亮点.md) / [10](./10-四向车调度完整逻辑.md) |
 
 ---
 
@@ -59,6 +62,6 @@ Seven.Master/
 ├── Seven.App/        WMS PDA（uni-app）
 ├── Seven.Simulator/  联调 SPA（Features→地图→仿真→Promote）
 ├── design/           架构裁定原稿
-├── doc/              开发文档 01–20
-└── doc/keypoint/     ← 本目录
+├── doc/              开发文档 01–24
+└── doc/keypoint/     ← 本目录（含测试方法 09）
 ```

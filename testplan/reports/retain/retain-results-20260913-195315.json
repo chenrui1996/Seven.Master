@@ -1,0 +1,72 @@
+﻿[
+    {
+        "CaseId":  "TC-RETAIN-000",
+        "Title":  "Login for retain run",
+        "Status":  "PASS",
+        "Detail":  "RETAIN-20260913-195315",
+        "At":  "2026-09-13T19:53:15.7760635+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-001",
+        "Title":  "Seed warehouse + locations",
+        "Status":  "FAIL",
+        "Detail":  "add loc RETAIN.RECV-01 biz: 库位必须指定 PackId，或使用带前缀的编码（如 Stk./Fw.）",
+        "At":  "2026-09-13T19:53:15.9928159+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-002",
+        "Title":  "Inbound same-loc complete (KEEP)",
+        "Status":  "FAIL",
+        "Detail":  "inbound create HTTP 500 {\"status\":false,\"code\":\"SYS.UNHANDLED\",\"message\":\"A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles. Path: $.Data.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Id.\",\"traceId\":\"ce20f1f91a714ce1afc4bad6d1cb690c\",\"data\":null}",
+        "At":  "2026-09-13T19:53:16.5819887+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-003",
+        "Title":  "Second inbound pallet (KEEP)",
+        "Status":  "FAIL",
+        "Detail":  "inbound2 create HTTP 500 {\"status\":false,\"code\":\"SYS.UNHANDLED\",\"message\":\"A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles. Path: $.Data.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Id.\",\"traceId\":\"996707ee16e5471a92c054b531dfc393\",\"data\":null}",
+        "At":  "2026-09-13T19:53:16.9249964+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-004",
+        "Title":  "Outbound ship (KEEP order)",
+        "Status":  "FAIL",
+        "Detail":  "outbound create HTTP 500 {\"status\":false,\"code\":\"SYS.UNHANDLED\",\"message\":\"A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles. Path: $.Data.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Id.\",\"traceId\":\"a78e5b8b9f0f47fea88dfc3961439c28\",\"data\":null}",
+        "At":  "2026-09-13T19:53:17.3337327+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-005",
+        "Title":  "Cycle count adjust KEEP",
+        "Status":  "FAIL",
+        "Detail":  "cc create HTTP 500 {\"status\":false,\"code\":\"SYS.UNHANDLED\",\"message\":\"A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles. Path: $.Data.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Lines.Order.Id.\",\"traceId\":\"44a371cc2eb140df87cf0d99b0870ea3\",\"data\":null}",
+        "At":  "2026-09-13T19:53:17.7283993+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-006",
+        "Title":  "Request point seed + Ops toggle KEEP",
+        "Status":  "PASS",
+        "Detail":  "id=1",
+        "At":  "2026-09-13T19:53:17.9661544+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-007",
+        "Title":  "Menu IA no legacy ops",
+        "Status":  "PASS",
+        "Detail":  "ok",
+        "At":  "2026-09-13T19:53:18.0211681+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-009",
+        "Title":  "FourWay ops inbound (optional)",
+        "Status":  "SKIP",
+        "Detail":  "no gateways/layers in live DB",
+        "At":  "2026-09-13T19:53:18.0836546+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-010",
+        "Title":  "Stock snapshot retained",
+        "Status":  "FAIL",
+        "Detail":  "no RETAIN stock rows",
+        "At":  "2026-09-13T19:53:18.1179023+08:00"
+    }
+]

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Seven.Domain.Common;
 
 namespace Seven.Domain.Entities.Wms;
@@ -15,5 +16,7 @@ public class WmsCycleCountLine : BaseEntity
     public decimal CountQty { get; set; }
     public decimal DiffQty { get; set; }
     public bool Counted { get; set; }
+
+    [JsonIgnore]
     public WmsCycleCount? Order { get; set; }
 }

@@ -2,12 +2,15 @@ import type { DetailTableConfig, SearchFieldConfig } from '../../extension/types
 
 /**
  * 合并生成配置与扩展 detailTables：同 key 以扩展为准；仅扩展有的 key 追加到末尾。
+ * 展示模式统一为 below（主子表同页）。
  */
 export function mergeDetailTables(
   generated: DetailTableConfig[],
   extension?: DetailTableConfig[],
 ): DetailTableConfig[] {
-  if (!extension?.length) return generated.slice()
+  if (!extension?.length) {
+    return generated.map((d) => (d.mode === 'below' ? d : { ...d, mode: 'below' as const }))
+  }
   const byKey = new Map<string, DetailTableConfig>()
   for (const d of generated) byKey.set(d.key, d)
   for (const d of extension) byKey.set(d.key, d)
@@ -17,13 +20,13 @@ export function mergeDetailTables(
   for (const d of generated) {
     const merged = byKey.get(d.key)
     if (merged) {
-      result.push(merged)
+      result.push(merged.mode === 'below' ? merged : { ...merged, mode: 'below' })
       seen.add(d.key)
     }
   }
   for (const d of extension) {
     if (!seen.has(d.key)) {
-      result.push(d)
+      result.push(d.mode === 'below' ? d : { ...d, mode: 'below' })
       seen.add(d.key)
     }
   }

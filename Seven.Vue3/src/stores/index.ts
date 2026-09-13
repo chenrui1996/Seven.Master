@@ -107,7 +107,8 @@ export const useTabsStore = defineStore('tabs', () => {
   function addTab(title: string, path: string, componentName?: string) {
     const existing = tabs.value.find((t) => t.path === path)
     if (existing) {
-      if (componentName && !existing.componentName) existing.componentName = componentName
+      existing.title = title || existing.title
+      if (componentName) existing.componentName = componentName
     } else {
       tabs.value.push({ title, path, componentName })
     }

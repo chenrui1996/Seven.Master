@@ -1,0 +1,827 @@
+{
+  "source": {
+    "file": "20260619-singaporeshuttleproj.simproj.json",
+    "project": "SingaporeShuttleProject",
+    "packId": "fourway"
+  },
+  "canvas": {
+    "width": 8000,
+    "height": 4000
+  },
+  "layers": [
+    {
+      "code": "Fw.L01",
+      "name": "第1层",
+      "sourceLayerId": 1
+    },
+    {
+      "code": "Fw.L02",
+      "name": "第2层",
+      "sourceLayerId": 2
+    }
+  ],
+  "maps": [
+    {
+      "code": "FW-SingaporeShuttleProject-Fw.L01",
+      "layerCode": "Fw.L01",
+      "isActive": true,
+      "nodes": [
+        {
+          "code": "RW1_1Z001020601",
+          "x": 352,
+          "y": 100,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001030601",
+          "x": 352,
+          "y": 160,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001040601",
+          "x": 352,
+          "y": 220,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001050601",
+          "x": 352,
+          "y": 280,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001060601",
+          "x": 352,
+          "y": 340,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "CTW1_1Z001060701",
+          "x": 412,
+          "y": 355,
+          "kind": "ChainTrackConveyor"
+        },
+        {
+          "code": "cha1863",
+          "x": 472,
+          "y": 355,
+          "kind": "ChainConveyor"
+        },
+        {
+          "code": "HW1_1Z001060501",
+          "x": 282,
+          "y": 345,
+          "kind": "PalletLift"
+        },
+        {
+          "code": "SW1_1Z001A0505_0505_0504_01",
+          "x": 232,
+          "y": 280,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0505_0505_0504_01.S1",
+          "x": 240,
+          "y": 280,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0505_0505_0504_01.S2",
+          "x": 248,
+          "y": 280,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0405_0405_0404_01",
+          "x": 232,
+          "y": 220,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0405_0405_0404_01.S1",
+          "x": 240,
+          "y": 220,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0405_0405_0404_01.S2",
+          "x": 248,
+          "y": 220,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0304_0304_0305_01",
+          "x": 232,
+          "y": 160,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0304_0304_0305_01.S1",
+          "x": 240,
+          "y": 160,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0304_0304_0305_01.S2",
+          "x": 248,
+          "y": 160,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0205_0205_0204_01",
+          "x": 232,
+          "y": 100,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0205_0205_0204_01.S1",
+          "x": 240,
+          "y": 100,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0205_0205_0204_01.S2",
+          "x": 248,
+          "y": 100,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0507_0507_0507_01",
+          "x": 412,
+          "y": 280,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0507_0507_0507_01.S1",
+          "x": 420,
+          "y": 280,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0407_0407_0407_01",
+          "x": 412,
+          "y": 220,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0407_0407_0407_01.S1",
+          "x": 420,
+          "y": 220,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0307_0307_0307_01",
+          "x": 412,
+          "y": 160,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0307_0307_0307_01.S1",
+          "x": 420,
+          "y": 160,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0207_0207_0207_01",
+          "x": 412,
+          "y": 100,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0207_0207_0207_01.S1",
+          "x": 420,
+          "y": 100,
+          "kind": "Location"
+        }
+      ],
+      "routes": [
+        {
+          "fromCode": "RW1_1Z001030601",
+          "toCode": "RW1_1Z001020601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040601",
+          "toCode": "RW1_1Z001030601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050601",
+          "toCode": "RW1_1Z001040601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001060601",
+          "toCode": "RW1_1Z001050601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "CTW1_1Z001060701",
+          "toCode": "RW1_1Z001060601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "cha1863",
+          "toCode": "CTW1_1Z001060701",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "HW1_1Z001060501",
+          "toCode": "RW1_1Z001060601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0505_0505_0504_01",
+          "toCode": "RW1_1Z001050601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0405_0405_0404_01",
+          "toCode": "RW1_1Z001040601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0304_0304_0305_01",
+          "toCode": "RW1_1Z001030601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0205_0205_0204_01",
+          "toCode": "RW1_1Z001020601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0507_0507_0507_01",
+          "toCode": "RW1_1Z001050601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0407_0407_0407_01",
+          "toCode": "RW1_1Z001040601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0207_0207_0207_01",
+          "toCode": "RW1_1Z001020601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0307_0307_0307_01",
+          "toCode": "RW1_1Z001030601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001020601",
+          "toCode": "RW1_1Z001030601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030601",
+          "toCode": "RW1_1Z001040601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040601",
+          "toCode": "RW1_1Z001050601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050601",
+          "toCode": "RW1_1Z001060601",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001060601",
+          "toCode": "CTW1_1Z001060701",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "CTW1_1Z001060701",
+          "toCode": "cha1863",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001060601",
+          "toCode": "HW1_1Z001060501",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050601",
+          "toCode": "SW1_1Z001A0505_0505_0504_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040601",
+          "toCode": "SW1_1Z001A0405_0405_0404_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030601",
+          "toCode": "SW1_1Z001A0304_0304_0305_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001020601",
+          "toCode": "SW1_1Z001A0205_0205_0204_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050601",
+          "toCode": "SW1_1Z001A0507_0507_0507_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040601",
+          "toCode": "SW1_1Z001A0407_0407_0407_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001020601",
+          "toCode": "SW1_1Z001A0207_0207_0207_01",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030601",
+          "toCode": "SW1_1Z001A0307_0307_0307_01",
+          "weight": 1,
+          "capacity": 1
+        }
+      ]
+    },
+    {
+      "code": "FW-SingaporeShuttleProject-Fw.L02",
+      "layerCode": "Fw.L02",
+      "isActive": true,
+      "nodes": [
+        {
+          "code": "RW1_1Z001060602",
+          "x": 352,
+          "y": 340,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "SW1_1Z001A0505_0505_0504_02",
+          "x": 232,
+          "y": 280,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0505_0505_0504_02.S1",
+          "x": 240,
+          "y": 280,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0505_0505_0504_02.S2",
+          "x": 248,
+          "y": 280,
+          "kind": "Location"
+        },
+        {
+          "code": "RW1_1Z001050602",
+          "x": 352,
+          "y": 280,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001040602",
+          "x": 352,
+          "y": 220,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001030602",
+          "x": 352,
+          "y": 160,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "RW1_1Z001020602",
+          "x": 352,
+          "y": 100,
+          "kind": "ShuttleMainTrack"
+        },
+        {
+          "code": "SW1_1Z001A0405_0405_0404_02",
+          "x": 232,
+          "y": 220,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0405_0405_0404_02.S1",
+          "x": 240,
+          "y": 220,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0405_0405_0404_02.S2",
+          "x": 248,
+          "y": 220,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0305_0305_0304_02",
+          "x": 232,
+          "y": 160,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0305_0305_0304_02.S1",
+          "x": 240,
+          "y": 160,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0305_0305_0304_02.S2",
+          "x": 248,
+          "y": 160,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0205_0205_0204_02",
+          "x": 232,
+          "y": 100,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0205_0205_0204_02.S1",
+          "x": 240,
+          "y": 100,
+          "kind": "Location"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0205_0205_0204_02.S2",
+          "x": 248,
+          "y": 100,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0507_0507_0507_02",
+          "x": 412,
+          "y": 280,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0507_0507_0507_02.S1",
+          "x": 420,
+          "y": 280,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0407_0407_0407_02",
+          "x": 412,
+          "y": 220,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0407_0407_0407_02.S1",
+          "x": 420,
+          "y": 220,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0307_0307_0307_02",
+          "x": 412,
+          "y": 160,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0307_0307_0307_02.S1",
+          "x": 420,
+          "y": 160,
+          "kind": "Location"
+        },
+        {
+          "code": "SW1_1Z001A0207_0207_0207_02",
+          "x": 412,
+          "y": 100,
+          "kind": "ShuttleSubTrack"
+        },
+        {
+          "code": "Fw.SW1_1Z001A0207_0207_0207_02.S1",
+          "x": 420,
+          "y": 100,
+          "kind": "Location"
+        },
+        {
+          "code": "HW1_1Z001060501",
+          "x": 282,
+          "y": 345,
+          "kind": "Hoist"
+        }
+      ],
+      "routes": [
+        {
+          "fromCode": "RW1_1Z001050602",
+          "toCode": "RW1_1Z001060602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040602",
+          "toCode": "RW1_1Z001050602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030602",
+          "toCode": "RW1_1Z001040602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001020602",
+          "toCode": "RW1_1Z001030602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0505_0505_0504_02",
+          "toCode": "RW1_1Z001050602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0405_0405_0404_02",
+          "toCode": "RW1_1Z001040602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0305_0305_0304_02",
+          "toCode": "RW1_1Z001030602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0205_0205_0204_02",
+          "toCode": "RW1_1Z001020602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0507_0507_0507_02",
+          "toCode": "RW1_1Z001050602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0407_0407_0407_02",
+          "toCode": "RW1_1Z001040602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0307_0307_0307_02",
+          "toCode": "RW1_1Z001030602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "SW1_1Z001A0207_0207_0207_02",
+          "toCode": "RW1_1Z001020602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001060602",
+          "toCode": "HW1_1Z001060501",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001060602",
+          "toCode": "RW1_1Z001050602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050602",
+          "toCode": "RW1_1Z001040602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040602",
+          "toCode": "RW1_1Z001030602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030602",
+          "toCode": "RW1_1Z001020602",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050602",
+          "toCode": "SW1_1Z001A0505_0505_0504_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040602",
+          "toCode": "SW1_1Z001A0405_0405_0404_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030602",
+          "toCode": "SW1_1Z001A0305_0305_0304_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001020602",
+          "toCode": "SW1_1Z001A0205_0205_0204_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001050602",
+          "toCode": "SW1_1Z001A0507_0507_0507_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001040602",
+          "toCode": "SW1_1Z001A0407_0407_0407_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001030602",
+          "toCode": "SW1_1Z001A0307_0307_0307_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "RW1_1Z001020602",
+          "toCode": "SW1_1Z001A0207_0207_0207_02",
+          "weight": 1,
+          "capacity": 1
+        },
+        {
+          "fromCode": "HW1_1Z001060501",
+          "toCode": "RW1_1Z001060602",
+          "weight": 1,
+          "capacity": 1
+        }
+      ]
+    }
+  ],
+  "gateways": [
+    {
+      "code": "Fw.cha1863",
+      "source": "cha1863",
+      "layer": 1
+    }
+  ],
+  "hoist": [
+    {
+      "hoistNo": "HW1_1Z001060501",
+      "dockingHeights": [
+        0.8,
+        2
+      ],
+      "allowShuttle": true,
+      "apByLayer": [
+        {
+          "layerCode": "Fw.L01",
+          "address": "HW1_1Z001060501"
+        },
+        {
+          "layerCode": "Fw.L02",
+          "address": "HW1_1Z001060501"
+        }
+      ]
+    }
+  ],
+  "shuttles": [
+    {
+      "code": "shu1",
+      "layer": 2,
+      "layerCode": "Fw.L02",
+      "pos": {
+        "x": 350,
+        "y": 95
+      }
+    },
+    {
+      "code": "shu1",
+      "layer": 1,
+      "layerCode": "Fw.L01",
+      "pos": {
+        "x": 352,
+        "y": 100
+      }
+    }
+  ],
+  "parking": [
+    {
+      "code": "Fw.PARK-Fw.L01",
+      "layerCode": "Fw.L01",
+      "aisleCode": "Fw.A1",
+      "status": "Free"
+    },
+    {
+      "code": "Fw.PARK-Fw.L02",
+      "layerCode": "Fw.L02",
+      "aisleCode": "Fw.A2",
+      "status": "Free"
+    }
+  ],
+  "requestPoints": [
+    {
+      "code": "Fw.RP-Fw.L01-LAYER",
+      "pointType": "LayerRequest",
+      "layerCode": "Fw.L01"
+    },
+    {
+      "code": "Fw.RP-Fw.L02-LAYER",
+      "pointType": "LayerRequest",
+      "layerCode": "Fw.L02"
+    },
+    {
+      "code": "Fw.RP-Fw.L01-AISLE",
+      "pointType": "AisleRequest",
+      "layerCode": "Fw.L01"
+    },
+    {
+      "code": "Fw.RP-Fw.L02-AISLE",
+      "pointType": "AisleRequest",
+      "layerCode": "Fw.L02"
+    },
+    {
+      "code": "Fw.RP-Fw.L01-LOC",
+      "pointType": "LocationRequest",
+      "layerCode": "Fw.L01"
+    },
+    {
+      "code": "Fw.RP-Fw.L02-LOC",
+      "pointType": "LocationRequest",
+      "layerCode": "Fw.L02"
+    },
+    {
+      "code": "Fw.HOIST-HW1_1Z001060501-AP-Fw.L01",
+      "pointType": "HoistAp",
+      "layerCode": "Fw.L01",
+      "address": "HW1_1Z001060501"
+    },
+    {
+      "code": "Fw.HOIST-HW1_1Z001060501-EP-Fw.L01",
+      "pointType": "HoistEp",
+      "layerCode": "Fw.L01",
+      "address": "HW1_1Z001060501"
+    },
+    {
+      "code": "Fw.HOIST-HW1_1Z001060501-AP-Fw.L02",
+      "pointType": "HoistAp",
+      "layerCode": "Fw.L02",
+      "address": "HW1_1Z001060501"
+    },
+    {
+      "code": "Fw.HOIST-HW1_1Z001060501-EP-Fw.L02",
+      "pointType": "HoistEp",
+      "layerCode": "Fw.L02",
+      "address": "HW1_1Z001060501"
+    }
+  ],
+  "scenarios": [
+    "same-layer-inbound-path",
+    "traffic-edge-mutex",
+    "parking-reserve-dispatch",
+    "cross-layer-hoist-three-stage",
+    "max-shuttle-density-skip-aisle"
+  ]
+}

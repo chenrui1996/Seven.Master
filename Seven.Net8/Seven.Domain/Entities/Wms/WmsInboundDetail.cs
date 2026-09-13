@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Seven.Domain.Common;
 using Seven.Domain.Enums;
 
@@ -20,6 +21,10 @@ public class WmsInboundDetail : BaseEntity
     public string PackId { get; set; } = string.Empty;
     public WmsInboundDetailStatus Status { get; set; }
     public Guid? TransportOrderId { get; set; }
+
+    [JsonIgnore]
     public WmsInboundOrder? Order { get; set; }
+
+    [JsonIgnore]
     public WmsInboundOrderLine? Line { get; set; }
 }

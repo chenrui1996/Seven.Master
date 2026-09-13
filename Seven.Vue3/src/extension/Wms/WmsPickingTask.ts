@@ -1,6 +1,9 @@
 import type { PageActionContext, PageExtension } from '../types'
 import { ActionIcons } from '../../constants/actionIcons'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import i18n from '../../locales'
+
+const t = i18n.global.t
 
 type ApiResult = { status: boolean; message?: string }
 
@@ -15,21 +18,25 @@ const extension: PageExtension = {
   toolbarButtons: [
     {
       key: 'confirmPick',
-      label: '确认拣选',
+      label: t('wmsOps.outbound.confirmPick'),
       icon: ActionIcons.Check,
       permission: 'WmsPickingTask.Update',
       onClick: async (ctx: PageActionContext) => {
         const row = ctx.selectedRows?.[0] as { id?: number } | undefined
         if (!row?.id) {
-          ElMessage.warning(ctx.t('wmsOps.selectOne') || '请先选择一条拣选任务')
+          ElMessage.warning(ctx.t('wmsOps.selectOne'))
           return
         }
-        const { value } = await ElMessageBox.prompt('拣货数量（空=账面量）', '确认拣选', {
-          confirmButtonText: ctx.t('wmsOps.confirm') || '确定',
-          cancelButtonText: ctx.t('wmsOps.cancel') || '取消',
-          inputPattern: /^(\d+(\.\d+)?)?$/,
-          inputErrorMessage: '数量无效',
-        }).catch(() => ({ value: null as string | null }))
+        const { value } = await ElMessageBox.prompt(
+          ctx.t('wmsOps.confirmPickPrompt'),
+          ctx.t('wmsOps.outbound.confirmPick'),
+          {
+            confirmButtonText: ctx.t('wmsOps.confirm'),
+            cancelButtonText: ctx.t('wmsOps.cancel'),
+            inputPattern: /^(\d+(\.\d+)?)?$/,
+            inputErrorMessage: ctx.t('wmsOps.invalidQty'),
+          },
+        ).catch(() => ({ value: null as string | null }))
         if (value === null) return
         const pickQty = value === '' ? undefined : Number(value)
         const res = await ctx.http.post<ApiResult>('/api/WmsPickingTask/confirmPick', {
@@ -37,7 +44,7 @@ const extension: PageExtension = {
           pickQty,
         })
         if (res.status) {
-          ElMessage.success(res.message || '拣选确认成功')
+          ElMessage.success(res.message || ctx.t('wmsOps.outbound.confirmPickSuccess'))
           await ctx.reload()
         } else if (res.message) {
           ElMessage.error(res.message)
@@ -49,7 +56,7 @@ const extension: PageExtension = {
   rowButtons: [
     {
       key: 'confirmPickRow',
-      label: '确认',
+      label: t('wmsOps.confirmShort'),
       permission: 'WmsPickingTask.Update',
       onClick: async (ctx: PageActionContext) => {
         const row = ctx.row as { id?: number }
@@ -58,7 +65,7 @@ const extension: PageExtension = {
           pickingTaskId: row.id,
         })
         if (res.status) {
-          ElMessage.success(res.message || '拣选确认成功')
+          ElMessage.success(res.message || ctx.t('wmsOps.outbound.confirmPickSuccess'))
           await ctx.reload()
         } else if (res.message) {
           ElMessage.error(res.message)

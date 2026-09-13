@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Seven.Domain.Common;
 
 namespace Seven.Domain.Entities.Wms;
@@ -14,6 +15,8 @@ public class WmsInboundOrderLine : BaseEntity
     public string? ContainerCode { get; set; }
     public string? FromLocation { get; set; }
     public string? ToLocation { get; set; }
+    [JsonIgnore]
     public WmsInboundOrder? Order { get; set; }
+    [JsonIgnore]
     public ICollection<WmsInboundDetail> Details { get; set; } = new List<WmsInboundDetail>();
 }

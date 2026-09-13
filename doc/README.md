@@ -29,7 +29,9 @@ Seven 是从 Legrand.Master（VolCore）迁移而来的 .NET 8 + Vue 3 企业级
 | [21-仿真器与联调闭环](./21-仿真器与联调闭环.md) | **Seven.Simulator**：编辑地图→Deploy→仿真→Promote 生产；一期～四期实施流程 |
 | [22-异常码规范](./22-异常码规范.md) | **业务异常码**：AppException、中间件、码表与生成约定 |
 | [23-业务扩展规范](./23-业务扩展规范.md) | **扩展落点**：新单据/逻辑 → `Seven.Business`；新表 → `Entities/Business` + `Biz_` |
-| [keypoint/](./keypoint/README.md) | **面试要点全集**：技术栈、难点亮点、讲述稿与问答 |
+| [24-运维Ops与联锁](./24-运维Ops与联锁.md) | **包内运维菜单**、Ops HTTP 契约、`control-mode`/`force-complete` 易错点、验证码联调 |
+| [25-联调示例数据操作指南](./25-联调示例数据操作指南.md) | **造数/验收样例**：RETAIN/COV 前缀、一键脚本、UI 查找、表覆盖结论 |
+| [keypoint/](./keypoint/README.md) | **面试要点全集**：技术栈、难点亮点、讲述稿与问答；含 [09-测试方法与落库回归](./keypoint/09-测试方法与落库回归.md) |
 
 ## 仓库布局
 
@@ -43,6 +45,7 @@ Seven.Master/
 ├── docker-compose.yml   # 本地/一体机编排
 ├── scripts/             # 辅助脚本（含 les-migrate）
 ├── design/              # 架构与迁移设计原稿
+├── testplan/            # 全流程测试计划、用例、报告与 e2e 脚本
 ├── docs/superpowers/    # 规格与任务级计划
 └── doc/                 # 本目录
 ```

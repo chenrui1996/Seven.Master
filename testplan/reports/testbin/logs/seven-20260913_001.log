@@ -1,0 +1,734 @@
+2026-09-13 19:35:41.708 +08:00 [INF] User profile is available. Using 'C:\Users\15009\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-09-13 19:35:41.841 +08:00 [INF] OrchestrationBus hosted service started
+2026-09-13 19:35:41.870 +08:00 [INF] Stacker destination subscriptions started
+2026-09-13 19:35:41.872 +08:00 [INF] FourWay destination subscriptions started
+2026-09-13 19:35:41.906 +08:00 [INF] FourWay hoist scan woke 0 exec(s) (startup)
+2026-09-13 19:35:41.980 +08:00 [INF] Initializing UI Database
+2026-09-13 19:35:42.061 +08:00 [INF] Initializing UI Database
+2026-09-13 19:35:42.113 +08:00 [INF] Saving healthchecks configuration to database
+2026-09-13 19:35:42.113 +08:00 [INF] Saving healthchecks configuration to database
+2026-09-13 19:35:42.162 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.173 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.176 +08:00 [INF] User profile is available. Using 'C:\Users\15009\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-09-13 19:35:42.199 +08:00 [WRN] The WebRootPath was not found: D:\Junheinrich\Junheinrich.Master\Seven.Master\Seven.Net8\Seven.WebApi\wwwroot. Static files may be unavailable.
+2026-09-13 19:35:42.225 +08:00 [WRN] The WebRootPath was not found: D:\Junheinrich\Junheinrich.Master\Seven.Master\Seven.Net8\Seven.WebApi\wwwroot. Static files may be unavailable.
+2026-09-13 19:35:42.228 +08:00 [INF] OrchestrationBus hosted service started
+2026-09-13 19:35:42.230 +08:00 [INF] Stacker destination subscriptions started
+2026-09-13 19:35:42.230 +08:00 [INF] FourWay destination subscriptions started
+2026-09-13 19:35:42.232 +08:00 [INF] FourWay hoist scan woke 0 exec(s) (startup)
+2026-09-13 19:35:42.236 +08:00 [INF] Initializing UI Database
+2026-09-13 19:35:42.248 +08:00 [WRN] The WebRootPath was not found: D:\Junheinrich\Junheinrich.Master\Seven.Master\Seven.Net8\Seven.WebApi\wwwroot. Static files may be unavailable.
+2026-09-13 19:35:42.308 +08:00 [ERR] GetHealthReport threw an exception when trying to get report from /health configured with name seven-api.
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source)
+   at HealthChecks.UI.Core.ServerAddressesService.AbsoluteUriFromRelative(String relativeUrl) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/ServerAddressesService.cs:line 22
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetEndpointUri(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 172
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 118
+2026-09-13 19:35:42.300 +08:00 [ERR] GetHealthReport threw an exception when trying to get report from /health configured with name seven-api.
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source)
+   at HealthChecks.UI.Core.ServerAddressesService.AbsoluteUriFromRelative(String relativeUrl) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/ServerAddressesService.cs:line 22
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetEndpointUri(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 172
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 118
+2026-09-13 19:35:42.300 +08:00 [ERR] GetHealthReport threw an exception when trying to get report from /health configured with name seven-api.
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source)
+   at HealthChecks.UI.Core.ServerAddressesService.AbsoluteUriFromRelative(String relativeUrl) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/ServerAddressesService.cs:line 22
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetEndpointUri(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 172
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 118
+2026-09-13 19:35:42.359 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.359 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.359 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.491 +08:00 [INF] Saved 2 entities to in-memory store.
+2026-09-13 19:35:42.491 +08:00 [INF] Saved 2 entities to in-memory store.
+2026-09-13 19:35:42.491 +08:00 [INF] Saved 2 entities to in-memory store.
+2026-09-13 19:35:42.492 +08:00 [ERR] GetHealthReport threw an exception when trying to get report from /health configured with name seven-api.
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source)
+   at HealthChecks.UI.Core.ServerAddressesService.AbsoluteUriFromRelative(String relativeUrl) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/ServerAddressesService.cs:line 22
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetEndpointUri(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 172
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 118
+2026-09-13 19:35:42.492 +08:00 [ERR] GetHealthReport threw an exception when trying to get report from /health configured with name seven-api.
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source)
+   at HealthChecks.UI.Core.ServerAddressesService.AbsoluteUriFromRelative(String relativeUrl) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/ServerAddressesService.cs:line 22
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetEndpointUri(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 172
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 118
+2026-09-13 19:35:42.494 +08:00 [ERR] GetHealthReport threw an exception when trying to get report from /health configured with name seven-api.
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source)
+   at HealthChecks.UI.Core.ServerAddressesService.AbsoluteUriFromRelative(String relativeUrl) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/ServerAddressesService.cs:line 22
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetEndpointUri(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 172
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthReportAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 118
+2026-09-13 19:35:42.495 +08:00 [INF] Notification is sent on same window time.
+2026-09-13 19:35:42.495 +08:00 [INF] Notification is sent on same window time.
+2026-09-13 19:35:42.496 +08:00 [INF] Notification is sent on same window time.
+2026-09-13 19:35:42.511 +08:00 [ERR] An exception occurred while iterating over the results of a query for context type 'HealthChecks.UI.Data.HealthChecksDb'.
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+2026-09-13 19:35:42.511 +08:00 [ERR] An exception occurred while iterating over the results of a query for context type 'HealthChecks.UI.Data.HealthChecksDb'.
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+2026-09-13 19:35:42.511 +08:00 [ERR] An exception occurred while iterating over the results of a query for context type 'HealthChecks.UI.Data.HealthChecksDb'.
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+2026-09-13 19:35:42.512 +08:00 [ERR] HealthCheck collector HostedService threw an error: Sequence contains more than one element
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthCheckExecutionAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 192
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.SaveExecutionHistoryAsync(HealthCheckConfiguration configuration, UIHealthReport healthReport) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 226
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.Collect(CancellationToken cancellationToken) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 89
+   at HealthChecks.UI.Core.HostedService.HealthCheckCollectorHostedService.CollectAsync(CancellationToken cancellationToken) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollectorHostedService.cs:line 84
+2026-09-13 19:35:42.512 +08:00 [ERR] HealthCheck collector HostedService threw an error: Sequence contains more than one element
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthCheckExecutionAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 192
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.SaveExecutionHistoryAsync(HealthCheckConfiguration configuration, UIHealthReport healthReport) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 226
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.Collect(CancellationToken cancellationToken) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 89
+   at HealthChecks.UI.Core.HostedService.HealthCheckCollectorHostedService.CollectAsync(CancellationToken cancellationToken) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollectorHostedService.cs:line 84
+2026-09-13 19:35:42.512 +08:00 [ERR] HealthCheck collector HostedService threw an error: Sequence contains more than one element
+System.InvalidOperationException: Sequence contains more than one element
+   at System.Linq.ThrowHelper.ThrowMoreThanOneElementException()
+   at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Boolean& found)
+   at lambda_method11710(Closure)
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryQueryExpression.ResultEnumerable.GetEnumerator()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextHelper()
+   at Microsoft.EntityFrameworkCore.InMemory.Query.Internal.InMemoryShapedQueryCompilingExpressionVisitor.QueryingEnumerable`1.Enumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.GetHealthCheckExecutionAsync(HealthCheckConfiguration configuration) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 192
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.SaveExecutionHistoryAsync(HealthCheckConfiguration configuration, UIHealthReport healthReport) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 226
+   at HealthChecks.UI.Core.HostedService.HealthCheckReportCollector.Collect(CancellationToken cancellationToken) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollector.cs:line 89
+   at HealthChecks.UI.Core.HostedService.HealthCheckCollectorHostedService.CollectAsync(CancellationToken cancellationToken) in /home/runner/work/AspNetCore.Diagnostics.HealthChecks/AspNetCore.Diagnostics.HealthChecks/src/HealthChecks.UI/Core/HostedService/HealthCheckReportCollectorHostedService.cs:line 84
+2026-09-13 19:35:42.727 +08:00 [INF] Saved 0 entities to in-memory store.
+2026-09-13 19:35:42.727 +08:00 [INF] Saved 0 entities to in-memory store.
+2026-09-13 19:35:42.727 +08:00 [INF] Saved 0 entities to in-memory store.
+2026-09-13 19:35:42.795 +08:00 [INF] Saved 5 entities to in-memory store.
+2026-09-13 19:35:42.795 +08:00 [INF] Saved 5 entities to in-memory store.
+2026-09-13 19:35:42.796 +08:00 [INF] 已同步 5 条报警码配置
+2026-09-13 19:35:42.796 +08:00 [INF] 已同步 5 条报警码配置
+2026-09-13 19:35:42.801 +08:00 [INF] Saved 5 entities to in-memory store.
+2026-09-13 19:35:42.801 +08:00 [INF] 已同步 5 条报警码配置
+2026-09-13 19:35:42.837 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.837 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.837 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.837 +08:00 [INF] 已写入默认租户 default (TenantId=1)
+2026-09-13 19:35:42.838 +08:00 [INF] 已写入默认租户 default (TenantId=1)
+2026-09-13 19:35:42.837 +08:00 [INF] 已写入默认租户 default (TenantId=1)
+2026-09-13 19:35:42.880 +08:00 [INF] 正在初始化 Seven 种子数据...
+2026-09-13 19:35:42.880 +08:00 [INF] 正在初始化 Seven 种子数据...
+2026-09-13 19:35:42.880 +08:00 [INF] 正在初始化 Seven 种子数据...
+2026-09-13 19:35:42.882 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.882 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:42.882 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.526 +08:00 [INF] Saved 2 entities to in-memory store.
+2026-09-13 19:35:43.526 +08:00 [INF] Saved 2 entities to in-memory store.
+2026-09-13 19:35:43.526 +08:00 [INF] Saved 2 entities to in-memory store.
+2026-09-13 19:35:43.532 +08:00 [INF] Saved 13 entities to in-memory store.
+2026-09-13 19:35:43.532 +08:00 [INF] Saved 13 entities to in-memory store.
+2026-09-13 19:35:43.532 +08:00 [INF] Saved 13 entities to in-memory store.
+2026-09-13 19:35:43.564 +08:00 [INF] Saved 13 entities to in-memory store.
+2026-09-13 19:35:43.564 +08:00 [INF] Saved 13 entities to in-memory store.
+2026-09-13 19:35:43.564 +08:00 [INF] Saved 13 entities to in-memory store.
+2026-09-13 19:35:43.565 +08:00 [INF] 已初始化管理员账号 admin / 123456 与系统菜单
+2026-09-13 19:35:43.565 +08:00 [INF] 已初始化管理员账号 admin / 123456 与系统菜单
+2026-09-13 19:35:43.565 +08:00 [INF] 已初始化管理员账号 admin / 123456 与系统菜单
+2026-09-13 19:35:43.671 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.671 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.671 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.672 +08:00 [INF] 已写入示例定时任务 cleanup-refresh
+2026-09-13 19:35:43.672 +08:00 [INF] 已写入示例定时任务 cleanup-refresh
+2026-09-13 19:35:43.672 +08:00 [INF] 已写入示例定时任务 cleanup-refresh
+2026-09-13 19:35:43.690 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.690 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.690 +08:00 [INF] 已创建顶级菜单目录「设备通讯」
+2026-09-13 19:35:43.690 +08:00 [INF] 已创建顶级菜单目录「设备通讯」
+2026-09-13 19:35:43.690 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.690 +08:00 [INF] 已创建顶级菜单目录「设备通讯」
+2026-09-13 19:35:43.693 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.693 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.693 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.696 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.696 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.696 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.699 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.699 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.699 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.701 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.701 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.702 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.703 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.704 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.704 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.706 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.706 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.706 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.709 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.709 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.709 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.711 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.711 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.711 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.711 +08:00 [INF] 设备通讯菜单：新增 4，迁移归类 0
+2026-09-13 19:35:43.711 +08:00 [INF] 设备通讯菜单：新增 4，迁移归类 0
+2026-09-13 19:35:43.711 +08:00 [INF] 设备通讯菜单：新增 4，迁移归类 0
+2026-09-13 19:35:43.732 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.732 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.732 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.733 +08:00 [INF] 已创建菜单目录「仓储WMS」(ParentId=0)
+2026-09-13 19:35:43.733 +08:00 [INF] 已创建菜单目录「仓储WMS」(ParentId=0)
+2026-09-13 19:35:43.733 +08:00 [INF] 已创建菜单目录「仓储WMS」(ParentId=0)
+2026-09-13 19:35:43.735 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.735 +08:00 [INF] 已创建菜单目录「立库WCS」(ParentId=0)
+2026-09-13 19:35:43.735 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.735 +08:00 [INF] 已创建菜单目录「立库WCS」(ParentId=0)
+2026-09-13 19:35:43.735 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.735 +08:00 [INF] 已创建菜单目录「立库WCS」(ParentId=0)
+2026-09-13 19:35:43.738 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.738 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.738 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.738 +08:00 [INF] 已创建菜单目录「四向车WCS」(ParentId=0)
+2026-09-13 19:35:43.738 +08:00 [INF] 已创建菜单目录「四向车WCS」(ParentId=0)
+2026-09-13 19:35:43.738 +08:00 [INF] 已创建菜单目录「四向车WCS」(ParentId=0)
+2026-09-13 19:35:43.741 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.741 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.741 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.741 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=20)
+2026-09-13 19:35:43.741 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=20)
+2026-09-13 19:35:43.741 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=20)
+2026-09-13 19:35:43.744 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.744 +08:00 [INF] 已创建菜单目录「库存容器」(ParentId=20)
+2026-09-13 19:35:43.744 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.744 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.744 +08:00 [INF] 已创建菜单目录「库存容器」(ParentId=20)
+2026-09-13 19:35:43.744 +08:00 [INF] 已创建菜单目录「库存容器」(ParentId=20)
+2026-09-13 19:35:43.746 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.747 +08:00 [INF] 已创建菜单目录「单据作业」(ParentId=20)
+2026-09-13 19:35:43.747 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.747 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.747 +08:00 [INF] 已创建菜单目录「单据作业」(ParentId=20)
+2026-09-13 19:35:43.747 +08:00 [INF] 已创建菜单目录「单据作业」(ParentId=20)
+2026-09-13 19:35:43.749 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.749 +08:00 [INF] 已创建菜单目录「运维」(ParentId=21)
+2026-09-13 19:35:43.749 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.749 +08:00 [INF] 已创建菜单目录「运维」(ParentId=21)
+2026-09-13 19:35:43.749 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.750 +08:00 [INF] 已创建菜单目录「运维」(ParentId=21)
+2026-09-13 19:35:43.752 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.752 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.752 +08:00 [INF] 已创建菜单目录「仿真」(ParentId=21)
+2026-09-13 19:35:43.752 +08:00 [INF] 已创建菜单目录「仿真」(ParentId=21)
+2026-09-13 19:35:43.753 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.753 +08:00 [INF] 已创建菜单目录「仿真」(ParentId=21)
+2026-09-13 19:35:43.755 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.755 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.755 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.755 +08:00 [INF] 已创建菜单目录「策略」(ParentId=21)
+2026-09-13 19:35:43.755 +08:00 [INF] 已创建菜单目录「策略」(ParentId=21)
+2026-09-13 19:35:43.755 +08:00 [INF] 已创建菜单目录「策略」(ParentId=21)
+2026-09-13 19:35:43.759 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.759 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.759 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.759 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=21)
+2026-09-13 19:35:43.759 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=21)
+2026-09-13 19:35:43.759 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=21)
+2026-09-13 19:35:43.762 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.762 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.762 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.762 +08:00 [INF] 已创建菜单目录「任务」(ParentId=21)
+2026-09-13 19:35:43.762 +08:00 [INF] 已创建菜单目录「任务」(ParentId=21)
+2026-09-13 19:35:43.762 +08:00 [INF] 已创建菜单目录「任务」(ParentId=21)
+2026-09-13 19:35:43.765 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.765 +08:00 [INF] 已创建菜单目录「运维」(ParentId=22)
+2026-09-13 19:35:43.766 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.766 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.766 +08:00 [INF] 已创建菜单目录「运维」(ParentId=22)
+2026-09-13 19:35:43.766 +08:00 [INF] 已创建菜单目录「运维」(ParentId=22)
+2026-09-13 19:35:43.768 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.768 +08:00 [INF] 已创建菜单目录「仿真」(ParentId=22)
+2026-09-13 19:35:43.769 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.769 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.769 +08:00 [INF] 已创建菜单目录「仿真」(ParentId=22)
+2026-09-13 19:35:43.769 +08:00 [INF] 已创建菜单目录「仿真」(ParentId=22)
+2026-09-13 19:35:43.771 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.771 +08:00 [INF] 已创建菜单目录「策略」(ParentId=22)
+2026-09-13 19:35:43.772 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.772 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.772 +08:00 [INF] 已创建菜单目录「策略」(ParentId=22)
+2026-09-13 19:35:43.772 +08:00 [INF] 已创建菜单目录「策略」(ParentId=22)
+2026-09-13 19:35:43.774 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.774 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=22)
+2026-09-13 19:35:43.775 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.775 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.775 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=22)
+2026-09-13 19:35:43.775 +08:00 [INF] 已创建菜单目录「主数据」(ParentId=22)
+2026-09-13 19:35:43.776 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.777 +08:00 [INF] 已创建菜单目录「任务」(ParentId=22)
+2026-09-13 19:35:43.778 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.778 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.778 +08:00 [INF] 已创建菜单目录「任务」(ParentId=22)
+2026-09-13 19:35:43.778 +08:00 [INF] 已创建菜单目录「任务」(ParentId=22)
+2026-09-13 19:35:43.805 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.805 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.805 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.808 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.809 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.809 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.812 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.812 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.812 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.815 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.815 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.815 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.818 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.818 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.823 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.824 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.827 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.827 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.830 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.832 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.833 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.834 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.836 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.836 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.840 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.842 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.842 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.843 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.845 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.845 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.846 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.848 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.849 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.849 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.851 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.852 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.853 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.856 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.856 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.857 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.862 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.862 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.864 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.866 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.866 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.867 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.870 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.870 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.871 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.874 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.875 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.875 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.878 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.879 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.879 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.881 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.882 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.882 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.885 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.887 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.888 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.888 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.892 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.892 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.893 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.897 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.897 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.897 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.904 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.904 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.904 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.908 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.908 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.913 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.913 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.913 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.917 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.917 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.917 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.921 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.922 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.922 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.930 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.930 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.931 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.934 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.934 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.937 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.940 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.941 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.945 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.945 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.946 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.950 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.954 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.957 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.961 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.961 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.963 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.966 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.966 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.966 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.970 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.971 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.971 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.976 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.976 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.977 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.981 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.981 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.982 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.987 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.987 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.991 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.993 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.993 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:43.998 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.002 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.002 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.006 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.012 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.012 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.013 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.015 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.015 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.016 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.017 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.017 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.020 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.021 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.023 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.023 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.024 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.025 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.027 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.027 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.028 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.030 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.030 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.030 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.032 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.032 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.032 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.035 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.036 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.036 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.038 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.039 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.040 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.046 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.047 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.047 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.048 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.050 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.050 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.051 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.052 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.055 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.056 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.056 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.058 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.059 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.060 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.061 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.062 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.062 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.064 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.064 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.065 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.068 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.070 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.071 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.072 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.074 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.075 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.075 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.078 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.078 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.078 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.080 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.081 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.081 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.084 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.084 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.084 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.093 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.093 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.094 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.096 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.096 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.097 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.098 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.099 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.100 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.102 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.103 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.103 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.105 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.105 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.106 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.109 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.109 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.109 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.112 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.112 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.112 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.115 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.115 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.115 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.117 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.118 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.118 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.123 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.123 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.124 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.126 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.126 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.127 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.129 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.129 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.130 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.132 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.132 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.133 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.136 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.137 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.137 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.139 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.140 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.140 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.143 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.143 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.144 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.146 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.146 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.147 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.151 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.151 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.153 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.155 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.157 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.157 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.160 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.160 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.160 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.162 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.163 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.163 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.164 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.166 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.166 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.166 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.169 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.170 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.170 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.172 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.173 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.174 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.175 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.176 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.177 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.180 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.182 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.182 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.184 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.186 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.186 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.188 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.189 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.189 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.191 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.192 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.192 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.195 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.195 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.195 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.198 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.198 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.199 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.201 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.202 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.202 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.204 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.207 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.207 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.208 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.211 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.211 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.212 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.213 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.213 +08:00 [INF] WMS/WCS 菜单：新增 51，补授权 0
+2026-09-13 19:35:44.214 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.215 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.218 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.219 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.222 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.223 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.223 +08:00 [INF] WMS/WCS 菜单：新增 51，补授权 0
+2026-09-13 19:35:44.226 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.228 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.230 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.234 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.238 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.241 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.247 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.249 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.251 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.254 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.254 +08:00 [INF] 已创建菜单目录「业务扩展」
+2026-09-13 19:35:44.254 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.254 +08:00 [INF] 已创建菜单目录「业务扩展」
+2026-09-13 19:35:44.255 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.255 +08:00 [INF] WMS/WCS 菜单：新增 51，补授权 0
+2026-09-13 19:35:44.260 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.260 +08:00 [INF] 已创建菜单目录「业务扩展」
+2026-09-13 19:35:44.280 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.280 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.280 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.280 +08:00 [INF] 已创建业务扩展菜单「仓内调拨」
+2026-09-13 19:35:44.280 +08:00 [INF] 已创建业务扩展菜单「仓内调拨」
+2026-09-13 19:35:44.280 +08:00 [INF] 已创建业务扩展菜单「仓内调拨」
+2026-09-13 19:35:44.282 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.283 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.283 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:44.315 +08:00 [INF] Request starting HTTP/1.1 GET http://localhost/metrics - null null
+2026-09-13 19:35:44.315 +08:00 [INF] Request starting HTTP/1.1 GET http://localhost/health - null null
+2026-09-13 19:35:44.316 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Sys_User/getPageData - application/json; charset=utf-8 20
+2026-09-13 19:35:44.442 +08:00 [INF] Executing endpoint 'Health checks'
+2026-09-13 19:35:44.444 +08:00 [INF] Executing endpoint 'Prometheus metrics'
+2026-09-13 19:35:44.445 +08:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+Seven.Infrastructure.Security.PermissionRequirement
+Seven.Infrastructure.Security.PermissionRequirement
+2026-09-13 19:35:44.448 +08:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-09-13 19:35:44.449 +08:00 [INF] POST /api/Sys_User/getPageData => 401 (44ms)
+2026-09-13 19:35:44.502 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Sys_User/getPageData - 401 null null 187.8012ms
+2026-09-13 19:35:44.532 +08:00 [INF] Executed endpoint 'Health checks'
+2026-09-13 19:35:44.551 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Auth/login - application/json; charset=utf-8 48
+2026-09-13 19:35:44.551 +08:00 [INF] GET /health => 200 (146ms)
+2026-09-13 19:35:44.554 +08:00 [INF] Request finished HTTP/1.1 GET http://localhost/health - 200 null application/json 241.0728ms
+2026-09-13 19:35:44.563 +08:00 [INF] Executed endpoint 'Prometheus metrics'
+2026-09-13 19:35:44.565 +08:00 [INF] GET /metrics => 200 (164ms)
+2026-09-13 19:35:44.565 +08:00 [INF] Request finished HTTP/1.1 GET http://localhost/metrics - 200 null text/plain; version=0.0.4; charset=utf-8 251.5747ms
+2026-09-13 19:35:44.574 +08:00 [INF] Request starting HTTP/1.1 GET http://localhost/api/Health - null null
+2026-09-13 19:35:44.577 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.HealthController.Get (Seven.WebApi)'
+2026-09-13 19:35:44.579 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:44.595 +08:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Seven.Domain.Common.WebResponseContent] Login(Seven.WebApi.Controllers.LoginRequest, System.Threading.CancellationToken) on controller Seven.WebApi.Controllers.AuthController (Seven.WebApi).
+2026-09-13 19:35:44.599 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:44.621 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.HealthController.Get (Seven.WebApi)'
+2026-09-13 19:35:44.622 +08:00 [INF] GET /api/Health => 200 (45ms)
+2026-09-13 19:35:44.623 +08:00 [INF] Request finished HTTP/1.1 GET http://localhost/api/Health - 200 null application/json; charset=utf-8 49.2819ms
+2026-09-13 19:35:44.647 +08:00 [INF] Request starting HTTP/1.1 GET http://localhost/health-ui - null null
+2026-09-13 19:35:44.655 +08:00 [INF] Executing endpoint 'HTTP: GET /health-ui'
+2026-09-13 19:35:44.659 +08:00 [INF] Executed endpoint 'HTTP: GET /health-ui'
+2026-09-13 19:35:44.659 +08:00 [INF] GET /health-ui => 200 (11ms)
+2026-09-13 19:35:44.659 +08:00 [INF] Request finished HTTP/1.1 GET http://localhost/health-ui - 200 null text/html 12.6488ms
+2026-09-13 19:35:45.062 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:45.064 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:45.065 +08:00 [INF] Executed action Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi) in 469.9617ms
+2026-09-13 19:35:45.065 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:45.066 +08:00 [INF] POST /api/Auth/login => 200 (496ms)
+2026-09-13 19:35:45.066 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Auth/login - 200 null application/json; charset=utf-8 533.3347ms
+2026-09-13 19:35:45.071 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Auth/login - application/json; charset=utf-8 40
+2026-09-13 19:35:45.074 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:45.075 +08:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Seven.Domain.Common.WebResponseContent] Login(Seven.WebApi.Controllers.LoginRequest, System.Threading.CancellationToken) on controller Seven.WebApi.Controllers.AuthController (Seven.WebApi).
+2026-09-13 19:35:45.501 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:45.533 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:45.533 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:45.539 +08:00 [INF] Executed action Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi) in 464.0876ms
+2026-09-13 19:35:45.539 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:45.540 +08:00 [INF] POST /api/Auth/login => 200 (466ms)
+2026-09-13 19:35:45.540 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Auth/login - 200 null application/json; charset=utf-8 468.6901ms
+2026-09-13 19:35:45.545 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Auth/login - application/json; charset=utf-8 40
+2026-09-13 19:35:45.547 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:45.547 +08:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Seven.Domain.Common.WebResponseContent] Login(Seven.WebApi.Controllers.LoginRequest, System.Threading.CancellationToken) on controller Seven.WebApi.Controllers.AuthController (Seven.WebApi).
+2026-09-13 19:35:46.062 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:46.067 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:46.067 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:46.081 +08:00 [INF] Executed action Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi) in 533.7371ms
+2026-09-13 19:35:46.081 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:46.081 +08:00 [INF] POST /api/Auth/login => 200 (535ms)
+2026-09-13 19:35:46.081 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Auth/login - 200 null application/json; charset=utf-8 536.1108ms
+2026-09-13 19:35:46.098 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Auth/refresh - application/json; charset=utf-8 51
+2026-09-13 19:35:46.099 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.AuthController.Refresh (Seven.WebApi)'
+2026-09-13 19:35:46.109 +08:00 [INF] Route matched with {action = "Refresh", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Seven.Domain.Common.WebResponseContent] Refresh(Seven.WebApi.Controllers.RefreshRequest, System.Threading.CancellationToken) on controller Seven.WebApi.Controllers.AuthController (Seven.WebApi).
+2026-09-13 19:35:46.115 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:46.116 +08:00 [INF] Executed action Seven.WebApi.Controllers.AuthController.Refresh (Seven.WebApi) in 7.4041ms
+2026-09-13 19:35:46.116 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.AuthController.Refresh (Seven.WebApi)'
+2026-09-13 19:35:46.117 +08:00 [INF] POST /api/Auth/refresh => 200 (17ms)
+2026-09-13 19:35:46.117 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Auth/refresh - 200 null application/json; charset=utf-8 18.5747ms
+2026-09-13 19:35:46.157 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Auth/login - application/json; charset=utf-8 40
+2026-09-13 19:35:46.158 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:46.158 +08:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Seven.Domain.Common.WebResponseContent] Login(Seven.WebApi.Controllers.LoginRequest, System.Threading.CancellationToken) on controller Seven.WebApi.Controllers.AuthController (Seven.WebApi).
+2026-09-13 19:35:46.527 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:46.532 +08:00 [INF] Saved 1 entities to in-memory store.
+2026-09-13 19:35:46.532 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:46.532 +08:00 [INF] Executed action Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi) in 374.21ms
+2026-09-13 19:35:46.533 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.AuthController.Login (Seven.WebApi)'
+2026-09-13 19:35:46.533 +08:00 [INF] POST /api/Auth/login => 200 (375ms)
+2026-09-13 19:35:46.533 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Auth/login - 200 null application/json; charset=utf-8 376.1055ms
+2026-09-13 19:35:46.534 +08:00 [INF] Request starting HTTP/1.1 POST http://localhost/api/Sys_User/getPageData - application/json; charset=utf-8 20
+2026-09-13 19:35:46.593 +08:00 [INF] Executing endpoint 'Seven.WebApi.Controllers.Sys_UserController.GetPageData (Seven.WebApi)'
+2026-09-13 19:35:46.597 +08:00 [INF] Route matched with {action = "GetPageData", controller = "Sys_User"}. Executing controller action with signature System.Threading.Tasks.Task`1[Seven.Domain.Common.WebResponseContent] GetPageData(Seven.Domain.Common.PageDataOptions, System.Threading.CancellationToken) on controller Seven.WebApi.Controllers.Sys_UserController (Seven.WebApi).
+2026-09-13 19:35:46.629 +08:00 [INF] Executing ObjectResult, writing value of type 'Seven.Domain.Common.WebResponseContent'.
+2026-09-13 19:35:46.647 +08:00 [INF] Executed action Seven.WebApi.Controllers.Sys_UserController.GetPageData (Seven.WebApi) in 49.8644ms
+2026-09-13 19:35:46.647 +08:00 [INF] Executed endpoint 'Seven.WebApi.Controllers.Sys_UserController.GetPageData (Seven.WebApi)'
+2026-09-13 19:35:46.647 +08:00 [INF] POST /api/Sys_User/getPageData => 200 (111ms)
+2026-09-13 19:35:46.647 +08:00 [INF] Request finished HTTP/1.1 POST http://localhost/api/Sys_User/getPageData - 200 null application/json; charset=utf-8 113.1222ms

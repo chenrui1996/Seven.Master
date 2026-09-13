@@ -1,0 +1,86 @@
+﻿[
+    {
+        "CaseId":  "TC-COV-000",
+        "Title":  "Login",
+        "Status":  "PASS",
+        "Detail":  "COV-20260913-210902"
+    },
+    {
+        "CaseId":  "TC-COV-MD-001",
+        "Title":  "WMS Zone/Layer/Aisle/ContainerType/Locations",
+        "Status":  "PASS",
+        "Detail":  "seeded"
+    },
+    {
+        "CaseId":  "TC-COV-MD-002",
+        "Title":  "HandoverLink",
+        "Status":  "PASS",
+        "Detail":  "Stk.HO-01"
+    },
+    {
+        "CaseId":  "TC-COV-STK-MD",
+        "Title":  "Stacker policy/route/profile/coder/RP",
+        "Status":  "PASS",
+        "Detail":  "seeded"
+    },
+    {
+        "CaseId":  "TC-COV-FW-MD",
+        "Title":  "FourWay map/policy/RP/parking/hoist",
+        "Status":  "PASS",
+        "Detail":  "seeded"
+    },
+    {
+        "CaseId":  "TC-COV-STK-IN",
+        "Title":  "Stacker inbound allocate+trigger",
+        "Status":  "FAIL",
+        "Detail":  "stk buildPallet HTTP 400 {\"status\":false,\"code\":\"BUS.DOMAIN\",\"message\":\"Planning failed: no pack or handover for route\",\"traceId\":\"97a57a676e23407783f69e48b7dff6c9\",\"data\":null}"
+    },
+    {
+        "CaseId":  "TC-COV-FW-IN",
+        "Title":  "FourWay inbound allocate+trigger",
+        "Status":  "PASS",
+        "Detail":  "put=0 shuttle=0"
+    },
+    {
+        "CaseId":  "TC-COV-PICK",
+        "Title":  "generatePicks",
+        "Status":  "PASS",
+        "Detail":  "ok"
+    },
+    {
+        "CaseId":  "TC-COV-STK-OUT",
+        "Title":  "Outbound approve/ship",
+        "Status":  "PASS",
+        "Detail":  "shipped"
+    },
+    {
+        "CaseId":  "TC-COV-XFER",
+        "Title":  "TransferOrder complete",
+        "Status":  "PASS",
+        "Detail":  "COV-XFER-20260913-210902"
+    },
+    {
+        "CaseId":  "TC-COV-CTL",
+        "Title":  "Ctl_Mode via Ops",
+        "Status":  "PASS",
+        "Detail":  "ok"
+    },
+    {
+        "CaseId":  "TC-COV-SCD",
+        "Title":  "Scd_View seed",
+        "Status":  "PASS",
+        "Detail":  "COV-VIEW-01"
+    },
+    {
+        "CaseId":  "TC-COV-IFC",
+        "Title":  "InterfaceLog readable",
+        "Status":  "PASS",
+        "Detail":  "total=0"
+    },
+    {
+        "CaseId":  "TC-COV-OPT-DC",
+        "Title":  "CommConnection",
+        "Status":  "SKIP",
+        "Detail":  "feature off or no API"
+    }
+]

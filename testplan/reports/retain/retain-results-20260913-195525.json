@@ -1,0 +1,72 @@
+﻿[
+    {
+        "CaseId":  "TC-RETAIN-000",
+        "Title":  "Login for retain run",
+        "Status":  "PASS",
+        "Detail":  "RETAIN-20260913-195525",
+        "At":  "2026-09-13T19:55:25.9236821+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-001",
+        "Title":  "Seed warehouse + locations",
+        "Status":  "PASS",
+        "Detail":  "whId=1 recv=1 stkA=2",
+        "At":  "2026-09-13T19:55:26.0292589+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-002",
+        "Title":  "Inbound same-loc complete (KEEP)",
+        "Status":  "PASS",
+        "Detail":  "id=4 status=Completed container=RETAIN-TP-20260913-195525-01",
+        "At":  "2026-09-13T19:55:27.4150556+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-003",
+        "Title":  "Second inbound pallet (KEEP)",
+        "Status":  "PASS",
+        "Detail":  "id=5 qty=20 RETAIN-TP-20260913-195525-02",
+        "At":  "2026-09-13T19:55:28.0594601+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-004",
+        "Title":  "Outbound ship (KEEP order)",
+        "Status":  "PASS",
+        "Detail":  "id=2 shipped 10 from RETAIN-TP-20260913-195525-01",
+        "At":  "2026-09-13T19:55:28.7314389+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-005",
+        "Title":  "Cycle count adjust KEEP",
+        "Status":  "PASS",
+        "Detail":  "id=2 countQty=25 on RETAIN-TP-20260913-195525-02",
+        "At":  "2026-09-13T19:55:29.2601534+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-006",
+        "Title":  "Request point seed + Ops toggle KEEP",
+        "Status":  "PASS",
+        "Detail":  "id=1",
+        "At":  "2026-09-13T19:55:29.3832887+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-007",
+        "Title":  "Menu IA no legacy ops",
+        "Status":  "PASS",
+        "Detail":  "ok",
+        "At":  "2026-09-13T19:55:29.4573418+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-009",
+        "Title":  "FourWay ops inbound (optional)",
+        "Status":  "SKIP",
+        "Detail":  "no gateways/layers in live DB",
+        "At":  "2026-09-13T19:55:29.5420234+08:00"
+    },
+    {
+        "CaseId":  "TC-RETAIN-010",
+        "Title":  "Stock snapshot retained",
+        "Status":  "PASS",
+        "Detail":  "rows=2",
+        "At":  "2026-09-13T19:55:29.5784895+08:00"
+    }
+]

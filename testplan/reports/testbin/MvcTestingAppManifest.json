@@ -1,0 +1,8 @@
+{
+  "Seven.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\Junheinrich\\Junheinrich.Master\\Seven.Master\\Seven.Net8\\Seven.Application",
+  "Seven.Builder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\Junheinrich\\Junheinrich.Master\\Seven.Master\\Seven.Net8\\Seven.Builder",
+  "Seven.Business, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\Junheinrich\\Junheinrich.Master\\Seven.Master\\Seven.Net8\\Seven.Business",
+  "Seven.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\Junheinrich\\Junheinrich.Master\\Seven.Master\\Seven.Net8\\Seven.Domain",
+  "Seven.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\Junheinrich\\Junheinrich.Master\\Seven.Master\\Seven.Net8\\Seven.Infrastructure",
+  "Seven.WebApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\Junheinrich\\Junheinrich.Master\\Seven.Master\\Seven.Net8\\Seven.WebApi"
+}
